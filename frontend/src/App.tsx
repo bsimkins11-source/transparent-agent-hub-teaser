@@ -2,6 +2,8 @@ import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
+import AgentLibraryPage from './pages/AgentLibraryPage'
+import MyAgentsPage from './pages/MyAgentsPage'
 import AgentPage from './pages/AgentPage'
 import AdminPage from './pages/AdminPage'
 import LoginPage from './pages/LoginPage'
@@ -13,6 +15,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
+            <Route path="agents" element={<AgentLibraryPage />} />
+            <Route path="my-agents" element={<MyAgentsPage />} />
             <Route path="agents/:agentId" element={<AgentPage />} />
             <Route path="admin" element={<AdminPage />} />
             <Route path="login" element={<LoginPage />} />

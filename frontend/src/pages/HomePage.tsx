@@ -1,44 +1,16 @@
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import AgentCard from '../components/AgentCard'
-import FilterBar from '../components/FilterBar'
-import { Agent } from '../types/agent'
-import { fetchAgents } from '../services/api'
+import { useAuth } from '../contexts/AuthContext'
+import { 
+  SparklesIcon,
+  BookOpenIcon,
+  UserIcon,
+  ArrowRightIcon
+} from '@heroicons/react/24/outline'
 
 export default function HomePage() {
-  const [agents, setAgents] = useState<Agent[]>([])
-  const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState({
-    category: '',
-    provider: '',
-    search: ''
-  })
-
-  useEffect(() => {
-    loadAgents()
-  }, [])
-
-  const loadAgents = async () => {
-    try {
-      setLoading(true)
-      const data = await fetchAgents()
-      setAgents(data.agents || [])
-    } catch (error) {
-      console.error('Failed to load agents:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const filteredAgents = agents.filter(agent => {
-    const matchesCategory = !filters.category || agent.metadata?.category === filters.category
-    const matchesProvider = !filters.provider || agent.provider === filters.provider
-    const matchesSearch = !filters.search || 
-      agent.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-      agent.description.toLowerCase().includes(filters.search.toLowerCase())
-    
-    return matchesCategory && matchesProvider && matchesSearch
-  })
+  const { currentUser } = useAuth()
 
   return (
     <div className="min-h-screen">
@@ -52,22 +24,22 @@ export default function HomePage() {
             className="text-center"
           >
             <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Discover{' '}
+              Welcome to{' '}
               <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                AI Agents
+                Transparent Agent Hub
               </span>
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Explore our curated collection of intelligent agents designed to enhance your workflow 
-              and boost productivity with transparent, reliable AI solutions.
+              Discover, interact with, and manage AI agents designed to enhance your workflow 
+              with transparent, reliable AI solutions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="btn-primary text-lg px-8 py-3">
+              <Link to="/agents" className="btn-primary text-lg px-8 py-3">
                 Explore Agents
-              </button>
-              <button className="btn-secondary text-lg px-8 py-3">
+              </Link>
+              <Link to="/about" className="btn-secondary text-lg px-8 py-3">
                 Learn More
-              </button>
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -79,50 +51,78 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Agents Section */}
+      {/* Main Tiles Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Filters */}
-          <FilterBar filters={filters} onFiltersChange={setFilters} />
-          
-          {/* Agents Grid */}
-          {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-          ) : (
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              className="mt-12"
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="text-center mb-12"
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Get Started
+            </h2>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Choose your path to start exploring AI agents
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Agent Library Tile */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
             >
-              {filteredAgents.length === 0 ? (
-                <div className="text-center py-20">
-                  <div className="text-gray-400 text-6xl mb-4">🤖</div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    No agents found
+              <Link to="/agents">
+                <div className="agent-card h-full p-8 text-center group">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-6">
+                    <BookOpenIcon className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                    Agent Library
                   </h3>
-                  <p className="text-gray-600">
-                    Try adjusting your filters or check back later for new agents.
+                  <p className="text-gray-600 mb-6">
+                    Browse our curated collection of AI agents. Discover tools for productivity, 
+                    analytics, communication, and more.
                   </p>
+                  <div className="flex items-center justify-center space-x-2 text-blue-600 font-medium">
+                    <span>Explore Library</span>
+                    <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredAgents.map((agent, index) => (
-                    <motion.div
-                      key={agent.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                    >
-                      <AgentCard agent={agent} />
-                    </motion.div>
-                  ))}
-                </div>
-              )}
+              </Link>
             </motion.div>
-          )}
+
+            {/* My Agents Tile */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              <Link to={currentUser ? "/my-agents" : "/login"}>
+                <div className="agent-card h-full p-8 text-center group">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center mx-auto mb-6">
+                    <UserIcon className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                    My Agents
+                  </h3>
+                  <p className="text-gray-600 mb-6">
+                    {currentUser 
+                      ? "Access your personalized agent collection and interaction history."
+                      : "Sign in to access your personalized agents and track your usage."
+                    }
+                  </p>
+                  <div className="flex items-center justify-center space-x-2 text-green-600 font-medium">
+                    <span>{currentUser ? "View My Agents" : "Sign In"}</span>
+                    <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          </div>
         </div>
       </section>
 
