@@ -34,7 +34,7 @@
   }
   
   .agent-card {
-    @apply card p-6 hover:shadow-large transition-all duration-200 cursor-pointer group;
+    @apply card p-6 hover:shadow-large transition-all duration-200 cursor-pointer;
   }
   
   .agent-card:hover {

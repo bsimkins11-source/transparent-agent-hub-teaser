@@ -30,7 +30,7 @@ export default function AgentCard({ agent }: AgentCardProps) {
       transition={{ duration: 0.2 }}
     >
       <Link to={`/agents/${agent.id}`}>
-        <div className="agent-card h-full flex flex-col">
+        <div className="agent-card h-full flex flex-col group">
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-2">
