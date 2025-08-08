@@ -1,0 +1,26 @@
+import { Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import Layout from './components/Layout'
+import HomePage from './pages/HomePage'
+import AgentPage from './pages/AgentPage'
+import AdminPage from './pages/AdminPage'
+import LoginPage from './pages/LoginPage'
+
+function App() {
+  return (
+    <AuthProvider>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route path="agents/:agentId" element={<AgentPage />} />
+            <Route path="admin" element={<AdminPage />} />
+            <Route path="login" element={<LoginPage />} />
+          </Route>
+        </Routes>
+      </div>
+    </AuthProvider>
+  )
+}
+
+export default App
