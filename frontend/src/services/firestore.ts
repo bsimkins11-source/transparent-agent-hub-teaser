@@ -33,7 +33,9 @@ export const fetchAgentsFromFirestore = async (filters?: any): Promise<{ agents:
         route: data.route,
         metadata: {
           tags: data.metadata?.tags || [],
-          category: data.metadata?.category || 'General'
+          category: data.metadata?.category || 'General',
+          tier: data.metadata?.tier || 'free',
+          permissionType: data.metadata?.permissionType || 'direct'
         },
         visibility: data.visibility,
         allowedRoles: data.allowedRoles || [],
@@ -73,7 +75,9 @@ export const fetchAgentFromFirestore = async (id: string): Promise<Agent | null>
       route: data.route,
       metadata: {
         tags: data.metadata?.tags || [],
-        category: data.metadata?.category || 'General'
+        category: data.metadata?.category || 'General',
+        tier: data.metadata?.tier || 'free',
+        permissionType: data.metadata?.permissionType || 'direct'
       },
       visibility: data.visibility,
       allowedRoles: data.allowedRoles || [],

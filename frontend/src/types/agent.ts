@@ -7,6 +7,8 @@ export interface Agent {
   metadata: {
     tags: string[]
     category: string
+    tier?: 'free' | 'premium' | 'enterprise'
+    permissionType?: 'free' | 'direct' | 'approval'
   }
   visibility: 'public' | 'private'
   allowedRoles?: string[]
