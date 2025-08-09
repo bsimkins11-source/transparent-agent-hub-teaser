@@ -9,7 +9,7 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function Header() {
-  const { currentUser, logout } = useAuth()
+  const { currentUser, userProfile, logout } = useAuth()
   const location = useLocation()
 
   const handleLogout = async () => {
@@ -40,21 +40,49 @@ export default function Header() {
             </span>
           </Link>
 
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
-            {currentUser && (
-              <Link 
-                to="/admin" 
-                className={`text-sm font-medium transition-colors ${
-                  location.pathname === '/admin' 
-                    ? 'text-brand-600' 
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                Admin
-              </Link>
-            )}
-          </nav>
+                  {/* Navigation */}
+        <nav className="hidden md:flex items-center space-x-8">
+          {currentUser && userProfile && (
+            <>
+              {userProfile.role === 'super_admin' && (
+                <>
+                  <Link 
+                    to="/super-admin" 
+                    className={`text-sm font-medium transition-colors ${
+                      location.pathname === '/super-admin' 
+                        ? 'text-brand-600' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Super Admin
+                  </Link>
+                  <Link 
+                    to="/admin" 
+                    className={`text-sm font-medium transition-colors ${
+                      location.pathname === '/admin' 
+                        ? 'text-brand-600' 
+                        : 'text-gray-600 hover:text-gray-900'
+                    }`}
+                  >
+                    Company Admin
+                  </Link>
+                </>
+              )}
+              {userProfile.role === 'company_admin' && (
+                <Link 
+                  to="/admin" 
+                  className={`text-sm font-medium transition-colors ${
+                    location.pathname === '/admin' 
+                      ? 'text-brand-600' 
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  Company Admin
+                </Link>
+              )}
+            </>
+          )}
+        </nav>
 
           {/* User Menu */}
           <div className="flex items-center space-x-4">

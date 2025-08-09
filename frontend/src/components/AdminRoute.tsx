@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 
 interface AdminRouteProps {
   children: React.ReactNode
-  requiredRole?: 'super_admin' | 'company_admin'
+  requiredRole?: 'super_admin' | 'company_admin' | 'network_admin' | string[]
   fallbackPath?: string
 }
 
@@ -29,15 +29,30 @@ export default function AdminRoute({
   // Check role hierarchy
   const roleHierarchy = {
     'user': 0,
-    'company_admin': 1,
-    'super_admin': 2
+    'network_admin': 1,
+    'company_admin': 2,
+    'super_admin': 3
   }
   
-  const userRoleLevel = roleHierarchy[userProfile.role] || 0
-  const requiredLevel = roleHierarchy[requiredRole] || 0
-  
-  if (userRoleLevel < requiredLevel) {
-    return <Navigate to={fallbackPath} replace />
+  // Handle array of roles
+  if (Array.isArray(requiredRole)) {
+    const hasRequiredRole = requiredRole.some(role => {
+      const requiredLevel = roleHierarchy[role] || 0
+      const userRoleLevel = roleHierarchy[userProfile.role] || 0
+      return userRoleLevel >= requiredLevel
+    })
+    
+    if (!hasRequiredRole) {
+      return <Navigate to={fallbackPath} replace />
+    }
+  } else {
+    // Handle single role
+    const userRoleLevel = roleHierarchy[userProfile.role] || 0
+    const requiredLevel = roleHierarchy[requiredRole as string] || 0
+    
+    if (userRoleLevel < requiredLevel) {
+      return <Navigate to={fallbackPath} replace />
+    }
   }
   
   return <>{children}</>

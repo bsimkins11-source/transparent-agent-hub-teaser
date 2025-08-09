@@ -9,6 +9,10 @@ import {
 
 interface AgentCardProps {
   agent: Agent
+  companyBranding?: {
+    primaryColor: string
+    secondaryColor: string
+  }
 }
 
 const providerColors = {
@@ -23,7 +27,7 @@ const providerIcons = {
   anthropic: '🧠'
 }
 
-export default function AgentCard({ agent }: AgentCardProps) {
+export default function AgentCard({ agent, companyBranding }: AgentCardProps) {
   return (
     <motion.div
       whileHover={{ y: -4 }}
@@ -34,7 +38,14 @@ export default function AgentCard({ agent }: AgentCardProps) {
           {/* Header */}
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <div 
+                className="w-10 h-10 rounded-lg flex items-center justify-center"
+                style={{
+                  background: companyBranding 
+                    ? `linear-gradient(to bottom right, ${companyBranding.primaryColor}, ${companyBranding.secondaryColor})`
+                    : 'linear-gradient(to bottom right, #3B82F6, #8B5CF6)'
+                }}
+              >
                 <SparklesIcon className="w-6 h-6 text-white" />
               </div>
               <div>
