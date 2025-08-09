@@ -8,10 +8,12 @@ import {
   TrashIcon,
   MagnifyingGlassIcon,
   SwatchIcon,
-  PhotoIcon
+  PhotoIcon,
+  CubeIcon
 } from '@heroicons/react/24/outline';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import AgentManagement from '../components/AgentManagement';
 import StatCard from '../components/StatCard';
 import toast from 'react-hot-toast';
 
@@ -64,6 +66,9 @@ export default function SuperAdminDashboard() {
   // Global agent management state
   const [isGlobalAgentModalOpen, setIsGlobalAgentModalOpen] = useState(false);
   const [globalAgentSettings, setGlobalAgentSettings] = useState<{[agentId: string]: {enabled: boolean; defaultTier: 'free' | 'premium' | 'enterprise'; defaultAssignmentType: 'free' | 'direct' | 'approval'}}>({});
+  
+  // Agent management modal state
+  const [isAgentManagementModalOpen, setIsAgentManagementModalOpen] = useState(false);
   
   // New company form state
   const [newCompany, setNewCompany] = useState({
@@ -552,6 +557,28 @@ export default function SuperAdminDashboard() {
             <div className="text-sm text-gray-500">
               {Object.values(globalAgentSettings).filter(s => s.enabled).length} enabled agents • Global permission control
             </div>
+          </div>
+        </div>
+
+        {/* Agent Management Section */}
+        <div className="bg-white rounded-xl shadow-soft border border-gray-200 p-6 mb-12">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h3 className="text-xl font-semibold text-gray-900">Master Agent Library</h3>
+              <p className="text-gray-600 text-sm">
+                Add, edit, and manage all agents in the system
+              </p>
+            </div>
+            <button 
+              onClick={() => setIsAgentManagementModalOpen(true)}
+              className="btn-primary flex items-center space-x-2"
+            >
+              <CubeIcon className="w-5 h-5" />
+              <span>Manage Agents</span>
+            </button>
+          </div>
+          <div className="text-sm text-gray-500">
+            Create new agents, update existing ones, and control the master agent library that all organizations access.
           </div>
         </div>
 
@@ -1517,6 +1544,15 @@ export default function SuperAdminDashboard() {
                 Save Global Settings
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Agent Management Modal */}
+      {isAgentManagementModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-7xl max-h-[95vh] overflow-y-auto">
+            <AgentManagement onClose={() => setIsAgentManagementModalOpen(false)} />
           </div>
         </div>
       )}

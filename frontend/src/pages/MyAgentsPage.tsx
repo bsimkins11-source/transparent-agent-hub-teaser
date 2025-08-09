@@ -1,9 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { Link } from 'react-router-dom'
 import Sidebar from '../components/Sidebar'
 import StatCard from '../components/StatCard'
+import AgentCard from '../components/AgentCard'
+import { Agent } from '../types/agent'
+import { getUserAssignedAgents } from '../services/userLibraryService'
+import { fetchAgentsFromFirestore } from '../services/firestore'
 import { 
   UserIcon,
   ClockIcon,
@@ -15,8 +19,38 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function MyAgentsPage() {
-  const { currentUser } = useAuth()
-  const [loading] = useState(false) // No actual loading needed for static content
+  const { currentUser, userProfile } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [userAgents, setUserAgents] = useState<Agent[]>([])
+  const [allAgents, setAllAgents] = useState<Agent[]>([])
+  
+  useEffect(() => {
+    if (userProfile?.uid) {
+      loadUserAgents()
+    }
+  }, [userProfile])
+
+  const loadUserAgents = async () => {
+    try {
+      setLoading(true)
+      
+      // Get all agents from Firestore
+      const { agents } = await fetchAgentsFromFirestore()
+      setAllAgents(agents)
+      
+      // Get user's assigned agent IDs
+      const assignedAgentIds = await getUserAssignedAgents(userProfile!.uid)
+      
+      // Filter to get only assigned agents
+      const assignedAgents = agents.filter(agent => assignedAgentIds.includes(agent.id))
+      setUserAgents(assignedAgents)
+      
+    } catch (error) {
+      console.error('Failed to load user agents:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Temporarily allow access without authentication for design testing
   const isAuthenticated = currentUser
@@ -124,6 +158,72 @@ export default function MyAgentsPage() {
               iconColor="text-orange-600"
               changeColor="text-orange-600"
             />
+          </motion.div>
+
+          {/* User's Assigned Agents */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="card rounded-2xl p-8 mb-12"
+          >
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-xl font-semibold text-gray-900">
+                  Your Agent Library ({userAgents.length})
+                </h3>
+                <p className="text-gray-600">
+                  Agents available in your personal library
+                </p>
+              </div>
+              <Link 
+                to="/agents" 
+                className="flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-medium"
+              >
+                <PlusIcon className="w-4 h-4" />
+                <span>Add More Agents</span>
+              </Link>
+            </div>
+
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : userAgents.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-gray-400 text-6xl mb-4">🤖</div>
+                <h4 className="text-lg font-semibold text-gray-900 mb-2">
+                  No agents in your library yet
+                </h4>
+                <p className="text-gray-600 mb-6">
+                  Browse our agent marketplace to add your first AI assistant
+                </p>
+                <Link 
+                  to="/agents" 
+                  className="inline-flex items-center space-x-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <PlusIcon className="w-4 h-4" />
+                  <span>Browse Agents</span>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {userAgents.map((agent, index) => (
+                  <motion.div
+                    key={agent.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  >
+                    <AgentCard 
+                      agent={agent} 
+                      isInUserLibrary={true}
+                      showAddToLibrary={false}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </motion.div>
 
           {/* Main Actions Grid */}

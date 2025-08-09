@@ -12,6 +12,7 @@ import {
 } from 'firebase/auth'
 import { auth } from '../lib/firebase'
 import { logger } from '../utils/logger'
+import { createOrUpdateUserProfile as createUserProfileInFirestore } from '../services/userLibraryService'
 
 // Types
 export interface UserProfile {
@@ -128,6 +129,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         assignedAgents: []
       }
+      
+      // Create/update user profile in Firestore
+      await createUserProfileInFirestore(
+        user.uid,
+        user.email || '',
+        user.displayName || '',
+        organizationId,
+        organizationName
+      )
       
       setUserProfile(profile)
       logger.info('User profile updated', { role, email: user.email }, 'Auth')

@@ -5,6 +5,8 @@ import FilterBar from '../components/FilterBar'
 import { Agent } from '../types/agent'
 import { fetchAgentsFromFirestore } from '../services/firestore'
 import { useAuth } from '../contexts/AuthContext'
+import { addAgentToUserLibrary, getUserAssignedAgents } from '../services/userLibraryService'
+import toast from 'react-hot-toast'
 
 import { 
   MagnifyingGlassIcon,
@@ -29,23 +31,58 @@ export default function AgentLibraryPage() {
     loadUserLibrary()
   }, [userProfile])
 
-  const loadUserLibrary = () => {
-    // Mock user library data - in production this would come from Firestore
-    // Based on the user's assigned agents from their profile
-    const mockUserLibraryAgents = userProfile?.assignedAgents || [
-      'gemini-chat-agent', // Example: user already has Gemini in their library
-      'briefing-agent'     // Example: user already has Briefing agent
-    ]
-    setUserLibraryAgents(mockUserLibraryAgents)
+  const loadUserLibrary = async () => {
+    if (!userProfile?.uid) return
+    
+    try {
+      const assignedAgents = await getUserAssignedAgents(userProfile.uid)
+      setUserLibraryAgents(assignedAgents)
+    } catch (error) {
+      console.error('Failed to load user library:', error)
+      // Fallback to profile data if available
+      setUserLibraryAgents(userProfile?.assignedAgents || [])
+    }
   }
 
-  const handleAddToLibrary = (agent: Agent) => {
-    // Add agent to user's library
-    const updatedLibrary = [...userLibraryAgents, agent.id]
-    setUserLibraryAgents(updatedLibrary)
+  const handleAddToLibrary = async (agent: Agent) => {
+    if (!userProfile?.uid) {
+      toast.error('Please sign in to add agents to your library')
+      return
+    }
+
+    // Check if agent is free or premium
+    const tier = agent.metadata?.tier || 'free'
     
-    // In production, this would update the user's profile in Firestore
-    console.log(`Added ${agent.name} to user library`)
+    if (tier !== 'free') {
+      toast.error('Premium agents require admin approval. Please contact your administrator.')
+      return
+    }
+
+    try {
+      // Optimistically update UI
+      const updatedLibrary = [...userLibraryAgents, agent.id]
+      setUserLibraryAgents(updatedLibrary)
+      
+      // Add to Firestore
+      await addAgentToUserLibrary(
+        userProfile.uid,
+        userProfile.email,
+        userProfile.displayName,
+        agent.id,
+        agent.name,
+        userProfile.organizationId,
+        userProfile.organizationId === 'transparent-partners' ? 'consulting' : undefined, // Mock network assignment
+        `Self-assigned free agent from marketplace`
+      )
+      
+      toast.success(`${agent.name} added to your library!`)
+      
+    } catch (error) {
+      // Revert optimistic update on error
+      setUserLibraryAgents(userLibraryAgents)
+      console.error('Failed to add agent to library:', error)
+      toast.error('Failed to add agent to library. Please try again.')
+    }
   }
 
   const loadAgents = async () => {
