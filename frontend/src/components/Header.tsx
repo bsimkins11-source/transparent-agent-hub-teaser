@@ -50,7 +50,7 @@ export default function Header() {
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
-              Agents
+              Library
             </Link>
             {currentUser && (
               <Link 
