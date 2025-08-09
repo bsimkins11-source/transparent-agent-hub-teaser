@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { 
-  getAuth, 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
   updateProfile,
@@ -8,38 +7,21 @@ import {
   GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
-  User
+  User,
+  AuthError
 } from 'firebase/auth'
-import { initializeApp } from 'firebase/app'
+import { auth } from '../lib/firebase'
+import { logger } from '../utils/logger'
 
-// Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAf2KwetCFEARZiaBP_QW07JVT1_tfZ_IY",
-  authDomain: "ai-agent-hub-web-portal-79fb0.firebaseapp.com",
-  projectId: "ai-agent-hub-web-portal-79fb0",
-  storageBucket: "ai-agent-hub-web-portal-79fb0.firebasestorage.app",
-  messagingSenderId: "72861076114",
-  appId: "1:72861076114:web:1ea856ad05ef5f0eeef44b",
-  measurementId: "G-JHLXTCXEDR"
-}
-
-// Initialize Firebase
-console.log('🔥 Initializing Firebase with config:', firebaseConfig.projectId)
-const app = initializeApp(firebaseConfig)
-const auth = getAuth(app)
-console.log('🔐 Firebase Auth initialized')
-
-interface UserProfile {
+// Types
+export interface UserProfile {
   uid: string
   email: string
   displayName: string
-  photoURL: string
-  role: 'super_admin' | 'company_admin' | 'user'
-  organizationId: string
-  organizationName: string
+  role: 'user' | 'company_admin' | 'network_admin' | 'super_admin'
   permissions: {
+    canCreateAgents: boolean
     canManageUsers: boolean
-    canAssignAgents: boolean
     canManageOrganization: boolean
     canViewAnalytics: boolean
   }
@@ -56,9 +38,11 @@ interface AuthContextType {
   logout: () => Promise<void>
 }
 
+// Context
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-export function useAuth() {
+// Custom hook with proper error handling
+export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider')
@@ -66,12 +50,72 @@ export function useAuth() {
   return context
 }
 
+// Auth error handling utility
+const handleAuthError = (error: AuthError, operation: string): Error => {
+  logger.authError(`${operation} failed`, { code: error.code, message: error.message })
+  
+  const errorMessages: Record<string, string> = {
+    // Google Auth errors
+    'auth/popup-closed-by-user': 'Login was cancelled. Please try again.',
+    'auth/popup-blocked': 'Popup was blocked by browser. Please allow popups and try again.',
+    'auth/cancelled-popup-request': 'Another login attempt is in progress.',
+    'auth/operation-not-allowed': 'Google sign-in is not enabled. Please contact support.',
+    'auth/unauthorized-domain': 'This domain is not authorized. Please contact support.',
+    
+    // Email Auth errors
+    'auth/user-not-found': 'No account found with this email address.',
+    'auth/wrong-password': 'Incorrect password.',
+    'auth/invalid-email': 'Invalid email address.',
+    'auth/user-disabled': 'This account has been disabled.',
+    'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
+    'auth/email-already-in-use': 'An account with this email already exists.',
+    'auth/weak-password': 'Password should be at least 6 characters.',
+    
+    // Generic fallback
+    'default': `${operation} failed. Please try again.`
+  }
+  
+  return new Error(errorMessages[error.code] || errorMessages.default)
+}
+
+// Provider component
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  async function loginWithGoogle() {
+  // Create or update user profile in Firestore
+  const createOrUpdateUserProfile = useCallback(async (user: User): Promise<void> => {
+    try {
+      logger.debug('Creating/updating user profile', { uid: user.uid }, 'Auth')
+      
+      // Determine user role based on email domain
+      const role = user.email?.endsWith('@transparent.partners') ? 'super_admin' : 'user'
+      
+      const profile: UserProfile = {
+        uid: user.uid,
+        email: user.email || '',
+        displayName: user.displayName || '',
+        role,
+        permissions: {
+          canCreateAgents: role === 'super_admin',
+          canManageUsers: ['super_admin', 'company_admin', 'network_admin'].includes(role),
+          canManageOrganization: ['super_admin', 'company_admin'].includes(role),
+          canViewAnalytics: role !== 'user'
+        },
+        assignedAgents: []
+      }
+      
+      setUserProfile(profile)
+      logger.info('User profile updated', { role, email: user.email }, 'Auth')
+    } catch (error) {
+      logger.error('Failed to create user profile', error, 'Auth')
+      throw new Error('Failed to set up user profile')
+    }
+  }, [])
+
+  // Google authentication
+  const loginWithGoogle = useCallback(async (): Promise<void> => {
     const provider = new GoogleAuthProvider()
     provider.addScope('email')
     provider.addScope('profile')
@@ -80,204 +124,100 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })
     
     try {
-      console.log('🔐 Attempting Google login...')
-      console.log('🔥 Firebase Auth object:', auth)
-      console.log('🌐 Current domain:', window.location.hostname)
-      console.log('📝 Google provider configured:', provider)
+      logger.debug('Starting Google authentication', undefined, 'Auth')
       
       const result = await signInWithPopup(auth, provider)
       const user = result.user
       
-      console.log('✅ Google login successful:', user.email)
-      
-      // Create or update user profile
+      logger.authSuccess('Google authentication successful', { email: user.email })
       await createOrUpdateUserProfile(user)
-      
-      return result
-    } catch (error: any) {
-      console.error('❌ Google login error:', error)
-      console.error('❌ Error code:', error.code)
-      console.error('❌ Error message:', error.message)
-      console.error('❌ Full error object:', error)
-      
-      // More detailed error logging
-      if (error.code === 'auth/popup-closed-by-user') {
-        throw new Error('Login was cancelled. Please try again.')
-      } else if (error.code === 'auth/popup-blocked') {
-        throw new Error('Popup was blocked by browser. Please allow popups and try again.')
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        throw new Error('Another login attempt is in progress.')
-      } else if (error.code === 'auth/operation-not-allowed') {
-        throw new Error('🚨 Google sign-in is not enabled in Firebase Console. Please enable it!')
-      } else if (error.code === 'auth/unauthorized-domain') {
-        throw new Error('🚨 This domain is not authorized in Firebase Console. Please add it!')
-      } else {
-        throw new Error(`Login failed: ${error.code} - ${error.message}`)
-      }
+    } catch (error) {
+      throw handleAuthError(error as AuthError, 'Google login')
     }
-  }
+  }, [createOrUpdateUserProfile])
 
-  async function createOrUpdateUserProfile(user: User) {
-    if (!user.email) {
-      console.error('❌ No email found in user object')
-      return
-    }
-    
-    console.log('👤 Creating user profile for:', user.email)
-    
-    // Extract organization from email domain
-    const emailDomain = user.email.split('@')[1]
-    const organizationId = emailDomain.replace('.', '-')
-    
-    // Bootstrap: Check if this is the first user in the system
-    const role = await determineUserRole(user.email, user.uid)
-    
-    console.log('🔑 Assigned role:', role, 'for user:', user.email)
-    
-    const profile: UserProfile = {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName || user.email.split('@')[0],
-      photoURL: user.photoURL || '',
-      role,
-      organizationId,
-      organizationName: emailDomain === 'transparent.partners' ? 'Transparent Partners' : emailDomain,
-      permissions: getPermissionsForRole(role),
-      assignedAgents: []
-    }
-    
-    console.log('✅ User profile created:', profile)
-    setUserProfile(profile)
-  }
-
-  async function determineUserRole(email: string, uid: string): Promise<'super_admin' | 'company_admin' | 'user'> {
-    console.log('🔍 Determining role for email:', email)
-    
-    // Hardcoded super admin emails
-    const superAdminEmails = ['bryan.simkins@transparent.partners']
-    if (superAdminEmails.includes(email)) {
-      console.log('👑 Super admin detected:', email)
-      return 'super_admin'
-    }
-
-    // For now, skip the bootstrap API call since we don't have backend yet
-    // Just return user role for other emails
-    console.log('👤 Assigning user role to:', email)
-    return 'user'
-  }
-
-  function getPermissionsForRole(role: 'super_admin' | 'company_admin' | 'user') {
-    switch (role) {
-      case 'super_admin':
-        return {
-          canManageUsers: true,
-          canAssignAgents: true,
-          canManageOrganization: true,
-          canViewAnalytics: true
-        }
-      case 'company_admin':
-        return {
-          canManageUsers: true,
-          canAssignAgents: true,
-          canManageOrganization: false,
-          canViewAnalytics: true
-        }
-      default:
-        return {
-          canManageUsers: false,
-          canAssignAgents: false,
-          canManageOrganization: false,
-          canViewAnalytics: false
-        }
-    }
-  }
-
-  async function loginWithEmail(email: string, password: string) {
+  // Email/password login
+  const loginWithEmail = useCallback(async (email: string, password: string): Promise<void> => {
     try {
-      console.log('🔐 Attempting email/password login for:', email)
+      logger.debug('Starting email authentication', { email }, 'Auth')
       
       const result = await signInWithEmailAndPassword(auth, email, password)
       const user = result.user
       
-      console.log('✅ Email/password login successful:', user.email)
-      
-      // Create or update user profile
+      logger.authSuccess('Email authentication successful', { email: user.email })
       await createOrUpdateUserProfile(user)
-      
-      return result
-    } catch (error: any) {
-      console.error('❌ Email/password login error:', error)
-      
-      if (error.code === 'auth/user-not-found') {
-        throw new Error('No account found with this email address.')
-      } else if (error.code === 'auth/wrong-password') {
-        throw new Error('Incorrect password.')
-      } else if (error.code === 'auth/invalid-email') {
-        throw new Error('Invalid email address.')
-      } else if (error.code === 'auth/user-disabled') {
-        throw new Error('This account has been disabled.')
-      } else if (error.code === 'auth/too-many-requests') {
-        throw new Error('Too many failed attempts. Please try again later.')
-      } else {
-        throw new Error(`Login failed: ${error.message}`)
-      }
+    } catch (error) {
+      throw handleAuthError(error as AuthError, 'Email login')
     }
-  }
+  }, [createOrUpdateUserProfile])
 
-  async function registerWithEmail(email: string, password: string, displayName: string) {
+  // Email/password registration
+  const registerWithEmail = useCallback(async (
+    email: string, 
+    password: string, 
+    displayName: string
+  ): Promise<void> => {
     try {
-      console.log('🔐 Attempting email/password registration for:', email)
+      logger.debug('Starting email registration', { email }, 'Auth')
       
       const result = await createUserWithEmailAndPassword(auth, email, password)
       const user = result.user
       
-      // Update the user's display name
-      await updateProfile(user, {
-        displayName: displayName
-      })
+      await updateProfile(user, { displayName })
       
-      console.log('✅ Email/password registration successful:', user.email)
-      
-      // Create or update user profile
+      logger.authSuccess('Email registration successful', { email: user.email })
       await createOrUpdateUserProfile(user)
-      
-      return result
-    } catch (error: any) {
-      console.error('❌ Email/password registration error:', error)
-      
-      if (error.code === 'auth/email-already-in-use') {
-        throw new Error('An account with this email already exists.')
-      } else if (error.code === 'auth/invalid-email') {
-        throw new Error('Invalid email address.')
-      } else if (error.code === 'auth/weak-password') {
-        throw new Error('Password should be at least 6 characters.')
-      } else {
-        throw new Error(`Registration failed: ${error.message}`)
-      }
+    } catch (error) {
+      throw handleAuthError(error as AuthError, 'Email registration')
     }
-  }
+  }, [createOrUpdateUserProfile])
 
-  function logout() {
-    return signOut(auth)
-  }
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user)
+  // Logout
+  const logout = useCallback(async (): Promise<void> => {
+    try {
+      logger.info('Starting logout', undefined, 'Auth')
       
-      if (user) {
-        await createOrUpdateUserProfile(user)
-      } else {
-        setUserProfile(null)
-      }
+      await signOut(auth)
+      setUserProfile(null)
       
-      setLoading(false)
-    })
-
-    return unsubscribe
+      logger.info('Logout successful', undefined, 'Auth')
+    } catch (error) {
+      logger.error('Logout failed', error, 'Auth')
+      throw new Error('Failed to log out')
+    }
   }, [])
 
-  const value = {
+  // Auth state listener
+  useEffect(() => {
+    logger.componentMount('AuthProvider')
+    
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      try {
+        setLoading(true)
+        
+        if (user) {
+          logger.info('User authenticated', { email: user.email }, 'Auth')
+          await createOrUpdateUserProfile(user)
+          setCurrentUser(user)
+        } else {
+          logger.info('User not authenticated', undefined, 'Auth')
+          setCurrentUser(null)
+          setUserProfile(null)
+        }
+      } catch (error) {
+        logger.error('Auth state change error', error, 'Auth')
+      } finally {
+        setLoading(false)
+      }
+    })
+
+    return () => {
+      logger.componentUnmount('AuthProvider')
+      unsubscribe()
+    }
+  }, [createOrUpdateUserProfile])
+
+  const value: AuthContextType = {
     currentUser,
     userProfile,
     loading,
@@ -289,7 +229,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   )
 }

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import AgentCard from '../components/AgentCard'
 import FilterBar from '../components/FilterBar'
 import { Agent } from '../types/agent'
-import { fetchAgents } from '../services/api'
+import { fetchAgentsFromFirestore } from '../services/firestore'
 import { 
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -27,7 +27,7 @@ export default function AgentLibraryPage() {
   const loadAgents = async () => {
     try {
       setLoading(true)
-      const data = await fetchAgents()
+      const data = await fetchAgentsFromFirestore()
       setAgents(data.agents || [])
     } catch (error) {
       console.error('Failed to load agents:', error)

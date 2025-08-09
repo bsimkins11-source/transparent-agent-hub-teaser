@@ -1,5 +1,6 @@
 import { Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import ErrorBoundary from './components/ErrorBoundary'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
 import AgentLibraryPage from './pages/AgentLibraryPage'
@@ -17,9 +18,10 @@ import LoginPage from './pages/LoginPage'
 
 function App() {
   return (
-    <AuthProvider>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-        <Routes>
+    <ErrorBoundary>
+      <AuthProvider>
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+          <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="agents" element={<AgentLibraryPage />} />
@@ -71,9 +73,10 @@ function App() {
             <Route path="admin/legacy" element={<AdminPage />} />
             <Route path="login" element={<LoginPage />} />
           </Route>
-        </Routes>
-      </div>
-    </AuthProvider>
+          </Routes>
+        </div>
+      </AuthProvider>
+    </ErrorBoundary>
   )
 }
 
