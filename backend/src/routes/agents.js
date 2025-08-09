@@ -51,6 +51,50 @@ router.get('/', optionalAuth, async (req, res) => {
   }
 });
 
+// GET /api/agents/categories - Get all categories
+router.get('/categories', async (req, res) => {
+  try {
+    const snapshot = await db.collection('agents')
+      .where('visibility', '==', 'public')
+      .get();
+    
+    const categories = new Set();
+    snapshot.forEach(doc => {
+      const category = doc.data().metadata?.category;
+      if (category) {
+        categories.add(category);
+      }
+    });
+    
+    res.json({ categories: Array.from(categories) });
+  } catch (error) {
+    console.error('Error fetching categories:', error);
+    res.status(500).json({ error: 'Failed to fetch categories' });
+  }
+});
+
+// GET /api/agents/providers - Get all providers
+router.get('/providers', async (req, res) => {
+  try {
+    const snapshot = await db.collection('agents')
+      .where('visibility', '==', 'public')
+      .get();
+    
+    const providers = new Set();
+    snapshot.forEach(doc => {
+      const provider = doc.data().provider;
+      if (provider) {
+        providers.add(provider);
+      }
+    });
+    
+    res.json({ providers: Array.from(providers) });
+  } catch (error) {
+    console.error('Error fetching providers:', error);
+    res.status(500).json({ error: 'Failed to fetch providers' });
+  }
+});
+
 // GET /api/agents/:id - Get specific agent
 router.get('/:id', optionalAuth, async (req, res) => {
   try {
@@ -116,50 +160,6 @@ router.post('/:id/interact', optionalAuth, async (req, res) => {
   } catch (error) {
     console.error('Error processing interaction:', error);
     res.status(500).json({ error: 'Failed to process interaction' });
-  }
-});
-
-// GET /api/agents/categories - Get all categories
-router.get('/categories', async (req, res) => {
-  try {
-    const snapshot = await db.collection('agents')
-      .where('visibility', '==', 'public')
-      .get();
-    
-    const categories = new Set();
-    snapshot.forEach(doc => {
-      const category = doc.data().metadata?.category;
-      if (category) {
-        categories.add(category);
-      }
-    });
-    
-    res.json({ categories: Array.from(categories) });
-  } catch (error) {
-    console.error('Error fetching categories:', error);
-    res.status(500).json({ error: 'Failed to fetch categories' });
-  }
-});
-
-// GET /api/agents/providers - Get all providers
-router.get('/providers', async (req, res) => {
-  try {
-    const snapshot = await db.collection('agents')
-      .where('visibility', '==', 'public')
-      .get();
-    
-    const providers = new Set();
-    snapshot.forEach(doc => {
-      const provider = doc.data().provider;
-      if (provider) {
-        providers.add(provider);
-      }
-    });
-    
-    res.json({ providers: Array.from(providers) });
-  } catch (error) {
-    console.error('Error fetching providers:', error);
-    res.status(500).json({ error: 'Failed to fetch providers' });
   }
 });
 

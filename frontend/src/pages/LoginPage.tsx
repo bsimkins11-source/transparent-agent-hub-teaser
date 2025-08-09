@@ -14,19 +14,19 @@ export default function LoginPage() {
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !password) {
-      toast.error('Please fill in all fields')
+    if (!email) {
+      toast.error('Please enter your email')
       return
     }
 
     try {
       setLoading(true)
-      await login(email, password)
+      await login(email, '') // No password required for testing
       toast.success('Logged in successfully')
-      navigate('/')
+      navigate('/my-agents')
     } catch (error) {
       console.error('Login error:', error)
-      toast.error('Failed to log in')
+      toast.error('Only transparent.partners emails are allowed')
     } finally {
       setLoading(false)
     }
@@ -37,7 +37,7 @@ export default function LoginPage() {
       setLoading(true)
       await loginWithGoogle()
       toast.success('Logged in successfully')
-      navigate('/')
+      navigate('/my-agents')
     } catch (error) {
       console.error('Google login error:', error)
       toast.error('Failed to log in with Google')
@@ -53,7 +53,7 @@ export default function LoginPage() {
         animate={{ opacity: 1, y: 0 }}
         className="max-w-md w-full space-y-8"
       >
-        <div className="text-center">
+        <div className="text-center relative group">
           <div className="flex justify-center">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <SparklesIcon className="w-7 h-7 text-white" />
@@ -65,9 +65,22 @@ export default function LoginPage() {
           <p className="mt-2 text-sm text-gray-600">
             Access your AI agents and tools
           </p>
+          <p className="mt-1 text-xs text-blue-600">
+            Only @transparent.partners emails allowed
+          </p>
+          
+          {/* Hover Tooltip */}
+          <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 shadow-lg">
+              <div className="flex items-center space-x-1">
+                <span>🔒</span>
+                <span>Authentication rigor coming in future versions</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-soft border border-gray-200 p-8">
+        <div className="card p-8">
           <form className="space-y-6" onSubmit={handleEmailLogin}>
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -85,20 +98,14 @@ export default function LoginPage() {
               />
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="input-field mt-1"
-                placeholder="Enter your password"
-              />
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div className="flex items-start space-x-2">
+                <span className="text-blue-600 text-sm">ℹ️</span>
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium">Testing Mode</p>
+                  <p className="text-xs mt-1">No password required. Full authentication will be implemented in future versions.</p>
+                </div>
+              </div>
             </div>
 
             <button

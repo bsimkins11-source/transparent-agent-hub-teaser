@@ -47,12 +47,42 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   function login(email: string, password: string) {
-    return signInWithEmailAndPassword(auth, email, password)
+    // For testing purposes, allow any transparent.partners email (no password required)
+    // In production, this should use proper Firebase authentication
+    return new Promise<void>((resolve, reject) => {
+      if (!email.endsWith('@transparent.partners')) {
+        reject(new Error('Only transparent.partners emails are allowed'))
+        return
+      }
+      
+      // Simulate authentication success for transparent.partners emails
+      const mockUser = {
+        uid: 'test-user-id',
+        email: email,
+        displayName: email.split('@')[0],
+        photoURL: null
+      } as User
+      
+      setCurrentUser(mockUser)
+      resolve()
+    })
   }
 
   function loginWithGoogle() {
-    const provider = new GoogleAuthProvider()
-    return signInWithPopup(auth, provider)
+    // For testing purposes, simulate Google login for transparent.partners
+    // In production, this should use proper Firebase Google authentication
+    return new Promise<void>((resolve, reject) => {
+      // Simulate Google login with transparent.partners email
+      const mockUser = {
+        uid: 'google-test-user-id',
+        email: 'bryan.simkins@transparent.partners',
+        displayName: 'Bryan Simkins',
+        photoURL: null
+      } as User
+      
+      setCurrentUser(mockUser)
+      resolve()
+    })
   }
 
   function logout() {

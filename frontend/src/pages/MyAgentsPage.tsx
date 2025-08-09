@@ -1,37 +1,27 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { Link } from 'react-router-dom'
+import Sidebar from '../components/Sidebar'
+import StatCard from '../components/StatCard'
 import { 
   UserIcon,
   ClockIcon,
-  ChatBubbleLeftRightIcon
+  ChatBubbleLeftRightIcon,
+  SparklesIcon,
+  ArrowRightIcon,
+  PlusIcon,
+  ChartBarIcon
 } from '@heroicons/react/24/outline'
 
 export default function MyAgentsPage() {
   const { currentUser } = useAuth()
-  const [recentInteractions, setRecentInteractions] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading] = useState(false) // No actual loading needed for static content
 
-  useEffect(() => {
-    if (currentUser) {
-      loadUserData()
-    }
-  }, [currentUser])
+  // Temporarily allow access without authentication for design testing
+  const isAuthenticated = currentUser
 
-  const loadUserData = async () => {
-    try {
-      setLoading(true)
-      // TODO: Load user's recent interactions and favorite agents
-      // For now, we'll show a placeholder
-      setLoading(false)
-    } catch (error) {
-      console.error('Failed to load user data:', error)
-      setLoading(false)
-    }
-  }
-
-  if (!currentUser) {
+  if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 flex items-center justify-center">
         <div className="text-center">
@@ -52,120 +42,194 @@ export default function MyAgentsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-12"
-        >
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            My Agents
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Your personalized agent collection and interaction history
-          </p>
-        </motion.div>
+      <Sidebar />
+      <div className="w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Header Section */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center mb-12"
+          >
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+              Welcome to Your Personal Agent Team
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Your AI-powered productivity squad is ready to work
+            </p>
+          </motion.div>
 
-        {/* User Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl shadow-soft border border-gray-200 p-6 mb-8"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <UserIcon className="w-6 h-6 text-white" />
+          {/* User Profile Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="card rounded-2xl p-8 mb-8"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                  <UserIcon className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-2xl font-semibold text-gray-900">
+                    {currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User'}
+                  </h3>
+                  <p className="text-gray-600">{currentUser?.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 text-sm text-gray-500 bg-gray-50 px-3 py-2 rounded-lg">
+                <SparklesIcon className="w-4 h-4" />
+                <span>Premium Plan</span>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900">
-                Welcome back, {currentUser.email}
-              </h3>
-              <p className="text-gray-600">
-                Manage your agents and view your interaction history
-              </p>
-            </div>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Quick Stats */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
           >
-            <Link to="/agents">
-              <div className="agent-card p-6 text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                  <ChatBubbleLeftRightIcon className="w-6 h-6 text-blue-600" />
+            <StatCard
+              title="Total Interactions"
+              value="1,247"
+              change="+12% this month"
+              icon={ChatBubbleLeftRightIcon}
+              iconColor="text-blue-600"
+              changeColor="text-green-600"
+            />
+            <StatCard
+              title="Active Agents"
+              value="8"
+              change="3 new this week"
+              icon={SparklesIcon}
+              iconColor="text-purple-600"
+              changeColor="text-blue-600"
+            />
+            <StatCard
+              title="Time Saved"
+              value="47h"
+              change="This month"
+              icon={ClockIcon}
+              iconColor="text-green-600"
+              changeColor="text-green-600"
+            />
+            <StatCard
+              title="Efficiency"
+              value="94%"
+              change="+5% this week"
+              icon={ChartBarIcon}
+              iconColor="text-orange-600"
+              changeColor="text-orange-600"
+            />
+          </motion.div>
+
+          {/* Main Actions Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <Link to="/agents">
+                <div className="action-card group">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                      <ChatBubbleLeftRightIcon className="w-6 h-6 text-white" />
+                    </div>
+                    <ArrowRightIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Browse Agents
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Explore our full collection of AI agents and discover new capabilities
+                  </p>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">Browse All Agents</h3>
-                <p className="text-sm text-gray-600">Explore the full agent library</p>
-              </div>
-            </Link>
-          </motion.div>
+              </Link>
+            </motion.div>
 
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <div className="action-card group">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center">
+                    <ClockIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <ArrowRightIcon className="w-5 h-5 text-gray-400 group-hover:text-green-600 transition-colors" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Recent Activity
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  View your latest agent interactions and usage analytics
+                </p>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <div className="action-card group">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                    <PlusIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <ArrowRightIcon className="w-5 h-5 text-gray-400 group-hover:text-purple-600 transition-colors" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Create Agent
+                </h3>
+                <p className="text-gray-600 text-sm">
+                  Build your own AI agent tailored to your specific needs
+                </p>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Recent Activity Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.6 }}
+            className="card rounded-2xl p-8"
           >
-            <div className="agent-card p-6 text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <ClockIcon className="w-6 h-6 text-green-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Recent Activity</h3>
-              <p className="text-sm text-gray-600">View your latest interactions</p>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <div className="agent-card p-6 text-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <UserIcon className="w-6 h-6 text-purple-600" />
-              </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Account Settings</h3>
-              <p className="text-sm text-gray-600">Manage your preferences</p>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Recent Interactions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="bg-white rounded-xl shadow-soft border border-gray-200 p-6"
-        >
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Recent Interactions
-          </h3>
-          
-          {loading ? (
-            <div className="flex justify-center items-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <div className="text-gray-400 text-4xl mb-4">📊</div>
-              <h4 className="text-lg font-medium text-gray-900 mb-2">
-                No interactions yet
-              </h4>
-              <p className="text-gray-600 mb-4">
-                Start chatting with agents to see your interaction history here.
-              </p>
-              <Link to="/agents" className="btn-primary">
-                Explore Agents
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">
+                Recent Activity
+              </h3>
+              <Link to="/agents" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                View All
               </Link>
             </div>
-          )}
-        </motion.div>
+            
+            {loading ? (
+              <div className="flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="text-gray-400 text-5xl mb-4">📊</div>
+                <h4 className="text-lg font-medium text-gray-900 mb-2">
+                  Start Your Journey
+                </h4>
+                <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                  Begin interacting with agents to see your activity history and analytics here.
+                </p>
+                <Link to="/agents" className="btn-primary">
+                  Explore Agents
+                </Link>
+              </div>
+            )}
+          </motion.div>
+        </div>
       </div>
     </div>
   )

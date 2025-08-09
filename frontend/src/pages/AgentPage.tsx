@@ -125,7 +125,7 @@ export default function AgentPage() {
             <span>Back to Agents</span>
           </Link>
 
-          <div className="bg-white rounded-xl shadow-soft border border-gray-200 p-6">
+          <div className="card p-6">
             <div className="flex items-start space-x-4">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <SparklesIcon className="w-7 h-7 text-white" />
@@ -161,7 +161,7 @@ export default function AgentPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white rounded-xl shadow-soft border border-gray-200 overflow-hidden"
+          className="card overflow-hidden"
         >
           {/* Chat Messages */}
           <div className="h-96 overflow-y-auto p-6 space-y-4">

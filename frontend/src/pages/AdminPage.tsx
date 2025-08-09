@@ -48,7 +48,7 @@ export default function AdminPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-white rounded-xl shadow-soft border border-gray-200 p-6 text-center"
+              className="card p-6 text-center"
             >
               <div className={`w-12 h-12 ${feature.color} rounded-lg flex items-center justify-center mx-auto mb-4`}>
                 <feature.icon className="w-6 h-6 text-white" />
@@ -67,7 +67,7 @@ export default function AdminPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white rounded-xl shadow-soft border border-gray-200 p-8 text-center"
+          className="card p-8 text-center"
         >
           <div className="text-gray-400 text-6xl mb-4">🚧</div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">

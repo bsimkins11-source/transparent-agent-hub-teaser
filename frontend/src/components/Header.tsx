@@ -29,12 +29,14 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <SparklesIcon className="w-5 h-5 text-white" />
-            </div>
+          <Link to="/" className="flex items-center space-x-3">
+            <img 
+              src="/transparent-partners-logo.png" 
+              alt="Transparent Partners" 
+              className="h-8 w-auto"
+            />
             <span className="text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-              Transparent Agent Hub
+              Agent Hub
             </span>
           </Link>
 

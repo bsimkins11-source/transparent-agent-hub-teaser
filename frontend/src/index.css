@@ -41,13 +41,15 @@
     @apply transform -translate-y-1;
   }
   
-  .gradient-bg {
-    @apply bg-gradient-to-br from-primary-50 via-white to-secondary-50;
+  .action-card {
+    @apply card p-6 h-full hover:shadow-medium transition-all duration-200 cursor-pointer;
   }
   
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent;
+  .action-card:hover {
+    @apply transform -translate-y-1;
   }
+  
+
 }
 
 @layer utilities {

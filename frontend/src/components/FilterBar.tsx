@@ -53,7 +53,7 @@ export default function FilterBar({ filters, onFiltersChange }: FilterBarProps) 
   const hasActiveFilters = filters.category || filters.provider || filters.search
 
   return (
-    <div className="bg-white rounded-xl shadow-soft border border-gray-200 p-6">
+    <div className="card p-6">
       {/* Search Bar */}
       <div className="relative mb-4">
         <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />

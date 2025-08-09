@@ -1,9 +1,7 @@
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../contexts/AuthContext'
 import { 
-  SparklesIcon,
   BookOpenIcon,
   UserIcon,
   ArrowRightIcon
@@ -34,9 +32,6 @@ export default function HomePage() {
               with transparent, reliable AI solutions.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/agents" className="btn-primary text-lg px-8 py-3">
-                Explore Agents
-              </Link>
               <Link to="/about" className="btn-secondary text-lg px-8 py-3">
                 Learn More
               </Link>
