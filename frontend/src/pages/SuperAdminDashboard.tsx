@@ -39,7 +39,7 @@ export default function SuperAdminDashboard() {
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const [isAssignAdminModalOpen, setIsAssignAdminModalOpen] = useState(false);
   const [isAgentPermissionsModalOpen, setIsAgentPermissionsModalOpen] = useState(false);
-  const [companyAgentPermissions, setCompanyAgentPermissions] = useState<{[companyId: string]: string[]}>({});
+  const [companyAgentPermissions, setCompanyAgentPermissions] = useState<{[companyId: string]: {[agentId: string]: {granted: boolean; assignmentType: 'free' | 'direct' | 'approval'}}}>({});
   
   // New company form state
   const [newCompany, setNewCompany] = useState({
@@ -92,16 +92,25 @@ export default function SuperAdminDashboard() {
 
     setCompanies(mockCompanies);
     
-    // Initialize company agent permissions (mock data)
-    const initialPermissions: {[companyId: string]: string[]} = {};
+    // Initialize company agent permissions with assignment types (mock data)
+    const initialPermissions: {[companyId: string]: {[agentId: string]: {granted: boolean; assignmentType: 'free' | 'direct' | 'approval'}}} = {};
     mockCompanies.forEach(company => {
-      // Give some companies initial access to certain agents
+      initialPermissions[company.id] = {};
       if (company.id === 'transparent-partners') {
-        initialPermissions[company.id] = ['briefing-agent', 'analytics-agent', 'research-agent', 'writing-agent'];
+        // Transparent Partners gets access to multiple agents with different assignment types
+        initialPermissions[company.id]['briefing-agent'] = { granted: true, assignmentType: 'free' };
+        initialPermissions[company.id]['analytics-agent'] = { granted: true, assignmentType: 'direct' };
+        initialPermissions[company.id]['research-agent'] = { granted: true, assignmentType: 'approval' };
+        initialPermissions[company.id]['writing-agent'] = { granted: true, assignmentType: 'direct' };
+        initialPermissions[company.id]['gemini-chat-agent'] = { granted: true, assignmentType: 'free' };
+        initialPermissions[company.id]['imagen-agent'] = { granted: true, assignmentType: 'approval' };
       } else if (company.id === 'acme-corp') {
-        initialPermissions[company.id] = ['briefing-agent', 'analytics-agent'];
+        // ACME Corp gets basic agents
+        initialPermissions[company.id]['briefing-agent'] = { granted: true, assignmentType: 'free' };
+        initialPermissions[company.id]['analytics-agent'] = { granted: true, assignmentType: 'direct' };
       } else {
-        initialPermissions[company.id] = ['briefing-agent'];
+        // Other companies get basic free agents
+        initialPermissions[company.id]['briefing-agent'] = { granted: true, assignmentType: 'free' };
       }
     });
     setCompanyAgentPermissions(initialPermissions);
@@ -177,24 +186,21 @@ export default function SuperAdminDashboard() {
     setIsAgentPermissionsModalOpen(true);
   };
 
-  const toggleAgentAccess = (companyId: string, agentId: string) => {
+  const toggleAgentAccess = (companyId: string, agentId: string, assignmentType: 'free' | 'direct' | 'approval') => {
     setCompanyAgentPermissions(prev => {
-      const currentPermissions = prev[companyId] || [];
-      const hasAccess = currentPermissions.includes(agentId);
+      const companyPermissions = prev[companyId] || {};
+      const currentAgent = companyPermissions[agentId];
+      const hasAccess = currentAgent?.granted || false;
       
-      if (hasAccess) {
-        // Remove access
-        return {
-          ...prev,
-          [companyId]: currentPermissions.filter(id => id !== agentId)
-        };
-      } else {
-        // Grant access
-        return {
-          ...prev,
-          [companyId]: [...currentPermissions, agentId]
-        };
-      }
+      return {
+        ...prev,
+        [companyId]: {
+          ...companyPermissions,
+          [agentId]: hasAccess 
+            ? { granted: false, assignmentType: 'free' } // Remove access
+            : { granted: true, assignmentType } // Grant access with specified type
+        }
+      };
     });
   };
 
@@ -202,9 +208,19 @@ export default function SuperAdminDashboard() {
     if (!selectedCompany) return;
     
     // In production, this would make an API call to save permissions
-    const assignedAgents = companyAgentPermissions[selectedCompany.id] || [];
+    const companyPermissions = companyAgentPermissions[selectedCompany.id] || {};
+    const assignedAgents = Object.entries(companyPermissions).filter(([_, permission]) => permission.granted);
+    const agentsByType = assignedAgents.reduce((acc, [agentId, permission]) => {
+      if (!acc[permission.assignmentType]) acc[permission.assignmentType] = [];
+      acc[permission.assignmentType].push(agentId);
+      return acc;
+    }, {} as {[key: string]: string[]});
     
-    toast.success(`Agent permissions updated for ${selectedCompany.name}! Assigned ${assignedAgents.length} agents.`);
+    const summary = Object.entries(agentsByType).map(([type, agents]) => 
+      `${agents.length} ${type} agent${agents.length !== 1 ? 's' : ''}`
+    ).join(', ');
+    
+    toast.success(`Agent permissions updated for ${selectedCompany.name}! Assigned ${assignedAgents.length} total agents: ${summary}.`);
     setIsAgentPermissionsModalOpen(false);
     setSelectedCompany(null);
   };
@@ -897,7 +913,12 @@ export default function SuperAdminDashboard() {
                 </svg>
                 <div className="text-sm text-blue-700">
                   <p className="font-medium mb-1">Super Admin Permission Control</p>
-                  <p>As Super Admin, you control which agents this company can access and distribute to their networks and users. Company admins can only assign agents you've granted them access to.</p>
+                  <p>Choose how agents are made available to company users:</p>
+                  <ul className="mt-2 space-y-1">
+                    <li><strong>Free:</strong> Users can add directly to their library without admin approval</li>
+                    <li><strong>Direct:</strong> Company/Network admins can assign directly to users</li>
+                    <li><strong>Approval:</strong> Users must request access, admin approval required</li>
+                  </ul>
                 </div>
               </div>
             </div>
@@ -908,13 +929,17 @@ export default function SuperAdminDashboard() {
                 { id: 'briefing-agent', name: 'Briefing Agent', icon: '📄', category: 'Productivity', description: 'Summarizes documents and creates briefings', tier: 'free' },
                 { id: 'analytics-agent', name: 'Analytics Agent', icon: '📊', category: 'Analytics', description: 'Analyzes data and generates insights', tier: 'premium' },
                 { id: 'research-agent', name: 'Research Agent', icon: '🔍', category: 'Research', description: 'Conducts comprehensive research', tier: 'free' },
+                { id: 'writing-agent', name: 'Writing Agent', icon: '✍️', category: 'Productivity', description: 'Content creation and writing assistance', tier: 'free' },
+                { id: 'gemini-chat-agent', name: 'Gemini Chat Agent', icon: '🤖', category: 'AI Chat', description: 'Conversational AI powered by Google Gemini', tier: 'free' },
+                { id: 'imagen-agent', name: 'Google Imagen Agent', icon: '🎨', category: 'Creative', description: 'AI image generation powered by Google Imagen', tier: 'premium' },
                 { id: 'interview-agent', name: 'Interview Agent', icon: '🎤', category: 'HR', description: 'Conducts structured interviews', tier: 'premium' },
                 { id: 'legal-agent', name: 'Legal Agent', icon: '⚖️', category: 'Legal', description: 'Legal document analysis', tier: 'enterprise' },
                 { id: 'finance-agent', name: 'Finance Agent', icon: '💰', category: 'Finance', description: 'Financial analysis and reporting', tier: 'premium' },
-                { id: 'writing-agent', name: 'Writing Agent', icon: '✍️', category: 'Productivity', description: 'Content creation and writing assistance', tier: 'free' },
                 { id: 'customer-service-agent', name: 'Customer Service Agent', icon: '🎧', category: 'Support', description: 'Customer support and service automation', tier: 'premium' }
               ].map((agent) => {
-                const hasAccess = companyAgentPermissions[selectedCompany.id]?.includes(agent.id) || false;
+                const agentPermission = companyAgentPermissions[selectedCompany.id]?.[agent.id];
+                const hasAccess = agentPermission?.granted || false;
+                const currentAssignmentType = agentPermission?.assignmentType || 'free';
                 return (
                 <div key={agent.id} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-start justify-between mb-3">
@@ -934,30 +959,66 @@ export default function SuperAdminDashboard() {
                         </div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => toggleAgentAccess(selectedCompany.id, agent.id)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        hasAccess
-                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                      }`}
-                    >
-                      {hasAccess ? '✓ Granted' : 'Grant Access'}
-                    </button>
+                    <div className="flex flex-col space-y-2">
+                      {!hasAccess ? (
+                        <button
+                          onClick={() => toggleAgentAccess(selectedCompany.id, agent.id, 'free')}
+                          className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        >
+                          Grant Access
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => toggleAgentAccess(selectedCompany.id, agent.id, 'free')}
+                          className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-red-100 text-red-800 hover:bg-red-200"
+                        >
+                          Remove Access
+                        </button>
+                      )}
+                    </div>
                   </div>
                   
                   <p className="text-sm text-gray-600 mb-3">{agent.description}</p>
                   
                   {hasAccess && (
-                    <div className="bg-gray-50 rounded p-3">
-                      <div className="text-xs text-gray-500 mb-2">Permission Details:</div>
-                      <div className="flex justify-between text-xs text-gray-600">
-                        <span>• Can assign to networks</span>
-                        <span>• Can assign to users</span>
+                    <div className="space-y-3">
+                      {/* Assignment Type Selection */}
+                      <div className="bg-gray-50 rounded p-3">
+                        <div className="text-xs text-gray-500 mb-2">Assignment Type:</div>
+                        <div className="space-y-2">
+                          {['free', 'direct', 'approval'].map((type) => (
+                            <label key={type} className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`assignment-${agent.id}`}
+                                value={type}
+                                checked={currentAssignmentType === type}
+                                onChange={() => toggleAgentAccess(selectedCompany.id, agent.id, type as 'free' | 'direct' | 'approval')}
+                                className="text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className={`text-xs font-medium ${
+                                type === 'free' ? 'text-green-700' :
+                                type === 'direct' ? 'text-blue-700' :
+                                'text-yellow-700'
+                              }`}>
+                                {type === 'free' ? '🟢 Free' :
+                                 type === 'direct' ? '🔵 Direct Assignment' :
+                                 '🟡 Requires Approval'}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
                       </div>
-                      <div className="flex justify-between text-xs text-gray-600 mt-1">
-                        <span>• No usage limits</span>
-                        <span>• Approval required</span>
+                      
+                      {/* Permission Summary */}
+                      <div className="bg-blue-50 rounded p-3">
+                        <div className="text-xs text-blue-700">
+                          <strong>
+                            {currentAssignmentType === 'free' && '🟢 Free Access: Users can add directly to their library'}
+                            {currentAssignmentType === 'direct' && '🔵 Direct Assignment: Admins can assign to users instantly'}
+                            {currentAssignmentType === 'approval' && '🟡 Approval Required: Users must request, admin approval needed'}
+                          </strong>
+                        </div>
                       </div>
                     </div>
                   )}

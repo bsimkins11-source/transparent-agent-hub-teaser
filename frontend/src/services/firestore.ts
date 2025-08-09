@@ -60,7 +60,7 @@ export const fetchAgentFromFirestore = async (id: string): Promise<Agent | null>
     const docSnap = await getDoc(docRef)
     
     if (!docSnap.exists()) {
-      console.log(`❌ Agent ${id} not found in Firestore`)
+      logger.warn(`Agent ${id} not found in Firestore`, { id }, 'Firestore')
       return null
     }
     
@@ -81,18 +81,18 @@ export const fetchAgentFromFirestore = async (id: string): Promise<Agent | null>
       updatedAt: data.updatedAt?.toDate?.()?.toISOString() || new Date().toISOString()
     }
     
-    console.log(`✅ Fetched agent from Firestore:`, agent.name)
+    logger.info(`Fetched agent from Firestore`, { name: agent.name, id }, 'Firestore')
     return agent
     
   } catch (error) {
-    console.error(`❌ Error fetching agent ${id} from Firestore:`, error)
+    logger.error(`Error fetching agent ${id} from Firestore`, error, 'Firestore')
     throw error
   }
 }
 
 export const fetchCategoriesFromFirestore = async (): Promise<string[]> => {
   try {
-    console.log('🔍 Fetching categories from Firestore...')
+    logger.debug('Fetching categories from Firestore', undefined, 'Firestore')
     
     const snapshot = await getDocs(collection(db, 'agents'))
     const categories = new Set<string>()
@@ -105,18 +105,18 @@ export const fetchCategoriesFromFirestore = async (): Promise<string[]> => {
     })
     
     const categoryArray = Array.from(categories).sort()
-    console.log(`✅ Fetched ${categoryArray.length} categories:`, categoryArray)
+    logger.info(`Fetched ${categoryArray.length} categories`, { categories: categoryArray }, 'Firestore')
     return categoryArray
     
   } catch (error) {
-    console.error('❌ Error fetching categories from Firestore:', error)
+    logger.error('Error fetching categories from Firestore', error, 'Firestore')
     return []
   }
 }
 
 export const fetchProvidersFromFirestore = async (): Promise<string[]> => {
   try {
-    console.log('🔍 Fetching providers from Firestore...')
+    logger.debug('Fetching providers from Firestore', undefined, 'Firestore')
     
     const snapshot = await getDocs(collection(db, 'agents'))
     const providers = new Set<string>()
@@ -129,11 +129,11 @@ export const fetchProvidersFromFirestore = async (): Promise<string[]> => {
     })
     
     const providerArray = Array.from(providers).sort()
-    console.log(`✅ Fetched ${providerArray.length} providers:`, providerArray)
+    logger.info(`Fetched ${providerArray.length} providers`, { providers: providerArray }, 'Firestore')
     return providerArray
     
   } catch (error) {
-    console.error('❌ Error fetching providers from Firestore:', error)
+    logger.error('Error fetching providers from Firestore', error, 'Firestore')
     return []
   }
 }

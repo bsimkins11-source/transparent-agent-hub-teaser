@@ -4,6 +4,8 @@ import AgentCard from '../components/AgentCard'
 import FilterBar from '../components/FilterBar'
 import { Agent } from '../types/agent'
 import { fetchAgentsFromFirestore } from '../services/firestore'
+import { useAuth } from '../contexts/AuthContext'
+
 import { 
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -12,8 +14,10 @@ import {
 } from '@heroicons/react/24/outline'
 
 export default function AgentLibraryPage() {
+  const { userProfile } = useAuth()
   const [agents, setAgents] = useState<Agent[]>([])
   const [loading, setLoading] = useState(true)
+  const [userLibraryAgents, setUserLibraryAgents] = useState<string[]>([])
   const [filters, setFilters] = useState({
     category: '',
     provider: '',
@@ -22,7 +26,18 @@ export default function AgentLibraryPage() {
 
   useEffect(() => {
     loadAgents()
-  }, [])
+    loadUserLibrary()
+  }, [userProfile])
+
+  const loadUserLibrary = () => {
+    // Mock user library data - in production this would come from Firestore
+    // Based on the user's assigned agents from their profile
+    const mockUserLibraryAgents = userProfile?.assignedAgents || [
+      'gemini-chat-agent', // Example: user already has Gemini in their library
+      'briefing-agent'     // Example: user already has Briefing agent
+    ]
+    setUserLibraryAgents(mockUserLibraryAgents)
+  }
 
   const loadAgents = async () => {
     try {
@@ -110,6 +125,7 @@ export default function AgentLibraryPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
         {/* Filters */}
         <FilterBar filters={filters} onFiltersChange={setFilters} />
         
@@ -144,7 +160,10 @@ export default function AgentLibraryPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
                   >
-                    <AgentCard agent={agent} />
+                    <AgentCard 
+                      agent={agent} 
+                      isInUserLibrary={userLibraryAgents.includes(agent.id)}
+                    />
                   </motion.div>
                 ))}
               </div>

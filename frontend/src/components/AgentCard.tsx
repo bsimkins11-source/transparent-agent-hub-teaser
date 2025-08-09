@@ -1,10 +1,14 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Agent } from '../types/agent'
+import { useAuth } from '../contexts/AuthContext'
+import toast from 'react-hot-toast'
 import { 
   SparklesIcon, 
   ChatBubbleLeftRightIcon,
-  TagIcon
+  TagIcon,
+  PlusIcon,
+  ClockIcon
 } from '@heroicons/react/24/outline'
 
 interface AgentCardProps {
@@ -13,6 +17,9 @@ interface AgentCardProps {
     primaryColor: string
     secondaryColor: string
   }
+  showAddToLibrary?: boolean
+  onAddToLibrary?: (agent: Agent) => void
+  isInUserLibrary?: boolean
 }
 
 const providerColors = {
@@ -27,7 +34,36 @@ const providerIcons = {
   anthropic: '🧠'
 }
 
-export default function AgentCard({ agent, companyBranding }: AgentCardProps) {
+export default function AgentCard({ agent, companyBranding, showAddToLibrary = true, onAddToLibrary, isInUserLibrary = false }: AgentCardProps) {
+  const { userProfile } = useAuth()
+  
+  // Determine permission type from agent metadata
+  const permissionType = agent.metadata?.permissionType || 'direct' // 'direct' or 'approval'
+  const tier = agent.metadata?.tier || 'free' // 'free' or 'premium'
+  
+  const handleAddToLibrary = (e: React.MouseEvent) => {
+    e.preventDefault() // Prevent navigation to agent page
+    e.stopPropagation()
+    
+    if (!userProfile) {
+      toast.error('Please sign in to add agents to your library')
+      return
+    }
+    
+    if (permissionType === 'direct') {
+      // Direct assignment - add immediately
+      toast.success(`${agent.name} added to your library!`)
+      if (onAddToLibrary) {
+        onAddToLibrary(agent)
+      }
+    } else if (permissionType === 'approval') {
+      // Requires approval - submit request
+      toast.success(`Request submitted for ${agent.name}. Your admin will review it.`)
+      if (onAddToLibrary) {
+        onAddToLibrary(agent)
+      }
+    }
+  }
   return (
     <motion.div
       whileHover={{ y: -4 }}
@@ -59,6 +95,11 @@ export default function AgentCard({ agent, companyBranding }: AgentCardProps) {
                   {agent.visibility === 'private' && (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                       🔒 Private
+                    </span>
+                  )}
+                  {isInUserLibrary && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                      ✅ In My Library
                     </span>
                   )}
                 </div>
@@ -97,15 +138,55 @@ export default function AgentCard({ agent, companyBranding }: AgentCardProps) {
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-            <div className="flex items-center space-x-1 text-sm text-gray-500">
-              <ChatBubbleLeftRightIcon className="w-4 h-4" />
-              <span>Start Chat</span>
-            </div>
-            <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+          <div className="pt-4 border-t border-gray-100">
+            {/* Add to Library Button */}
+            {showAddToLibrary && (
+              <div className="mb-3">
+                {isInUserLibrary ? (
+                  <div className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 cursor-not-allowed">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                    <span>Already in Library</span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={handleAddToLibrary}
+                    className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      permissionType === 'direct'
+                        ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                        : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                    }`}
+                  >
+                    {permissionType === 'direct' ? (
+                      <>
+                        <PlusIcon className="w-4 h-4" />
+                        <span>Add to Library</span>
+                        <span className="text-xs opacity-75">({tier})</span>
+                      </>
+                    ) : (
+                      <>
+                        <ClockIcon className="w-4 h-4" />
+                        <span>Request Access</span>
+                        <span className="text-xs opacity-75">({tier})</span>
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
+            
+            {/* Start Chat Link */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-1 text-sm text-gray-500">
+                <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                <span>Start Chat</span>
+              </div>
+              <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
             </div>
           </div>
         </div>

@@ -19,6 +19,8 @@ export interface UserProfile {
   email: string
   displayName: string
   role: 'user' | 'company_admin' | 'network_admin' | 'super_admin'
+  organizationId: string
+  organizationName: string
   permissions: {
     canCreateAgents: boolean
     canManageUsers: boolean
@@ -92,11 +94,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Determine user role based on email domain
       const role = user.email?.endsWith('@transparent.partners') ? 'super_admin' : 'user'
       
+      // Determine organization info from email domain
+      const emailDomain = user.email?.split('@')[1] || ''
+      const organizationId = emailDomain.replace('.', '-') // transparent.partners -> transparent-partners
+      const organizationName = emailDomain === 'transparent.partners' ? 'Transparent Partners' : emailDomain
+      
       const profile: UserProfile = {
         uid: user.uid,
         email: user.email || '',
         displayName: user.displayName || '',
         role,
+        organizationId,
+        organizationName,
         permissions: {
           canCreateAgents: role === 'super_admin',
           canManageUsers: ['super_admin', 'company_admin', 'network_admin'].includes(role),

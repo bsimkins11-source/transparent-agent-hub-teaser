@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Agent, AgentInteraction } from '../types/agent'
-import { fetchAgent, interactWithAgent } from '../services/api'
+import { fetchAgentFromFirestore } from '../services/firestore'
+import { interactWithAgent } from '../services/api'
 import { 
   ArrowLeftIcon,
   PaperAirplaneIcon,
@@ -27,7 +28,11 @@ export default function AgentPage() {
   const loadAgent = async () => {
     try {
       setLoading(true)
-      const agentData = await fetchAgent(agentId!)
+      const agentData = await fetchAgentFromFirestore(agentId!)
+      if (!agentData) {
+        toast.error('Agent not found')
+        return
+      }
       setAgent(agentData)
     } catch (error) {
       console.error('Failed to load agent:', error)
