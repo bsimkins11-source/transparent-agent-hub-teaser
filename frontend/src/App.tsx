@@ -6,6 +6,9 @@ import AgentLibraryPage from './pages/AgentLibraryPage'
 import MyAgentsPage from './pages/MyAgentsPage'
 import AgentPage from './pages/AgentPage'
 import AdminPage from './pages/AdminPage'
+import AdminDashboard from './pages/AdminDashboard'
+import AdminUserManagement from './pages/AdminUserManagement'
+import AdminRoute from './components/AdminRoute'
 import LoginPage from './pages/LoginPage'
 
 function App() {
@@ -18,7 +21,23 @@ function App() {
             <Route path="agents" element={<AgentLibraryPage />} />
             <Route path="my-agents" element={<MyAgentsPage />} />
             <Route path="agents/:agentId" element={<AgentPage />} />
-            <Route path="admin" element={<AdminPage />} />
+            <Route 
+              path="admin" 
+              element={
+                <AdminRoute requiredRole="company_admin">
+                  <AdminDashboard />
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="admin/users" 
+              element={
+                <AdminRoute requiredRole="company_admin">
+                  <AdminUserManagement />
+                </AdminRoute>
+              } 
+            />
+            <Route path="admin/legacy" element={<AdminPage />} />
             <Route path="login" element={<LoginPage />} />
           </Route>
         </Routes>

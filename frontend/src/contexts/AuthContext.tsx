@@ -24,10 +24,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
 
+interface UserProfile {
+  uid: string
+  email: string
+  displayName: string
+  photoURL: string
+  role: 'super_admin' | 'company_admin' | 'user'
+  organizationId: string
+  organizationName: string
+  permissions: {
+    canManageUsers: boolean
+    canAssignAgents: boolean
+    canManageOrganization: boolean
+    canViewAnalytics: boolean
+  }
+  assignedAgents: string[]
+}
+
 interface AuthContextType {
   currentUser: User | null
+  userProfile: UserProfile | null
   loading: boolean
-  login: (email: string, password: string) => Promise<void>
   loginWithGoogle: () => Promise<void>
   logout: () => Promise<void>
 }
@@ -44,45 +61,107 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  function login(email: string, password: string) {
-    // For testing purposes, allow any transparent.partners email (no password required)
-    // In production, this should use proper Firebase authentication
-    return new Promise<void>((resolve, reject) => {
-      if (!email.endsWith('@transparent.partners')) {
-        reject(new Error('Only transparent.partners emails are allowed'))
-        return
-      }
+  async function loginWithGoogle() {
+    const provider = new GoogleAuthProvider()
+    provider.addScope('email')
+    provider.addScope('profile')
+    
+    try {
+      const result = await signInWithPopup(auth, provider)
+      const user = result.user
       
-      // Simulate authentication success for transparent.partners emails
-      const mockUser = {
-        uid: 'test-user-id',
-        email: email,
-        displayName: email.split('@')[0],
-        photoURL: null
-      } as User
+      // Create or update user profile
+      await createOrUpdateUserProfile(user)
       
-      setCurrentUser(mockUser)
-      resolve()
-    })
+      return result
+    } catch (error) {
+      console.error('Google login error:', error)
+      throw error
+    }
   }
 
-  function loginWithGoogle() {
-    // For testing purposes, simulate Google login for transparent.partners
-    // In production, this should use proper Firebase Google authentication
-    return new Promise<void>((resolve, reject) => {
-      // Simulate Google login with transparent.partners email
-      const mockUser = {
-        uid: 'google-test-user-id',
-        email: 'bryan.simkins@transparent.partners',
-        displayName: 'Bryan Simkins',
-        photoURL: null
-      } as User
+  async function createOrUpdateUserProfile(user: User) {
+    if (!user.email) return
+    
+    // Extract organization from email domain
+    const emailDomain = user.email.split('@')[1]
+    const organizationId = emailDomain.replace('.', '-')
+    
+    // Bootstrap: Check if this is the first user in the system
+    const role = await determineUserRole(user.email, user.uid)
+    
+    const profile: UserProfile = {
+      uid: user.uid,
+      email: user.email,
+      displayName: user.displayName || user.email.split('@')[0],
+      photoURL: user.photoURL || '',
+      role,
+      organizationId,
+      organizationName: emailDomain === 'transparent.partners' ? 'Transparent Partners' : emailDomain,
+      permissions: getPermissionsForRole(role),
+      assignedAgents: []
+    }
+    
+    setUserProfile(profile)
+  }
+
+  async function determineUserRole(email: string, uid: string): Promise<'super_admin' | 'company_admin' | 'user'> {
+    // Hardcoded super admin emails
+    const superAdminEmails = ['bryan.simkins@transparent.partners']
+    if (superAdminEmails.includes(email)) {
+      return 'super_admin'
+    }
+
+    // Bootstrap: Check if this is the first user in the system
+    try {
+      const response = await fetch('/api/bootstrap/check-first-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid, email })
+      })
       
-      setCurrentUser(mockUser)
-      resolve()
-    })
+      if (response.ok) {
+        const data = await response.json()
+        if (data.isFirstUser) {
+          console.log('🎉 Bootstrap: First user detected, granting super admin access')
+          return 'super_admin'
+        }
+      }
+    } catch (error) {
+      console.error('Bootstrap check failed:', error)
+    }
+
+    // Default role determination
+    return 'user'
+  }
+
+  function getPermissionsForRole(role: 'super_admin' | 'company_admin' | 'user') {
+    switch (role) {
+      case 'super_admin':
+        return {
+          canManageUsers: true,
+          canAssignAgents: true,
+          canManageOrganization: true,
+          canViewAnalytics: true
+        }
+      case 'company_admin':
+        return {
+          canManageUsers: true,
+          canAssignAgents: true,
+          canManageOrganization: false,
+          canViewAnalytics: true
+        }
+      default:
+        return {
+          canManageUsers: false,
+          canAssignAgents: false,
+          canManageOrganization: false,
+          canViewAnalytics: false
+        }
+    }
   }
 
   function logout() {
@@ -90,8 +169,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user)
+      
+      if (user) {
+        await createOrUpdateUserProfile(user)
+      } else {
+        setUserProfile(null)
+      }
+      
       setLoading(false)
     })
 
@@ -100,8 +186,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = {
     currentUser,
+    userProfile,
     loading,
-    login,
     loginWithGoogle,
     logout
   }
