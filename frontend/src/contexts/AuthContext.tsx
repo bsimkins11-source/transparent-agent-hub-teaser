@@ -91,13 +91,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       logger.debug('Creating/updating user profile', { uid: user.uid }, 'Auth')
       
-      // Determine user role based on email domain
-      const role = user.email?.endsWith('@transparent.partners') ? 'super_admin' : 'user'
+      // Determine user role based on specific email addresses
+      const transparentAdminEmails = [
+        'bryan.simkins@transparent.partners',
+        'drankine@transparent.partners'
+      ]
       
-      // Determine organization info from email domain
-      const emailDomain = user.email?.split('@')[1] || ''
-      const organizationId = emailDomain.replace('.', '-') // transparent.partners -> transparent-partners
-      const organizationName = emailDomain === 'transparent.partners' ? 'Transparent Partners' : emailDomain
+      const role = transparentAdminEmails.includes(user.email || '') ? 'super_admin' : 'user'
+      
+      // Determine organization info - only Bryan and Darren get automatic Transparent Partners access
+      let organizationId = 'unassigned'
+      let organizationName = 'Unassigned'
+      
+      if (transparentAdminEmails.includes(user.email || '')) {
+        organizationId = 'transparent-partners'
+        organizationName = 'Transparent Partners'
+      } else {
+        // Other users (including other @transparent.partners emails) need to request company access
+        const emailDomain = user.email?.split('@')[1] || ''
+        organizationId = 'pending-assignment'
+        organizationName = `Pending Assignment (${emailDomain})`
+      }
       
       const profile: UserProfile = {
         uid: user.uid,
