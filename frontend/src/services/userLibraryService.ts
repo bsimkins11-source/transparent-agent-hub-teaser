@@ -13,7 +13,9 @@ export const addAgentToUserLibrary = async (
   agentId: string,
   agentName: string,
   organizationId: string,
+  organizationName: string,
   networkId?: string,
+  networkName?: string,
   assignmentReason?: string
 ): Promise<void> => {
   try {
@@ -30,7 +32,9 @@ export const addAgentToUserLibrary = async (
       userEmail,
       userName,
       organizationId,
+      organizationName,
       networkId,
+      networkName,
       assignmentReason || 'Self-assigned free agent'
     );
 

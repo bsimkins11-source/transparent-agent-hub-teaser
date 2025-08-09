@@ -71,7 +71,9 @@ export default function AgentLibraryPage() {
         agent.id,
         agent.name,
         userProfile.organizationId,
+        userProfile.organizationName,
         userProfile.organizationId === 'transparent-partners' ? 'consulting' : undefined, // Mock network assignment
+        userProfile.organizationId === 'transparent-partners' ? 'Consulting Division' : undefined, // Mock network name
         `Self-assigned free agent from marketplace`
       )
       

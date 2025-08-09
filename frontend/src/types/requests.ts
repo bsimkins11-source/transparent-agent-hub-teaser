@@ -48,11 +48,13 @@ export interface AgentAssignment {
   assignedAt: string
   assignmentType: 'direct' | 'approved_request'
   organizationId: string
+  organizationName: string
   networkId?: string
-  // Assignment context
+  networkName?: string
   assignmentReason?: string
+  isActive?: boolean
+  // Assignment context
   expiresAt?: string
-  isActive: boolean
 }
 
 export interface ApprovalAction {

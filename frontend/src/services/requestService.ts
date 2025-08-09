@@ -293,7 +293,9 @@ export const directAgentAssignment = async (
   assignedByEmail: string,
   assignedByName: string,
   organizationId: string,
+  organizationName: string,
   networkId?: string,
+  networkName?: string,
   assignmentReason?: string
 ): Promise<string> => {
   try {
@@ -311,7 +313,9 @@ export const directAgentAssignment = async (
       assignedAt: new Date().toISOString(),
       assignmentType: 'direct',
       organizationId,
+      organizationName,
       networkId,
+      networkName,
       assignmentReason,
       isActive: true
     };
