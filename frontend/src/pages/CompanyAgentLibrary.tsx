@@ -189,8 +189,28 @@ export default function CompanyAgentLibrary() {
   };
 
   const handleRequestAgent = (agent: Agent) => {
-    setSelectedAgent(agent);
-    setIsRequestModalOpen(true);
+    // Check if this is a free agent that can be added directly
+    const tier = agent.metadata?.tier || 'free';
+    
+    if (tier === 'free') {
+      // Direct addition for free agents
+      handleAddFreeAgent(agent);
+    } else {
+      // Request approval for premium agents
+      setSelectedAgent(agent);
+      setIsRequestModalOpen(true);
+    }
+  };
+
+  const handleAddFreeAgent = (agent: Agent) => {
+    // Add free agent directly to user's library
+    const updatedAssignedAgents = [...userAssignedAgents, agent.id];
+    setUserAssignedAgents(updatedAssignedAgents);
+    
+    toast.success(`${agent.name} added to your library!`);
+    
+    // In production, this would update the user's profile in Firestore
+    console.log(`Added free agent ${agent.name} to user library`);
   };
 
   const submitAgentRequest = async () => {
@@ -451,11 +471,15 @@ export default function CompanyAgentLibrary() {
                         </button>
                       ) : (
                         <button
-                          className="w-full btn-outline hover:btn-primary transition-all"
+                          className={`w-full transition-all ${
+                            (agent.metadata?.tier || 'free') === 'free'
+                              ? 'btn-primary'
+                              : 'btn-outline hover:btn-primary'
+                          }`}
                           onClick={() => handleRequestAgent(agent)}
                         >
                           <PlusIcon className="w-4 h-4 mr-2" />
-                          Request Access
+                          {(agent.metadata?.tier || 'free') === 'free' ? 'Add Free Agent' : 'Request Premium Agent'}
                         </button>
                       )}
                     </div>

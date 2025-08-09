@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { motion } from 'framer-motion'
@@ -11,13 +11,36 @@ import {
   BuildingOfficeIcon,
   UserGroupIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  ChevronDownIcon,
+  CogIcon
 } from '@heroicons/react/24/outline'
 
 export default function Header() {
   const { currentUser, userProfile, logout } = useAuth()
   const location = useLocation()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isLibrariesDropdownOpen, setIsLibrariesDropdownOpen] = useState(false)
+  const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false)
+  const librariesDropdownRef = useRef<HTMLDivElement>(null)
+  const adminDropdownRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (librariesDropdownRef.current && !librariesDropdownRef.current.contains(event.target as Node)) {
+        setIsLibrariesDropdownOpen(false)
+      }
+      if (adminDropdownRef.current && !adminDropdownRef.current.contains(event.target as Node)) {
+        setIsAdminDropdownOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   const handleLogout = async () => {
     try {
@@ -48,86 +71,169 @@ export default function Header() {
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="hidden md:flex items-center space-x-8">
             {currentUser && userProfile && (
               <>
-                {/* Agent Libraries - Always visible for authenticated users */}
-                <div className="flex items-center space-x-6 border-r border-gray-200 pr-6">
-                  <Link 
-                    to="/agents" 
-                    className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-                      location.pathname === '/agents' 
-                        ? 'text-brand-600' 
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
+                {/* Libraries Dropdown */}
+                <div className="relative" ref={librariesDropdownRef}>
+                  <button
+                    onClick={() => setIsLibrariesDropdownOpen(!isLibrariesDropdownOpen)}
+                    className="flex items-center space-x-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
                   >
                     <BookOpenIcon className="w-4 h-4" />
-                    <span>Master Library</span>
-                  </Link>
+                    <span>Libraries</span>
+                    <ChevronDownIcon className="w-4 h-4" />
+                  </button>
                   
-                  <Link 
-                    to={`/company/${userProfile.organizationId || 'company'}`}
-                    className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-                      location.pathname.startsWith('/company/') 
-                        ? 'text-brand-600' 
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <BuildingOfficeIcon className="w-4 h-4" />
-                    <span>Company Library</span>
-                  </Link>
-                  
-                  <Link 
-                    to="/my-agents" 
-                    className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-                      location.pathname === '/my-agents' 
-                        ? 'text-brand-600' 
-                        : 'text-gray-600 hover:text-gray-900'
-                    }`}
-                  >
-                    <UserGroupIcon className="w-4 h-4" />
-                    <span>My Library</span>
-                  </Link>
+                  {isLibrariesDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                      {/* All Agents - Always available */}
+                      <Link
+                        to="/agents"
+                        onClick={() => setIsLibrariesDropdownOpen(false)}
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
+                          location.pathname === '/agents' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                        }`}
+                      >
+                        <BookOpenIcon className="w-4 h-4" />
+                        <span>All Agents</span>
+                      </Link>
+                      
+                      {/* Company Library - Only if user has company access */}
+                      {userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
+                        <Link
+                          to={`/company/${userProfile.organizationId}`}
+                          onClick={() => setIsLibrariesDropdownOpen(false)}
+                          className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
+                            location.pathname.startsWith('/company/') ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                          }`}
+                        >
+                          <BuildingOfficeIcon className="w-4 h-4" />
+                          <span>{userProfile.organizationName || 'Company'}</span>
+                        </Link>
+                      )}
+                      
+                      {/* Network Library - Only if user is part of a network */}
+                      {userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
+                        <Link
+                          to={`/company/${userProfile.organizationId}/network/main`}
+                          onClick={() => setIsLibrariesDropdownOpen(false)}
+                          className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
+                            location.pathname.includes('/network/') ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                          }`}
+                        >
+                          <UserGroupIcon className="w-4 h-4" />
+                          <span>Network</span>
+                        </Link>
+                      )}
+                      
+                      {/* My Library - Always available for authenticated users */}
+                      <Link
+                        to="/my-agents"
+                        onClick={() => setIsLibrariesDropdownOpen(false)}
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
+                          location.pathname === '/my-agents' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                        }`}
+                      >
+                        <UserIcon className="w-4 h-4" />
+                        <span>My Library</span>
+                      </Link>
+                      
+                      {/* Access Status Indicator for pending users */}
+                      {(userProfile.organizationId === 'pending-assignment' || userProfile.organizationId === 'unassigned') && (
+                        <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100">
+                          <div className="flex items-center space-x-1">
+                            <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
+                            <span>Company access pending</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                {/* Admin Links - Only show for admin roles */}
+                {/* Admin Dropdown - Only show for admin roles */}
                 {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'network_admin') && (
-                  <div className="flex items-center space-x-6 border-l border-gray-200 pl-6">
-                    {userProfile.role === 'super_admin' && (
-                      <Link 
-                        to="/super-admin" 
-                        className={`text-sm font-medium transition-colors ${
-                          location.pathname === '/super-admin' 
-                            ? 'text-brand-600' 
-                            : 'text-gray-600 hover:text-gray-900'
-                        }`}
-                      >
-                        Super Admin
-                      </Link>
-                    )}
-                    {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin') && (
-                      <Link 
-                        to="/admin" 
-                        className={`text-sm font-medium transition-colors ${
-                          location.pathname === '/admin' 
-                            ? 'text-brand-600' 
-                            : 'text-gray-600 hover:text-gray-900'
-                        }`}
-                      >
-                        Company Admin
-                      </Link>
-                    )}
-                    {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'network_admin') && (
-                      <Link 
-                        to="/network-admin" 
-                        className={`text-sm font-medium transition-colors ${
-                          location.pathname === '/network-admin' 
-                            ? 'text-brand-600' 
-                            : 'text-gray-600 hover:text-gray-900'
-                        }`}
-                      >
-                        Network Admin
-                      </Link>
+                  <div className="relative" ref={adminDropdownRef}>
+                    <button
+                      onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
+                      className="flex items-center space-x-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                    >
+                      <CogIcon className="w-4 h-4" />
+                      <span>Admin</span>
+                      <ChevronDownIcon className="w-4 h-4" />
+                    </button>
+                    
+                    {isAdminDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                        {/* Super Admin - Only for super_admin role */}
+                        {userProfile.role === 'super_admin' && (
+                          <Link
+                            to="/super-admin"
+                            onClick={() => setIsAdminDropdownOpen(false)}
+                            className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
+                              location.pathname === '/super-admin' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                            }`}
+                          >
+                            <span className="text-purple-600">👑</span>
+                            <div>
+                              <div className="font-medium">Super Admin</div>
+                              <div className="text-xs text-gray-500">Global management</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {/* Company Admin - For super_admin and company_admin roles */}
+                        {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin') && 
+                         userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
+                          <Link
+                            to="/admin"
+                            onClick={() => setIsAdminDropdownOpen(false)}
+                            className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
+                              location.pathname === '/admin' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                            }`}
+                          >
+                            <BuildingOfficeIcon className="w-4 h-4" />
+                            <div>
+                              <div className="font-medium">Company Admin</div>
+                              <div className="text-xs text-gray-500">{userProfile.organizationName}</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {/* Network Admin - For users with network admin access */}
+                        {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'network_admin') && 
+                         userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
+                          <Link
+                            to="/network-admin"
+                            onClick={() => setIsAdminDropdownOpen(false)}
+                            className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
+                              location.pathname === '/network-admin' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                            }`}
+                          >
+                            <UserGroupIcon className="w-4 h-4" />
+                            <div>
+                              <div className="font-medium">Network Admin</div>
+                              <div className="text-xs text-gray-500">Team management</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {/* Role Badge */}
+                        <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100">
+                          <div className="flex items-center justify-between">
+                            <span>Current Role:</span>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              userProfile.role === 'super_admin' ? 'bg-purple-100 text-purple-800' :
+                              userProfile.role === 'company_admin' ? 'bg-blue-100 text-blue-800' :
+                              userProfile.role === 'network_admin' ? 'bg-green-100 text-green-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {userProfile.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}

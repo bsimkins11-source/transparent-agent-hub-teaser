@@ -39,6 +39,15 @@ export default function AgentLibraryPage() {
     setUserLibraryAgents(mockUserLibraryAgents)
   }
 
+  const handleAddToLibrary = (agent: Agent) => {
+    // Add agent to user's library
+    const updatedLibrary = [...userLibraryAgents, agent.id]
+    setUserLibraryAgents(updatedLibrary)
+    
+    // In production, this would update the user's profile in Firestore
+    console.log(`Added ${agent.name} to user library`)
+  }
+
   const loadAgents = async () => {
     try {
       setLoading(true)
@@ -163,6 +172,7 @@ export default function AgentLibraryPage() {
                     <AgentCard 
                       agent={agent} 
                       isInUserLibrary={userLibraryAgents.includes(agent.id)}
+                      onAddToLibrary={handleAddToLibrary}
                     />
                   </motion.div>
                 ))}

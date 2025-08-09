@@ -37,9 +37,9 @@ const providerIcons = {
 export default function AgentCard({ agent, companyBranding, showAddToLibrary = true, onAddToLibrary, isInUserLibrary = false }: AgentCardProps) {
   const { userProfile } = useAuth()
   
-  // Determine permission type from agent metadata
-  const permissionType = agent.metadata?.permissionType || 'direct' // 'direct' or 'approval'
+  // Determine permission type from agent metadata  
   const tier = agent.metadata?.tier || 'free' // 'free' or 'premium'
+  const permissionType = tier === 'free' ? 'direct' : 'approval' // free = direct, premium = approval
   
   const handleAddToLibrary = (e: React.MouseEvent) => {
     e.preventDefault() // Prevent navigation to agent page
@@ -97,8 +97,15 @@ export default function AgentCard({ agent, companyBranding, showAddToLibrary = t
                       🔒 Private
                     </span>
                   )}
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                    tier === 'free' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-900 border border-purple-300'
+                  }`}>
+                    {tier === 'free' ? '🆓 Free' : '💎 Premium'}
+                  </span>
                   {isInUserLibrary && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       ✅ In My Library
                     </span>
                   )}
@@ -152,23 +159,21 @@ export default function AgentCard({ agent, companyBranding, showAddToLibrary = t
                 ) : (
                   <button
                     onClick={handleAddToLibrary}
-                    className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      permissionType === 'direct'
+                    className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      tier === 'free'
                         ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                        : 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
+                        : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 shadow-md'
                     }`}
                   >
-                    {permissionType === 'direct' ? (
+                    {tier === 'free' ? (
                       <>
                         <PlusIcon className="w-4 h-4" />
-                        <span>Add to Library</span>
-                        <span className="text-xs opacity-75">({tier})</span>
+                        <span>Add Free Agent</span>
                       </>
                     ) : (
                       <>
                         <ClockIcon className="w-4 h-4" />
                         <span>Request Access</span>
-                        <span className="text-xs opacity-75">({tier})</span>
                       </>
                     )}
                   </button>

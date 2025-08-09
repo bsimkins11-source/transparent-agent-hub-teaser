@@ -28,6 +28,21 @@ interface Company {
   agentCount: number;
   createdAt: string;
   status: 'active' | 'suspended';
+  networks?: CompanyNetwork[];
+}
+
+interface CompanyNetwork {
+  id: string;
+  name: string;
+  slug: string;
+  type: 'business_unit' | 'region' | 'department' | 'custom';
+  adminEmail: string;
+  adminName: string;
+  description: string;
+  userCount: number;
+  agentCount: number;
+  status: 'active' | 'suspended';
+  createdAt: string;
 }
 
 export default function SuperAdminDashboard() {
@@ -40,6 +55,15 @@ export default function SuperAdminDashboard() {
   const [isAssignAdminModalOpen, setIsAssignAdminModalOpen] = useState(false);
   const [isAgentPermissionsModalOpen, setIsAgentPermissionsModalOpen] = useState(false);
   const [companyAgentPermissions, setCompanyAgentPermissions] = useState<{[companyId: string]: {[agentId: string]: {granted: boolean; assignmentType: 'free' | 'direct' | 'approval'}}}>({});
+  
+  // Network management state
+  const [isNetworkPermissionsModalOpen, setIsNetworkPermissionsModalOpen] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] = useState<{company: Company; network: CompanyNetwork} | null>(null);
+  const [networkAgentPermissions, setNetworkAgentPermissions] = useState<{[companyId: string]: {[networkId: string]: {[agentId: string]: {granted: boolean; assignmentType: 'free' | 'direct' | 'approval'}}}}>({});
+  
+  // Global agent management state
+  const [isGlobalAgentModalOpen, setIsGlobalAgentModalOpen] = useState(false);
+  const [globalAgentSettings, setGlobalAgentSettings] = useState<{[agentId: string]: {enabled: boolean; defaultTier: 'free' | 'premium' | 'enterprise'; defaultAssignmentType: 'free' | 'direct' | 'approval'}}>({});
   
   // New company form state
   const [newCompany, setNewCompany] = useState({
@@ -59,7 +83,7 @@ export default function SuperAdminDashboard() {
   });
 
   useEffect(() => {
-    // Mock company data
+    // Mock company data with networks
     const mockCompanies: Company[] = [
       {
         id: 'transparent-partners',
@@ -73,7 +97,35 @@ export default function SuperAdminDashboard() {
         userCount: 15,
         agentCount: 8,
         createdAt: '2024-01-15',
-        status: 'active'
+        status: 'active',
+        networks: [
+          {
+            id: 'consulting',
+            name: 'Consulting Division',
+            slug: 'consulting',
+            type: 'business_unit',
+            adminEmail: 'consulting.admin@transparent.partners',
+            adminName: 'Sarah Johnson',
+            description: 'Strategic consulting and advisory services',
+            userCount: 8,
+            agentCount: 5,
+            status: 'active',
+            createdAt: '2024-01-20'
+          },
+          {
+            id: 'technology',
+            name: 'Technology Division',
+            slug: 'technology',
+            type: 'business_unit',
+            adminEmail: 'tech.admin@transparent.partners',
+            adminName: 'Mike Chen',
+            description: 'Technology development and innovation',
+            userCount: 7,
+            agentCount: 6,
+            status: 'active',
+            createdAt: '2024-01-25'
+          }
+        ]
       },
       {
         id: 'acme-corp',
@@ -86,7 +138,35 @@ export default function SuperAdminDashboard() {
         userCount: 25,
         agentCount: 12,
         createdAt: '2024-02-01',
-        status: 'active'
+        status: 'active',
+        networks: [
+          {
+            id: 'north-america',
+            name: 'North America',
+            slug: 'north-america',
+            type: 'region',
+            adminEmail: 'na.admin@acme.com',
+            adminName: 'Lisa Rodriguez',
+            description: 'North American operations',
+            userCount: 15,
+            agentCount: 8,
+            status: 'active',
+            createdAt: '2024-02-05'
+          },
+          {
+            id: 'manufacturing',
+            name: 'Manufacturing',
+            slug: 'manufacturing',
+            type: 'department',
+            adminEmail: 'mfg.admin@acme.com',
+            adminName: 'Robert Taylor',
+            description: 'Manufacturing and production',
+            userCount: 10,
+            agentCount: 4,
+            status: 'active',
+            createdAt: '2024-02-10'
+          }
+        ]
       }
     ];
 
@@ -115,6 +195,48 @@ export default function SuperAdminDashboard() {
     });
     setCompanyAgentPermissions(initialPermissions);
     
+    // Initialize network agent permissions
+    const initialNetworkPermissions: {[companyId: string]: {[networkId: string]: {[agentId: string]: {granted: boolean; assignmentType: 'free' | 'direct' | 'approval'}}}} = {};
+    mockCompanies.forEach(company => {
+      initialNetworkPermissions[company.id] = {};
+      company.networks?.forEach(network => {
+        initialNetworkPermissions[company.id][network.id] = {};
+        if (company.id === 'transparent-partners') {
+          if (network.id === 'consulting') {
+            initialNetworkPermissions[company.id][network.id]['briefing-agent'] = { granted: true, assignmentType: 'free' };
+            initialNetworkPermissions[company.id][network.id]['research-agent'] = { granted: true, assignmentType: 'direct' };
+            initialNetworkPermissions[company.id][network.id]['gemini-chat-agent'] = { granted: true, assignmentType: 'free' };
+          } else if (network.id === 'technology') {
+            initialNetworkPermissions[company.id][network.id]['analytics-agent'] = { granted: true, assignmentType: 'direct' };
+            initialNetworkPermissions[company.id][network.id]['gemini-chat-agent'] = { granted: true, assignmentType: 'free' };
+            initialNetworkPermissions[company.id][network.id]['imagen-agent'] = { granted: true, assignmentType: 'approval' };
+          }
+        } else if (company.id === 'acme-corp') {
+          initialNetworkPermissions[company.id][network.id]['briefing-agent'] = { granted: true, assignmentType: 'free' };
+          if (network.id === 'north-america') {
+            initialNetworkPermissions[company.id][network.id]['analytics-agent'] = { granted: true, assignmentType: 'direct' };
+          }
+        }
+      });
+    });
+    setNetworkAgentPermissions(initialNetworkPermissions);
+    
+    // Initialize global agent settings
+    const initialGlobalSettings: {[agentId: string]: {enabled: boolean; defaultTier: 'free' | 'premium' | 'enterprise'; defaultAssignmentType: 'free' | 'direct' | 'approval'}} = {
+      'briefing-agent': { enabled: true, defaultTier: 'free', defaultAssignmentType: 'free' },
+      'analytics-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'direct' },
+      'research-agent': { enabled: true, defaultTier: 'free', defaultAssignmentType: 'direct' },
+      'writing-agent': { enabled: true, defaultTier: 'free', defaultAssignmentType: 'free' },
+      'gemini-chat-agent': { enabled: true, defaultTier: 'free', defaultAssignmentType: 'free' },
+      'imagen-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'approval' },
+      'interview-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'approval' },
+      'legal-agent': { enabled: false, defaultTier: 'enterprise', defaultAssignmentType: 'approval' },
+      'finance-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'direct' },
+      'customer-service-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'direct' }
+    };
+    setGlobalAgentSettings(initialGlobalSettings);
+    
+    const totalNetworks = mockCompanies.reduce((sum, c) => sum + (c.networks?.length || 0), 0);
     setStats({
       totalCompanies: mockCompanies.length,
       totalUsers: mockCompanies.reduce((sum, c) => sum + c.userCount, 0),
@@ -186,6 +308,15 @@ export default function SuperAdminDashboard() {
     setIsAgentPermissionsModalOpen(true);
   };
 
+  const openNetworkPermissionsModal = (company: Company, network: CompanyNetwork) => {
+    setSelectedNetwork({ company, network });
+    setIsNetworkPermissionsModalOpen(true);
+  };
+
+  const openGlobalAgentModal = () => {
+    setIsGlobalAgentModalOpen(true);
+  };
+
   const toggleAgentAccess = (companyId: string, agentId: string, assignmentType: 'free' | 'direct' | 'approval') => {
     setCompanyAgentPermissions(prev => {
       const companyPermissions = prev[companyId] || {};
@@ -202,6 +333,38 @@ export default function SuperAdminDashboard() {
         }
       };
     });
+  };
+
+  const toggleNetworkAgentAccess = (companyId: string, networkId: string, agentId: string, assignmentType: 'free' | 'direct' | 'approval') => {
+    setNetworkAgentPermissions(prev => {
+      const companyPermissions = prev[companyId] || {};
+      const networkPermissions = companyPermissions[networkId] || {};
+      const currentAgent = networkPermissions[agentId];
+      const hasAccess = currentAgent?.granted || false;
+      
+      return {
+        ...prev,
+        [companyId]: {
+          ...companyPermissions,
+          [networkId]: {
+            ...networkPermissions,
+            [agentId]: hasAccess 
+              ? { granted: false, assignmentType: 'free' } // Remove access
+              : { granted: true, assignmentType } // Grant access with specified type
+          }
+        }
+      };
+    });
+  };
+
+  const toggleGlobalAgentSetting = (agentId: string, setting: 'enabled' | 'defaultTier' | 'defaultAssignmentType', value: any) => {
+    setGlobalAgentSettings(prev => ({
+      ...prev,
+      [agentId]: {
+        ...prev[agentId],
+        [setting]: value
+      }
+    }));
   };
 
   const saveAgentPermissions = () => {
@@ -223,6 +386,25 @@ export default function SuperAdminDashboard() {
     toast.success(`Agent permissions updated for ${selectedCompany.name}! Assigned ${assignedAgents.length} total agents: ${summary}.`);
     setIsAgentPermissionsModalOpen(false);
     setSelectedCompany(null);
+  };
+
+  const saveNetworkPermissions = () => {
+    if (!selectedNetwork) return;
+    
+    const networkPermissions = networkAgentPermissions[selectedNetwork.company.id]?.[selectedNetwork.network.id] || {};
+    const assignedAgents = Object.entries(networkPermissions).filter(([_, permission]) => permission.granted);
+    
+    toast.success(`Network permissions updated for ${selectedNetwork.network.name}! Assigned ${assignedAgents.length} agents.`);
+    setIsNetworkPermissionsModalOpen(false);
+    setSelectedNetwork(null);
+  };
+
+  const saveGlobalAgentSettings = () => {
+    const enabledAgents = Object.entries(globalAgentSettings).filter(([_, settings]) => settings.enabled).length;
+    const disabledAgents = Object.entries(globalAgentSettings).filter(([_, settings]) => !settings.enabled).length;
+    
+    toast.success(`Global agent settings updated! ${enabledAgents} agents enabled, ${disabledAgents} disabled.`);
+    setIsGlobalAgentModalOpen(false);
   };
 
   const handleUpdateCompanyBranding = () => {
@@ -358,14 +540,17 @@ export default function SuperAdminDashboard() {
           <div className="bg-white rounded-xl shadow-soft border border-gray-200 p-6">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-xl font-semibold text-gray-900">Global Agent Permissions</h3>
-              <button className="btn-secondary flex items-center space-x-2">
+              <button 
+                onClick={openGlobalAgentModal}
+                className="btn-secondary flex items-center space-x-2"
+              >
                 <Cog6ToothIcon className="w-5 h-5" />
                 <span>Manage Permissions</span>
               </button>
             </div>
             <p className="text-gray-600 mb-4">Control which agents are available to companies and networks</p>
             <div className="text-sm text-gray-500">
-              {stats.totalAgents} total agents • Global permission control
+              {Object.values(globalAgentSettings).filter(s => s.enabled).length} enabled agents • Global permission control
             </div>
           </div>
         </div>
@@ -431,7 +616,7 @@ export default function SuperAdminDashboard() {
                 </div>
 
                 {/* Company Stats */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
+                <div className="grid grid-cols-3 gap-4 mb-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900">{company.userCount}</div>
                     <div className="text-sm text-gray-500">Users</div>
@@ -439,6 +624,10 @@ export default function SuperAdminDashboard() {
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900">{company.agentCount}</div>
                     <div className="text-sm text-gray-500">Agents</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-gray-900">{company.networks?.length || 0}</div>
+                    <div className="text-sm text-gray-500">Networks</div>
                   </div>
                 </div>
 
@@ -448,6 +637,41 @@ export default function SuperAdminDashboard() {
                   <div className="text-sm text-gray-600">{company.adminName}</div>
                   <div className="text-sm text-gray-500">{company.adminEmail}</div>
                 </div>
+
+                {/* Networks Section */}
+                {company.networks && company.networks.length > 0 && (
+                  <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                    <div className="text-sm font-medium text-gray-900 mb-2">Networks</div>
+                    <div className="space-y-2">
+                      {company.networks.slice(0, 2).map((network) => (
+                        <div key={network.id} className="flex items-center justify-between text-sm">
+                          <div>
+                            <span className="text-gray-700">{network.name}</span>
+                            <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                              network.type === 'business_unit' ? 'bg-blue-100 text-blue-800' :
+                              network.type === 'region' ? 'bg-green-100 text-green-800' :
+                              network.type === 'department' ? 'bg-purple-100 text-purple-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {network.type.replace('_', ' ')}
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => openNetworkPermissionsModal(company, network)}
+                            className="text-xs text-brand-600 hover:text-brand-700 font-medium"
+                          >
+                            Agents
+                          </button>
+                        </div>
+                      ))}
+                      {company.networks.length > 2 && (
+                        <div className="text-xs text-gray-500">
+                          +{company.networks.length - 2} more networks
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Actions */}
                 <div className="space-y-2">
@@ -1036,6 +1260,261 @@ export default function SuperAdminDashboard() {
               </button>
               <button onClick={saveAgentPermissions} className="btn-primary">
                 Save Permission Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Network Permissions Modal */}
+      {isNetworkPermissionsModalOpen && selectedNetwork && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Network Agent Permissions: {selectedNetwork.network.name}
+            </h2>
+            <div className="mb-4 text-sm text-gray-600">
+              Company: {selectedNetwork.company.name} • Network Type: {selectedNetwork.network.type.replace('_', ' ')}
+            </div>
+            
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <svg className="w-5 h-5 text-blue-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <div className="text-sm text-blue-700">
+                  <p className="font-medium mb-1">Network-Level Agent Control</p>
+                  <p>Assign specific agents to this network within {selectedNetwork.company.name}. Only agents already granted to the company can be assigned to networks.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Available Company Agents for Network Assignment */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { id: 'briefing-agent', name: 'Briefing Agent', icon: '📄', category: 'Productivity', description: 'Summarizes documents and creates briefings', tier: 'free' },
+                { id: 'analytics-agent', name: 'Analytics Agent', icon: '📊', category: 'Analytics', description: 'Analyzes data and generates insights', tier: 'premium' },
+                { id: 'research-agent', name: 'Research Agent', icon: '🔍', category: 'Research', description: 'Conducts comprehensive research', tier: 'free' },
+                { id: 'writing-agent', name: 'Writing Agent', icon: '✍️', category: 'Productivity', description: 'Content creation and writing assistance', tier: 'free' },
+                { id: 'gemini-chat-agent', name: 'Gemini Chat Agent', icon: '🤖', category: 'AI Chat', description: 'Conversational AI powered by Google Gemini', tier: 'free' },
+                { id: 'imagen-agent', name: 'Google Imagen Agent', icon: '🎨', category: 'Creative', description: 'AI image generation powered by Google Imagen', tier: 'premium' }
+              ].filter(agent => {
+                // Only show agents that are granted to the company
+                const companyPermission = companyAgentPermissions[selectedNetwork.company.id]?.[agent.id];
+                return companyPermission?.granted;
+              }).map((agent) => {
+                const networkPermission = networkAgentPermissions[selectedNetwork.company.id]?.[selectedNetwork.network.id]?.[agent.id];
+                const hasAccess = networkPermission?.granted || false;
+                const currentAssignmentType = networkPermission?.assignmentType || 'free';
+                return (
+                <div key={agent.id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-2xl">{agent.icon}</span>
+                      <div>
+                        <h4 className="font-semibold text-gray-900">{agent.name}</h4>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-gray-500">{agent.category}</span>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            agent.tier === 'free' ? 'bg-green-100 text-green-800' :
+                            agent.tier === 'premium' ? 'bg-blue-100 text-blue-800' :
+                            'bg-purple-100 text-purple-800'
+                          }`}>
+                            {agent.tier}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-col space-y-2">
+                      {!hasAccess ? (
+                        <button
+                          onClick={() => toggleNetworkAgentAccess(selectedNetwork.company.id, selectedNetwork.network.id, agent.id, 'free')}
+                          className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        >
+                          Grant Access
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => toggleNetworkAgentAccess(selectedNetwork.company.id, selectedNetwork.network.id, agent.id, 'free')}
+                          className="px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-red-100 text-red-800 hover:bg-red-200"
+                        >
+                          Remove Access
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm text-gray-600 mb-3">{agent.description}</p>
+                  
+                  {hasAccess && (
+                    <div className="space-y-3">
+                      <div className="bg-gray-50 rounded p-3">
+                        <div className="text-xs text-gray-500 mb-2">Assignment Type:</div>
+                        <div className="space-y-2">
+                          {['free', 'direct', 'approval'].map((type) => (
+                            <label key={type} className="flex items-center space-x-2 cursor-pointer">
+                              <input
+                                type="radio"
+                                name={`network-assignment-${agent.id}`}
+                                value={type}
+                                checked={currentAssignmentType === type}
+                                onChange={() => toggleNetworkAgentAccess(selectedNetwork.company.id, selectedNetwork.network.id, agent.id, type as 'free' | 'direct' | 'approval')}
+                                className="text-blue-600 focus:ring-blue-500"
+                              />
+                              <span className={`text-xs font-medium ${
+                                type === 'free' ? 'text-green-700' :
+                                type === 'direct' ? 'text-blue-700' :
+                                'text-yellow-700'
+                              }`}>
+                                {type === 'free' ? '🟢 Free' :
+                                 type === 'direct' ? '🔵 Direct Assignment' :
+                                 '🟡 Requires Approval'}
+                              </span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-8 flex justify-end space-x-3">
+              <button 
+                onClick={() => setIsNetworkPermissionsModalOpen(false)} 
+                className="btn-secondary"
+              >
+                Close
+              </button>
+              <button onClick={saveNetworkPermissions} className="btn-primary">
+                Save Network Permissions
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Global Agent Management Modal */}
+      {isGlobalAgentModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Global Agent Management
+            </h2>
+            
+            <div className="mb-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <svg className="w-5 h-5 text-purple-500 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
+                <div className="text-sm text-purple-700">
+                  <p className="font-medium mb-1">Super Admin Global Control</p>
+                  <p>Configure global agent availability, default tiers, and assignment types. These settings affect all companies and networks.</p>
+                  <ul className="mt-2 space-y-1">
+                    <li><strong>Enabled:</strong> Whether the agent is available system-wide</li>
+                    <li><strong>Default Tier:</strong> Free (no restrictions), Premium (company controlled), Enterprise (super admin only)</li>
+                    <li><strong>Default Assignment:</strong> How agents are assigned by default</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {Object.entries(globalAgentSettings).map(([agentId, settings]) => {
+                const agentInfo = {
+                  'briefing-agent': { name: 'Briefing Agent', icon: '📄', category: 'Productivity', description: 'Summarizes documents and creates briefings' },
+                  'analytics-agent': { name: 'Analytics Agent', icon: '📊', category: 'Analytics', description: 'Analyzes data and generates insights' },
+                  'research-agent': { name: 'Research Agent', icon: '🔍', category: 'Research', description: 'Conducts comprehensive research' },
+                  'writing-agent': { name: 'Writing Agent', icon: '✍️', category: 'Productivity', description: 'Content creation and writing assistance' },
+                  'gemini-chat-agent': { name: 'Gemini Chat Agent', icon: '🤖', category: 'AI Chat', description: 'Conversational AI powered by Google Gemini' },
+                  'imagen-agent': { name: 'Google Imagen Agent', icon: '🎨', category: 'Creative', description: 'AI image generation powered by Google Imagen' },
+                  'interview-agent': { name: 'Interview Agent', icon: '🎤', category: 'HR', description: 'Conducts structured interviews' },
+                  'legal-agent': { name: 'Legal Agent', icon: '⚖️', category: 'Legal', description: 'Legal document analysis' },
+                  'finance-agent': { name: 'Finance Agent', icon: '💰', category: 'Finance', description: 'Financial analysis and reporting' },
+                  'customer-service-agent': { name: 'Customer Service Agent', icon: '🎧', category: 'Support', description: 'Customer support and service automation' }
+                }[agentId] || { name: agentId, icon: '🤖', category: 'Unknown', description: 'Agent description' };
+
+                return (
+                  <div key={agentId} className={`border-2 rounded-lg p-4 transition-all ${
+                    settings.enabled ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50'
+                  }`}>
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <span className="text-2xl">{agentInfo.icon}</span>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">{agentInfo.name}</h4>
+                          <span className="text-sm text-gray-500">{agentInfo.category}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={settings.enabled}
+                            onChange={(e) => toggleGlobalAgentSetting(agentId, 'enabled', e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                          <span className="ml-3 text-sm font-medium text-gray-700">
+                            {settings.enabled ? 'Enabled' : 'Disabled'}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 mb-4">{agentInfo.description}</p>
+                    
+                    {settings.enabled && (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-2">Default Tier</label>
+                          <select
+                            value={settings.defaultTier}
+                            onChange={(e) => toggleGlobalAgentSetting(agentId, 'defaultTier', e.target.value as 'free' | 'premium' | 'enterprise')}
+                            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="free">Free</option>
+                            <option value="premium">Premium</option>
+                            <option value="enterprise">Enterprise</option>
+                          </select>
+                        </div>
+                        
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-2">Default Assignment Type</label>
+                          <select
+                            value={settings.defaultAssignmentType}
+                            onChange={(e) => toggleGlobalAgentSetting(agentId, 'defaultAssignmentType', e.target.value as 'free' | 'direct' | 'approval')}
+                            className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="free">Free (Users can add directly)</option>
+                            <option value="direct">Direct (Admin assigns directly)</option>
+                            <option value="approval">Approval (Admin approval required)</option>
+                          </select>
+                        </div>
+                        
+                        <div className="bg-white rounded p-3 border border-gray-200">
+                          <div className="text-xs text-gray-600">
+                            <strong>Current Config:</strong> {settings.defaultTier} tier, {settings.defaultAssignmentType} assignment
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-8 flex justify-end space-x-3">
+              <button 
+                onClick={() => setIsGlobalAgentModalOpen(false)} 
+                className="btn-secondary"
+              >
+                Close
+              </button>
+              <button onClick={saveGlobalAgentSettings} className="btn-primary">
+                Save Global Settings
               </button>
             </div>
           </div>
