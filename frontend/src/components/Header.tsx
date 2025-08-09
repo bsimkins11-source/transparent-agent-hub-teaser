@@ -42,16 +42,6 @@ export default function Header() {
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <Link 
-              to="/" 
-              className={`text-sm font-medium transition-colors ${
-                location.pathname === '/' 
-                  ? 'text-brand-600' 
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Library
-            </Link>
             {currentUser && (
               <Link 
                 to="/admin" 
