@@ -13,7 +13,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 py-20">
+      <section className="relative bg-white py-24 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -21,98 +21,88 @@ export default function HomePage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              Welcome to{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Transparent Agent Hub
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+              Empower Your Team with{' '}
+              <span className="text-brand-600">
+                Intelligent AI Agents
               </span>
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Discover, interact with, and manage AI agents designed to enhance your workflow 
-              with transparent, reliable AI solutions.
+            <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-12 leading-relaxed">
+              Drive meaningful productivity gains with our curated collection of AI agents. 
+              Built for transparency, designed for results, optimized for your business success.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/about" className="btn-secondary text-lg px-8 py-3">
-                Learn More
-              </Link>
-            </div>
           </motion.div>
-        </div>
-        
-        {/* Background decoration */}
-        <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
-          <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-pulse"></div>
         </div>
       </section>
 
-      {/* Main Tiles Section */}
-      <section className="py-16 bg-white">
+      {/* Main Solutions Section */}
+      <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-center mb-12"
+            className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Get Started
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-6">
+              We Can Help You
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Choose your path to start exploring AI agents
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Transform your business operations with intelligent AI agents designed 
+              to accelerate progress and drive meaningful results.
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Agent Library Tile */}
+          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+            {/* Agent Library Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
+              className="relative"
             >
-              <Link to="/agents">
-                <div className="agent-card h-full p-8 text-center group">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-6">
-                    <BookOpenIcon className="w-8 h-8 text-white" />
+              <Link to="/agents" className="block group">
+                <div className="bg-white rounded-xl shadow-soft border border-gray-200 p-8 h-full hover:shadow-medium transition-all duration-200">
+                  <div className="w-12 h-12 bg-brand-600 rounded-lg flex items-center justify-center mb-6">
+                    <BookOpenIcon className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    Agent Library
+                    Explore Our Agent Library
                   </h3>
-                  <p className="text-gray-600 mb-6">
-                    Browse our curated collection of AI agents. Discover tools for productivity, 
-                    analytics, communication, and more.
+                  <p className="text-gray-600 mb-6 leading-relaxed">
+                    Access a curated collection of specialized AI agents designed to maximize 
+                    productivity across marketing, operations, and strategic initiatives.
                   </p>
-                  <div className="flex items-center justify-center space-x-2 text-blue-600 font-medium">
-                    <span>Explore Library</span>
-                    <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <div className="flex items-center text-brand-600 font-medium group-hover:text-brand-700 transition-colors">
+                    Browse All Agents
+                    <ArrowRightIcon className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </Link>
             </motion.div>
 
-            {/* My Agents Tile */}
+            {/* My Agents Card */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
+              className="relative"
             >
-              <Link to={currentUser ? "/my-agents" : "/login"}>
-                <div className="agent-card h-full p-8 text-center group">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-600 rounded-xl flex items-center justify-center mx-auto mb-6">
-                    <UserIcon className="w-8 h-8 text-white" />
+              <Link to={currentUser ? "/my-agents" : "/login"} className="block group">
+                <div className="bg-white rounded-xl shadow-soft border border-gray-200 p-8 h-full hover:shadow-medium transition-all duration-200">
+                  <div className="w-12 h-12 bg-primary-700 rounded-lg flex items-center justify-center mb-6">
+                    <UserIcon className="w-6 h-6 text-white" />
                   </div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    My Agents
+                    Manage Your Agent Team
                   </h3>
-                  <p className="text-gray-600 mb-6">
-                    {currentUser 
-                      ? "Access your personalized agent collection and interaction history."
-                      : "Sign in to access your personalized agents and track your usage."
-                    }
+                  <p className="text-gray-600 mb-6 leading-relaxed">
+                    Build and optimize your personal AI workforce. Track performance, 
+                    manage integrations, and accelerate your path to operational excellence.
                   </p>
-                  <div className="flex items-center justify-center space-x-2 text-green-600 font-medium">
-                    <span>{currentUser ? "View My Agents" : "Sign In"}</span>
-                    <ArrowRightIcon className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <div className="flex items-center text-primary-700 font-medium group-hover:text-primary-800 transition-colors">
+                    {currentUser ? 'Access Dashboard' : 'Get Started'}
+                    <ArrowRightIcon className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </div>
               </Link>

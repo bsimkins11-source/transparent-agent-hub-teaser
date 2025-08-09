@@ -35,7 +35,7 @@ export default function Header() {
               alt="Transparent Partners" 
               className="h-8 w-auto"
             />
-            <span className="text-xl font-semibold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+            <span className="text-xl font-semibold text-gray-900">
               Agent Hub
             </span>
           </Link>
@@ -46,7 +46,7 @@ export default function Header() {
               to="/" 
               className={`text-sm font-medium transition-colors ${
                 location.pathname === '/' 
-                  ? 'text-blue-600' 
+                  ? 'text-brand-600' 
                   : 'text-gray-600 hover:text-gray-900'
               }`}
             >
@@ -57,7 +57,7 @@ export default function Header() {
                 to="/admin" 
                 className={`text-sm font-medium transition-colors ${
                   location.pathname === '/admin' 
-                    ? 'text-blue-600' 
+                    ? 'text-brand-600' 
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
               >
