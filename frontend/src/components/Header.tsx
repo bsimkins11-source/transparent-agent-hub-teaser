@@ -106,11 +106,6 @@ export default function Header() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Test div to verify styling */}
-          <div className="text-white bg-red-500 px-2 py-1 rounded text-xs">
-            NAV TEST - Should be white text on red background
-          </div>
-          
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <img 
@@ -118,26 +113,20 @@ export default function Header() {
               alt="Transparent Partners" 
               className="h-8 w-auto"
             />
-            <span className={`text-xl font-semibold ${
-              isCompanyEnvironment ? 'text-white' : 'text-white'
-            }`}>
+            <span className="text-xl font-semibold text-white">
               Agent Hub
             </span>
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8 text-white">
+          <nav className="md:flex items-center space-x-8 text-white">
             {currentUser && userProfile && (
               <>
                 {/* Libraries Dropdown */}
                 <div className="relative" ref={librariesDropdownRef}>
                   <button
                     onClick={() => setIsLibrariesDropdownOpen(!isLibrariesDropdownOpen)}
-                    className={`flex items-center space-x-1 text-sm font-medium transition-colors text-white ${
-                      isCompanyEnvironment 
-                        ? 'text-white/80 hover:text-white' 
-                        : 'text-white/90 hover:text-white'
-                    }`}
+                    className="flex items-center space-x-1 text-sm font-medium transition-colors text-white hover:text-white/80"
                   >
                     <BookOpenIcon className="w-4 h-4 text-white" />
                     <span className="text-white">Libraries</span>
@@ -145,16 +134,16 @@ export default function Header() {
                   </button>
                   
                   {isLibrariesDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-2 w-56 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                    <div className="absolute top-full left-0 mt-2 w-56 bg-gray-800 rounded-md shadow-lg border border-gray-600 py-1 z-50">
                       {/* All Agents - Always available */}
                       <Link
                         to="/agents"
                         onClick={() => setIsLibrariesDropdownOpen(false)}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
-                          location.pathname === '/agents' ? 'bg-blue-50 text-blue-700' : ''
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm text-white hover:bg-gray-700 hover:text-white transition-colors ${
+                          location.pathname === '/agents' ? 'bg-blue-600 text-white' : ''
                         }`}
                       >
-                        <BookOpenIcon className="w-4 h-4 text-gray-600" />
+                        <BookOpenIcon className="w-4 h-4 text-gray-300" />
                         <span>All Agents</span>
                       </Link>
                       
@@ -163,11 +152,11 @@ export default function Header() {
                         <Link
                           to={`/company/${userProfile.organizationId}`}
                           onClick={() => setIsLibrariesDropdownOpen(false)}
-                          className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
-                            location.pathname.startsWith('/company/') ? 'bg-blue-50 text-blue-700' : ''
+                          className={`flex items-center space-x-2 px-4 py-2 text-sm text-white hover:bg-gray-700 hover:text-white transition-colors ${
+                            location.pathname.startsWith('/company/') ? 'bg-blue-600 text-white' : ''
                           }`}
                         >
-                          <BuildingOfficeIcon className="w-4 h-4 text-gray-600" />
+                          <BuildingOfficeIcon className="w-4 h-4 text-gray-300" />
                           <span>{userProfile.organizationName || 'Company'}</span>
                         </Link>
                       )}
@@ -177,11 +166,11 @@ export default function Header() {
                         <Link
                           to={`/company/${userProfile.organizationId}/network/main`}
                           onClick={() => setIsLibrariesDropdownOpen(false)}
-                          className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
-                            location.pathname.includes('/network/') ? 'bg-blue-50 text-blue-700' : ''
+                          className={`flex items-center space-x-2 px-4 py-2 text-sm text-white hover:bg-gray-700 hover:text-white transition-colors ${
+                            location.pathname.includes('/network/') ? 'bg-blue-600 text-white' : ''
                           }`}
                         >
-                          <UserGroupIcon className="w-4 h-4 text-gray-600" />
+                          <UserGroupIcon className="w-4 h-4 text-gray-300" />
                           <span>Network</span>
                         </Link>
                       )}
@@ -190,23 +179,13 @@ export default function Header() {
                       <Link
                         to="/my-agents"
                         onClick={() => setIsLibrariesDropdownOpen(false)}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
-                          location.pathname === '/my-agents' ? 'bg-blue-50 text-blue-700' : ''
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm text-white hover:bg-gray-700 hover:text-white transition-colors ${
+                          location.pathname === '/my-agents' ? 'bg-blue-600 text-white' : ''
                         }`}
                       >
-                        <UserIcon className="w-4 h-4 text-gray-600" />
+                        <UserIcon className="w-4 h-4 text-gray-300" />
                         <span>My Library</span>
                       </Link>
-                      
-                      {/* Access Status Indicator for pending users */}
-                      {(userProfile.organizationId === 'pending-assignment' || userProfile.organizationId === 'unassigned') && (
-                        <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100">
-                          <div className="flex items-center space-x-1">
-                            <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
-                            <span>Company access pending</span>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
@@ -216,11 +195,7 @@ export default function Header() {
                   <div className="relative" ref={adminDropdownRef}>
                     <button
                       onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
-                      className={`flex items-center space-x-1 text-sm font-medium transition-colors text-white ${
-                        isCompanyEnvironment 
-                          ? 'text-white/80 hover:text-white' 
-                          : 'text-white/90 hover:text-white'
-                      }`}
+                      className="flex items-center space-x-1 text-sm font-medium transition-colors text-white hover:text-white/80"
                     >
                       <CogIcon className="w-4 h-4 text-white" />
                       <span className="text-white">Admin</span>
@@ -228,20 +203,20 @@ export default function Header() {
                     </button>
                     
                     {isAdminDropdownOpen && (
-                      <div className="absolute top-full left-0 mt-2 w-52 bg-white rounded-md shadow-lg border border-gray-200 py-1 z-50">
+                      <div className="absolute top-full left-0 mt-2 w-52 bg-gray-800 rounded-md shadow-lg border border-gray-600 py-1 z-50">
                         {/* Super Admin - Only for super_admin role */}
                         {userProfile.role === 'super_admin' && (
                           <Link
                             to="/super-admin"
                             onClick={() => setIsAdminDropdownOpen(false)}
-                            className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
-                              location.pathname === '/super-admin' ? 'bg-blue-50 text-blue-700' : ''
+                            className={`flex items-center space-x-2 px-4 py-2 text-sm text-white hover:bg-gray-700 hover:text-white transition-colors ${
+                              location.pathname === '/super-admin' ? 'bg-blue-600 text-white' : ''
                             }`}
                           >
-                            <span className="text-accent-500">👑</span>
+                            <span className="text-yellow-400">👑</span>
                             <div>
                               <div className="font-medium">Super Admin</div>
-                              <div className="text-xs text-gray-500">Global management</div>
+                              <div className="text-xs text-gray-300">Global management</div>
                             </div>
                           </Link>
                         )}
@@ -252,68 +227,17 @@ export default function Header() {
                           <Link
                             to="/admin"
                             onClick={() => setIsAdminDropdownOpen(false)}
-                            className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
-                              location.pathname === '/admin' ? 'bg-blue-50 text-blue-700' : ''
+                            className={`flex items-center space-x-2 px-4 py-2 text-sm text-white hover:bg-gray-700 hover:text-white transition-colors ${
+                              location.pathname === '/admin' ? 'bg-blue-600 text-white' : ''
                             }`}
                           >
-                            <BuildingOfficeIcon className="w-4 h-4 text-gray-600" />
+                            <BuildingOfficeIcon className="w-4 h-4 text-gray-300" />
                             <div>
                               <div className="font-medium">Company Admin</div>
-                              <div className="text-xs text-gray-500">{userProfile.organizationName}</div>
+                              <div className="text-xs text-gray-300">{userProfile.organizationName}</div>
                             </div>
                           </Link>
                         )}
-                        
-                        {/* Network Admin - For network_admin role OR higher roles accessing networks */}
-                        {userProfile.role === 'network_admin' && 
-                         userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
-                          <Link
-                            to="/network-admin"
-                            onClick={() => setIsAdminDropdownOpen(false)}
-                            className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
-                              location.pathname === '/network-admin' ? 'bg-blue-50 text-blue-700' : ''
-                            }`}
-                          >
-                            <UserGroupIcon className="w-4 h-4 text-gray-600" />
-                            <div>
-                              <div className="font-medium">Network Admin</div>
-                              <div className="text-xs text-gray-500">Team management</div>
-                            </div>
-                          </Link>
-                        )}
-                        
-                        {/* Network Management - For super_admin and company_admin to access specific networks */}
-                        {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin') && 
-                         userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
-                          <Link
-                            to={`/admin/company/${userProfile.organizationId}`}
-                            onClick={() => setIsAdminDropdownOpen(false)}
-                            className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
-                              location.pathname.includes('/admin/company/') ? 'bg-blue-50 text-blue-700' : ''
-                            }`}
-                          >
-                            <UserGroupIcon className="w-4 h-4 text-gray-600" />
-                            <div>
-                              <div className="font-medium">Manage Networks</div>
-                              <div className="text-xs text-gray-500">Network oversight</div>
-                            </div>
-                          </Link>
-                        )}
-                        
-                        {/* Role Badge */}
-                        <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100">
-                          <div className="flex items-center justify-between">
-                            <span>Current Role:</span>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              userProfile.role === 'super_admin' ? 'bg-accent-100 text-accent-800' :
-                              userProfile.role === 'company_admin' ? 'bg-transparent-100 text-transparent-800' :
-                              userProfile.role === 'network_admin' ? 'bg-transparent-100 text-transparent-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {userProfile.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                            </span>
-                          </div>
-                        </div>
                       </div>
                     )}
                   </div>
@@ -321,6 +245,32 @@ export default function Header() {
               </>
             )}
           </nav>
+
+          {/* User Menu */}
+          <div className="md:flex items-center space-x-4 text-white">
+            {currentUser ? (
+              <div className="flex items-center space-x-3 text-white">
+                <div className="flex items-center space-x-2 text-sm text-white">
+                  <UserIcon className="w-4 h-4 text-white" />
+                  <span className="text-white">{currentUser.email}</span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-1 text-sm text-white hover:text-white/80 transition-colors"
+                >
+                  <ArrowRightOnRectangleIcon className="w-4 h-4 text-white" />
+                  <span className="text-white">Logout</span>
+                </button>
+              </div>
+            ) : (
+              <Link 
+                to="/login"
+                className="btn-primary text-sm text-white"
+              >
+                Sign In
+              </Link>
+            )}
+          </div>
 
           {/* Mobile menu button */}
           <div className="md:hidden">
@@ -335,32 +285,6 @@ export default function Header() {
                   <Bars3Icon className="h-6 w-6 text-white" />
                 )}
               </button>
-            )}
-          </div>
-
-          {/* User Menu */}
-          <div className="hidden md:flex items-center space-x-4 text-white">
-            {currentUser ? (
-              <div className="flex items-center space-x-3 text-white">
-                <div className="flex items-center space-x-2 text-sm text-white">
-                  <UserIcon className="w-4 h-4 text-white" />
-                  <span className="text-white">{currentUser.email}</span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-1 text-sm text-white hover:text-white transition-colors"
-                >
-                  <ArrowRightOnRectangleIcon className="w-4 h-4 text-white" />
-                  <span className="text-white">Logout</span>
-                </button>
-              </div>
-            ) : (
-              <Link 
-                to="/login"
-                className="btn-primary text-sm text-white"
-              >
-                Sign In
-              </Link>
             )}
           </div>
         </div>
