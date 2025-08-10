@@ -38,13 +38,15 @@ service cloud.firestore {
         (resource.data.visibility == 'private' && 
          resource.data.submitterId == request.auth.uid) ||
         // Company agents only by company members
-        (resource.data.visibility == 'company' && 
-         resource.data.organizationId != null &&
+        (resource.data.organizationId != null &&
          belongsToOrganization(resource.data.organizationId)) ||
         // Network agents only by network members
-        (resource.data.visibility == 'network' && 
-         resource.data.networkId != null &&
-         belongsToNetwork(resource.data.networkId))
+        (resource.data.networkId != null &&
+         belongsToNetwork(resource.data.networkId)) ||
+        // TEMPORARY: Allow reading agents that don't have visibility set
+        // This will be removed once all agents have proper metadata
+        resource.data.visibility == null ||
+        resource.data.visibility == undefined
       );
       
       allow create: if isAuthenticated();

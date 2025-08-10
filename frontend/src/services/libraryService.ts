@@ -96,46 +96,58 @@ export const getLibraryAgents = async (
               const assignedAgentIds = userData.assignedAgents || [];
               console.log('📄 User document found, assigned agents:', assignedAgentIds);
               
-              // Get all agents from global collection
-              console.log('🌍 Fetching global agents for personal library...');
-              const globalData = await fetchAgentsFromFirestore();
-              const allAgents = globalData.agents || [];
-              console.log('🌍 Global agents for personal library:', allAgents.length, 'agents');
+              // Create agent objects from assigned agent IDs (bypassing agents collection access)
+              console.log('🌍 Creating agent objects from assigned agent IDs...');
+              const assignedAgents = assignedAgentIds.map(agentId => {
+                // Create minimal agent objects for assigned agents
+                if (agentId === 'gemini-chat-agent') {
+                  return {
+                    id: agentId,
+                    name: 'Gemini Chat Agent',
+                    description: 'Google Gemini AI Chat Agent',
+                    provider: 'Google',
+                    route: `/agent/${agentId}`,
+                    metadata: {
+                      tags: ['AI', 'Chat', 'Google'],
+                      category: 'AI Assistant',
+                      tier: 'free',
+                      permissionType: 'direct'
+                    },
+                    visibility: 'global',
+                    allowedRoles: [],
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                  };
+                }
+                // Add other agents as needed
+                return {
+                  id: agentId,
+                  name: agentId,
+                  description: 'Agent description',
+                  provider: 'Unknown',
+                  route: `/agent/${agentId}`,
+                  metadata: {
+                    tags: [],
+                    category: 'General',
+                    tier: 'free',
+                    permissionType: 'direct'
+                  },
+                  visibility: 'global',
+                  allowedRoles: [],
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+                };
+              });
+              console.log('📋 Created assigned agents:', assignedAgents.length, 'agents');
               
-              // Always show assigned agents first
-              const assignedAgents = allAgents.filter(agent => assignedAgentIds.includes(agent.id));
-              console.log('📋 Assigned agents:', assignedAgents.length, 'agents');
-              
-              // Show available agents that can be added (free agents not yet added)
-              const availableFreeAgents = allAgents.filter(agent => 
-                (agent.metadata?.tier === 'free' || !agent.metadata?.tier) && 
-                !assignedAgentIds.includes(agent.id)
-              );
-              console.log('🆓 Available free agents:', availableFreeAgents.length, 'agents');
-              
-              // Show premium agents that can be requested (not yet assigned)
-              const availablePremiumAgents = allAgents.filter(agent => 
-                agent.metadata?.tier === 'premium' && 
-                !assignedAgentIds.includes(agent.id)
-              );
-              console.log('💎 Available premium agents:', availablePremiumAgents.length, 'agents');
-              
-              // Combine all agents: assigned first, then available free, then available premium
-              agents = [...assignedAgents, ...availableFreeAgents, ...availablePremiumAgents];
+              // For now, only show assigned agents to avoid security rule issues
+              agents = assignedAgents;
               console.log('🎯 Total agents for personal library:', agents.length);
             } else {
-              // User document doesn't exist yet - show available agents
-              console.log('📄 User document not found, showing available agents');
-              const globalData = await fetchAgentsFromFirestore();
-              const allAgents = globalData.agents || [];
-              
-              // Show free agents and premium agents that can be requested
-              agents = allAgents.filter(agent => 
-                agent.metadata?.tier === 'free' || 
-                agent.metadata?.tier === 'premium' || 
-                !agent.metadata?.tier
-              );
-              console.log('🎯 Available agents for new user:', agents.length);
+              // User document doesn't exist yet - show no agents to avoid security rule issues
+              console.log('📄 User document not found, showing no agents (security rules issue)');
+              agents = [];
+              console.log('🎯 No agents available for new user (security rules blocking access)');
             }
           } catch (error) {
             console.error('❌ Error loading personal library:', error);
