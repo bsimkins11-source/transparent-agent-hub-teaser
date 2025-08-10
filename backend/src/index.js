@@ -5,30 +5,28 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+// Load configuration based on environment
+const config = require(`./config/${process.env.NODE_ENV || 'production'}.js`);
+
 const authMiddleware = require('./middleware/auth');
 const agentRoutes = require('./routes/agents');
 const adminRoutes = require('./routes/admin');
 
-
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = config.port || process.env.PORT || 8080;
 
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'https://ai-agent-hub-web-portal-79fb0.web.app',
-    'http://localhost:3000',
-    'http://localhost:5173' // Vite dev server
-  ],
+  origin: config.cors.origin,
   credentials: true
 }));
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later.'
+  windowMs: config.rateLimit.windowMs,
+  max: config.rateLimit.max,
+  message: config.rateLimit.message
 });
 app.use(limiter);
 
@@ -65,6 +63,8 @@ app.use('*', (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`🚀 Agent Hub Backend running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'production'}`);
+  console.log(`🔧 Configuration: ${process.env.NODE_ENV || 'production'}.js`);
   console.log(`📊 Health check: http://localhost:${PORT}/health`);
 });
 

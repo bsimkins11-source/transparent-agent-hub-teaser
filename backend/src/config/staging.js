@@ -1,14 +1,16 @@
-// Production Configuration for Agent Hub Backend
+// Staging Configuration for Agent Hub Backend
 module.exports = {
   // Server Configuration
   port: process.env.PORT || 8080,
-  nodeEnv: 'production',
+  nodeEnv: 'staging',
   
   // CORS Configuration
   cors: {
     origin: [
-      'https://ai-agent-hub-web-portal-79fb0.web.app',
-      'https://ai-agent-hub-web-portal-79fb0.firebaseapp.com'
+      'https://transparent-ai-staging.web.app',
+      'https://transparent-ai-staging.firebaseapp.com',
+      'http://localhost:3000',
+      'http://localhost:5173' // Vite dev server
     ],
     credentials: true
   },
@@ -16,7 +18,7 @@ module.exports = {
   // Rate Limiting
   rateLimit: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    max: 200, // Higher limit for staging
     message: 'Too many requests from this IP, please try again later.'
   },
   
@@ -29,15 +31,14 @@ module.exports = {
   
   // Logging
   logging: {
-    level: process.env.LOG_LEVEL || 'info',
-    enableDebug: false,
+    level: process.env.LOG_LEVEL || 'debug',
+    enableDebug: true,
     enableErrorReporting: true
   },
   
   // Firebase Configuration
   firebase: {
-    projectId: process.env.FIREBASE_PROJECT_ID || 
-      (process.env.NODE_ENV === 'staging' ? 'transparent-ai-staging' : 'ai-agent-hub-web-portal-79fb0')
+    projectId: process.env.FIREBASE_PROJECT_ID || 'transparent-ai-staging'
   },
   
   // API Keys (set these in environment variables)
@@ -48,5 +49,5 @@ module.exports = {
   },
   
   // Frontend URL
-  frontendUrl: process.env.FRONTEND_URL || 'https://ai-agent-hub-web-portal-79fb0.web.app'
+  frontendUrl: process.env.FRONTEND_URL || 'https://transparent-ai-staging.web.app'
 };

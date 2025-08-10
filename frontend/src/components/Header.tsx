@@ -19,26 +19,7 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const [isLibrariesDropdownOpen, setIsLibrariesDropdownOpen] = useState(false);
-  const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  
-  const librariesDropdownRef = useRef<HTMLDivElement>(null);
-  const adminDropdownRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (librariesDropdownRef.current && !librariesDropdownRef.current.contains(event.target as Node)) {
-        setIsLibrariesDropdownOpen(false);
-      }
-      if (adminDropdownRef.current && !adminDropdownRef.current.contains(event.target as Node)) {
-        setIsAdminDropdownOpen(false);
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const handleLogout = async () => {
     try {
@@ -99,320 +80,229 @@ export default function Header() {
             />
           </div>
 
-          {/* Navigation */}
+          {/* Navigation - Simplified without dropdowns */}
           <nav style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
             {currentUser && userProfile && (
               <>
-                {/* Libraries Dropdown */}
-                <div style={{ position: 'relative' }} ref={librariesDropdownRef}>
-                  <button
-                    onClick={() => setIsLibrariesDropdownOpen(!isLibrariesDropdownOpen)}
+                {/* Direct navigation links instead of dropdowns */}
+                <Link
+                  to="/agents"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    color: 'white',
+                    textDecoration: 'none',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    padding: '0.5rem',
+                    borderRadius: '0.375rem',
+                    backgroundColor: location.pathname === '/agents' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = location.pathname === '/agents' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                  }}
+                >
+                  <BookOpenIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
+                  <span>All Agents</span>
+                </Link>
+                
+                <Link
+                  to="/my-agents"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    color: 'white',
+                    textDecoration: 'none',
+                    fontSize: '0.875rem',
+                    fontWeight: '500',
+                    padding: '0.5rem',
+                    borderRadius: '0.375rem',
+                    backgroundColor: location.pathname === '/my-agents' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = location.pathname === '/my-agents' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                  }}
+                >
+                  <UserIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
+                  <span>My Library</span>
+                </Link>
+                
+                {/* Company link if user has organization */}
+                {userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
+                  <Link
+                    to={`/company/${userProfile.organizationId}`}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.5rem',
-                      background: 'transparent',
-                      border: 'none',
                       color: 'white',
+                      textDecoration: 'none',
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      cursor: 'pointer',
                       padding: '0.5rem',
-                      borderRadius: '0.375rem'
+                      borderRadius: '0.375rem',
+                      backgroundColor: location.pathname.startsWith('/company/') ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
                     }}
-                    onMouseEnter={() => setIsLibrariesDropdownOpen(true)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = location.pathname.startsWith('/company/') ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                    }}
                   >
-                    <BookOpenIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
-                    <span>Libraries</span>
-                    <ChevronDownIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
-                  </button>
-                  
-                  {isLibrariesDropdownOpen && (
-                    <div 
+                    <BuildingOfficeIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
+                    <span>{userProfile.organizationName || 'Company'}</span>
+                  </Link>
+                )}
+                
+                {/* Creator links */}
+                {userProfile.role === 'creator' && (
+                  <>
+                    <Link
+                      to="/creator-dashboard"
                       style={{
-                        position: 'absolute',
-                        top: '100%',
-                        left: 0,
-                        marginTop: '0.5rem',
-                        width: '14rem',
-                        background: '#1f2937',
-                        border: '1px solid #4b5563',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: 'white',
+                        textDecoration: 'none',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        padding: '0.5rem',
                         borderRadius: '0.375rem',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                        zIndex: 50,
-                        padding: '0.25rem'
+                        backgroundColor: location.pathname === '/creator-dashboard' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
                       }}
-                      onMouseLeave={() => setIsLibrariesDropdownOpen(false)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = location.pathname === '/creator-dashboard' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                      }}
                     >
-                      <Link
-                        to="/agents"
-                        onClick={() => setIsLibrariesDropdownOpen(false)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          padding: '0.5rem',
-                          color: 'white',
-                          textDecoration: 'none',
-                          fontSize: '0.875rem',
-                          borderRadius: '0.25rem',
-                          backgroundColor: location.pathname === '/agents' ? '#2563eb' : 'transparent'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#374151';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = location.pathname === '/agents' ? '#2563eb' : 'transparent';
-                        }}
-                      >
-                        <BookOpenIcon style={{ width: '1rem', height: '1rem', color: '#d1d5db' }} />
-                        <span>All Agents</span>
-                      </Link>
-                      
-                      {userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
+                      <span style={{ fontSize: '1rem' }}>📊</span>
+                      <span>Creator Dashboard</span>
+                    </Link>
+                    
+                    <Link
+                      to="/agent-submission"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        color: 'white',
+                        textDecoration: 'none',
+                        fontSize: '0.875rem',
+                        fontWeight: '500',
+                        padding: '0.5rem',
+                        borderRadius: '0.375rem',
+                        backgroundColor: location.pathname === '/agent-submission' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = location.pathname === '/agent-submission' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                      }}
+                    >
+                      <span style={{ fontSize: '1rem' }}>➕</span>
+                      <span>Submit Agent</span>
+                    </Link>
+                  </>
+                )}
+                
+                {/* Admin links */}
+                {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'network_admin') && (
+                  <>
+                    {userProfile.role === 'super_admin' && (
+                      <>
                         <Link
-                          to={`/company/${userProfile.organizationId}`}
-                          onClick={() => setIsLibrariesDropdownOpen(false)}
+                          to="/super-admin"
                           style={{
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.5rem',
-                            padding: '0.5rem',
                             color: 'white',
                             textDecoration: 'none',
                             fontSize: '0.875rem',
-                            borderRadius: '0.25rem',
-                            backgroundColor: location.pathname.startsWith('/company/') ? '#2563eb' : 'transparent'
+                            fontWeight: '500',
+                            padding: '0.5rem',
+                            borderRadius: '0.375rem',
+                            backgroundColor: location.pathname === '/super-admin' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#374151';
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = location.pathname.startsWith('/company/') ? '#2563eb' : 'transparent';
+                            e.currentTarget.style.backgroundColor = location.pathname === '/super-admin' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
                           }}
                         >
-                          <BuildingOfficeIcon style={{ width: '1rem', height: '1rem', color: '#d1d5db' }} />
-                          <span>{userProfile.organizationName || 'Company'}</span>
+                          <span style={{ fontSize: '1rem' }}>👑</span>
+                          <span>Super Admin</span>
                         </Link>
-                      )}
-                      
+                        
+                        <Link
+                          to="/creator-portal"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                            color: 'white',
+                            textDecoration: 'none',
+                            fontSize: '0.875rem',
+                            fontWeight: '500',
+                            padding: '0.5rem',
+                            borderRadius: '0.375rem',
+                            backgroundColor: location.pathname === '/creator-portal' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = location.pathname === '/creator-portal' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                          }}
+                        >
+                          <span style={{ fontSize: '1rem' }}>🚀</span>
+                          <span>Creator Portal</span>
+                        </Link>
+                      </>
+                    )}
+                    
+                    {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin') && 
+                     userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
                       <Link
-                        to="/my-agents"
-                        onClick={() => setIsLibrariesDropdownOpen(false)}
+                        to="/admin"
                         style={{
                           display: 'flex',
                           alignItems: 'center',
                           gap: '0.5rem',
-                          padding: '0.5rem',
                           color: 'white',
                           textDecoration: 'none',
                           fontSize: '0.875rem',
-                          borderRadius: '0.25rem',
-                          backgroundColor: location.pathname === '/my-agents' ? '#2563eb' : 'transparent'
+                          fontWeight: '500',
+                          padding: '0.5rem',
+                          borderRadius: '0.375rem',
+                          backgroundColor: location.pathname === '/admin' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = '#374151';
+                          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = location.pathname === '/my-agents' ? '#2563eb' : 'transparent';
+                          e.currentTarget.style.backgroundColor = location.pathname === '/admin' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
                         }}
                       >
-                        <UserIcon style={{ width: '1rem', height: '1rem', color: '#d1d5db' }} />
-                        <span>My Library</span>
+                        <BuildingOfficeIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
+                        <span>Company Admin</span>
                       </Link>
-                      
-                      {userProfile.role === 'creator' && (
-                        <>
-                          <Link
-                            to="/creator-dashboard"
-                            onClick={() => setIsLibrariesDropdownOpen(false)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              padding: '0.5rem',
-                              color: 'white',
-                              textDecoration: 'none',
-                              fontSize: '0.875rem',
-                              borderRadius: '0.25rem',
-                              backgroundColor: location.pathname === '/creator-dashboard' ? '#2563eb' : 'transparent'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#374151';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = location.pathname === '/creator-dashboard' ? '#2563eb' : 'transparent';
-                            }}
-                          >
-                            <span style={{ fontSize: '1rem' }}>📊</span>
-                            <span>Creator Dashboard</span>
-                          </Link>
-                          
-                          <Link
-                            to="/agent-submission"
-                            onClick={() => setIsLibrariesDropdownOpen(false)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              padding: '0.5rem',
-                              color: 'white',
-                              textDecoration: 'none',
-                              fontSize: '0.875rem',
-                              borderRadius: '0.25rem',
-                              backgroundColor: location.pathname === '/agent-submission' ? '#2563eb' : 'transparent'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#374151';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = location.pathname === '/agent-submission' ? '#2563eb' : 'transparent';
-                            }}
-                          >
-                            <span style={{ fontSize: '1rem' }}>➕</span>
-                            <span>Submit Agent</span>
-                          </Link>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* Admin Dropdown */}
-                {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'network_admin') && (
-                  <div style={{ position: 'relative' }} ref={adminDropdownRef}>
-                    <button
-                      onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
-                        background: 'transparent',
-                        border: 'none',
-                        color: 'white',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        cursor: 'pointer',
-                        padding: '0.5rem',
-                        borderRadius: '0.375rem'
-                      }}
-                      onMouseEnter={() => setIsAdminDropdownOpen(true)}
-                    >
-                      <CogIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
-                      <span>Admin</span>
-                      <ChevronDownIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
-                    </button>
-                    
-                    {isAdminDropdownOpen && (
-                      <div 
-                        style={{
-                          position: 'absolute',
-                          top: '100%',
-                          left: 0,
-                          marginTop: '0.5rem',
-                          width: '13rem',
-                          background: '#1f2937',
-                          border: '1px solid #4b5563',
-                          borderRadius: '0.375rem',
-                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                          zIndex: 50,
-                          padding: '0.25rem'
-                        }}
-                        onMouseLeave={() => setIsAdminDropdownOpen(false)}
-                      >
-                        {userProfile.role === 'super_admin' && (
-                          <Link
-                            to="/super-admin"
-                            onClick={() => setIsAdminDropdownOpen(false)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              padding: '0.5rem',
-                              color: 'white',
-                              textDecoration: 'none',
-                              fontSize: '0.875rem',
-                              borderRadius: '0.25rem',
-                              backgroundColor: location.pathname === '/super-admin' ? '#2563eb' : 'transparent'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#374151';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = location.pathname === '/super-admin' ? '#2563eb' : 'transparent';
-                            }}
-                          >
-                            <span style={{ fontSize: '1rem' }}>👑</span>
-                            <div>
-                              <div style={{ fontWeight: '500' }}>Super Admin</div>
-                              <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Global management</div>
-                            </div>
-                          </Link>
-                        )}
-                        
-                        {userProfile.role === 'super_admin' && (
-                          <Link
-                            to="/creator-portal"
-                            onClick={() => setIsAdminDropdownOpen(false)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              padding: '0.5rem',
-                              color: 'white',
-                              textDecoration: 'none',
-                              fontSize: '0.875rem',
-                              borderRadius: '0.25rem',
-                              backgroundColor: location.pathname === '/creator-portal' ? '#2563eb' : 'transparent'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#374151';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = location.pathname === '/creator-portal' ? '#2563eb' : 'transparent';
-                            }}
-                          >
-                            <span style={{ fontSize: '1rem' }}>🚀</span>
-                            <div>
-                              <div style={{ fontWeight: '500' }}>Creator Portal</div>
-                              <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Manage agent submissions</div>
-                            </div>
-                          </Link>
-                        )}
-                        
-                        {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin') && 
-                         userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
-                          <Link
-                            to="/admin"
-                            onClick={() => setIsAdminDropdownOpen(false)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.5rem',
-                              padding: '0.5rem',
-                              color: 'white',
-                              textDecoration: 'none',
-                              fontSize: '0.875rem',
-                              borderRadius: '0.25rem',
-                              backgroundColor: location.pathname === '/admin' ? '#2563eb' : 'transparent'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.backgroundColor = '#374151';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.backgroundColor = location.pathname === '/admin' ? '#2563eb' : 'transparent';
-                            }}
-                          >
-                            <BuildingOfficeIcon style={{ width: '1rem', height: '1rem', color: '#9ca3af' }} />
-                            <div>
-                              <div style={{ fontWeight: '500' }}>Company Admin</div>
-                              <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>{userProfile.organizationName}</div>
-                            </div>
-                          </Link>
-                        )}
-                      </div>
                     )}
-                  </div>
+                  </>
                 )}
               </>
             )}

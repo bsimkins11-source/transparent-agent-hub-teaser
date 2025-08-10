@@ -2,10 +2,16 @@ const admin = require('firebase-admin');
 
 // Initialize Firebase Admin if not already initialized
 if (!admin.apps.length) {
+  // Determine project ID based on environment
+  const projectId = process.env.FIREBASE_PROJECT_ID || 
+    (process.env.NODE_ENV === 'staging' ? 'transparent-ai-staging' : 'ai-agent-hub-web-portal-79fb0');
+  
   admin.initializeApp({
     credential: admin.credential.applicationDefault(),
-    projectId: process.env.FIREBASE_PROJECT_ID || 'ai-agent-hub-web-portal-79fb0'
+    projectId: projectId
   });
+  
+  console.log(`🔧 Firebase Admin initialized with project: ${projectId}`);
 }
 
 const db = admin.firestore();

@@ -800,12 +800,16 @@ export default function HierarchicalAgentLibrary({
             </p>
             
             {/* Temporary fix button for Gemini agent issue */}
-
-            
-
-            
-
-            
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mb-6">
+                <button
+                  onClick={testAgentAssignment}
+                  className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm"
+                >
+                  🧪 Test Agent Assignment
+                </button>
+              </div>
+            )}
             {/* Enhanced Search Bar */}
             <div className="max-w-2xl mx-auto">
               <div className="relative">
@@ -982,8 +986,6 @@ export default function HierarchicalAgentLibrary({
                   );
                 })}
               </div>
-              
-
             </div>
           </div>
         </div>

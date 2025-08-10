@@ -1,22 +1,24 @@
-// Production Configuration for Agent Hub Backend
+// Development Configuration for Agent Hub Backend
 module.exports = {
   // Server Configuration
   port: process.env.PORT || 8080,
-  nodeEnv: 'production',
+  nodeEnv: 'development',
   
-  // CORS Configuration
+  // CORS Configuration - Allow localhost for development
   cors: {
     origin: [
-      'https://ai-agent-hub-web-portal-79fb0.web.app',
-      'https://ai-agent-hub-web-portal-79fb0.firebaseapp.com'
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001'
     ],
     credentials: true
   },
   
-  // Rate Limiting
+  // Rate Limiting - More lenient for development
   rateLimit: {
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    max: 1000, // limit each IP to 1000 requests per windowMs
     message: 'Too many requests from this IP, please try again later.'
   },
   
@@ -24,20 +26,19 @@ module.exports = {
   security: {
     helmet: true,
     compression: true,
-    trustProxy: true
+    trustProxy: false
   },
   
-  // Logging
+  // Logging - More verbose for development
   logging: {
-    level: process.env.LOG_LEVEL || 'info',
-    enableDebug: false,
+    level: process.env.LOG_LEVEL || 'debug',
+    enableDebug: true,
     enableErrorReporting: true
   },
   
   // Firebase Configuration
   firebase: {
-    projectId: process.env.FIREBASE_PROJECT_ID || 
-      (process.env.NODE_ENV === 'staging' ? 'transparent-ai-staging' : 'ai-agent-hub-web-portal-79fb0')
+    projectId: process.env.FIREBASE_PROJECT_ID || 'transparent-ai-staging'
   },
   
   // API Keys (set these in environment variables)
@@ -48,5 +49,5 @@ module.exports = {
   },
   
   // Frontend URL
-  frontendUrl: process.env.FRONTEND_URL || 'https://ai-agent-hub-web-portal-79fb0.web.app'
+  frontendUrl: process.env.FRONTEND_URL || 'http://localhost:3000'
 };

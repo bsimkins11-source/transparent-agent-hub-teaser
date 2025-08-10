@@ -787,6 +787,7 @@ const AgentRegistryForm: React.FC<AgentRegistryFormProps> = ({ isOpen, onClose, 
                   </div>
                 </div>
               </div>
+            </div>
 
             {/* Performance & Cost */}
             <div className="bg-gray-50 p-4 rounded-lg">

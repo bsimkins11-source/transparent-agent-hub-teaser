@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
   PlusIcon,
   MinusIcon,
   ClockIcon,
   StarIcon,
-  SparklesIcon,
   ShieldCheckIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
@@ -16,14 +14,13 @@ import {
   TrashIcon
 } from '@heroicons/react/24/outline';
 import { Agent } from '../types/agent';
-import toast from 'react-hot-toast';
 
 interface AgentCardProps {
   agent: Agent;
   isInUserLibrary: boolean;
   showAddToLibrary: boolean;
   showRequestAccess: boolean;
-  currentLibrary?: 'global' | 'personal' | 'company' | 'network';
+
   onAddToLibrary: () => void;
   onRequestAccess: () => void;
   onRemoveFromLibrary: () => void;
@@ -81,7 +78,7 @@ export default function AgentCard({
   isInUserLibrary,
   showAddToLibrary,
   showRequestAccess,
-  currentLibrary = 'global',
+
   onAddToLibrary,
   onRequestAccess,
   onRemoveFromLibrary
@@ -137,19 +134,15 @@ export default function AgentCard({
     if (isInUserLibrary) {
       return (
         <div className="flex space-x-2">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <button
             onClick={handleOpenAgent}
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
           >
             <PlayIcon className="w-4 h-4" />
             <span>Open Agent</span>
-          </motion.button>
+          </button>
           
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <button
             onClick={(e) => handleAction(onRemoveFromLibrary, e)}
             disabled={isLoading}
             className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
@@ -162,7 +155,7 @@ export default function AgentCard({
                 <span>Remove</span>
               </>
             )}
-          </motion.button>
+          </button>
         </div>
       );
     }
@@ -170,19 +163,15 @@ export default function AgentCard({
     if (showRequestAccess) {
       return (
         <div className="space-y-2">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <button
             onClick={handleOpenAgent}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md cursor-pointer"
           >
             <PlayIcon className="w-4 h-4" />
             <span>Open Agent</span>
-          </motion.button>
+          </button>
           
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <button
             onClick={(e) => handleAction(onRequestAccess, e)}
             disabled={isLoading}
             className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md cursor-pointer"
@@ -195,16 +184,14 @@ export default function AgentCard({
                 <span>Request Access</span>
               </>
             )}
-          </motion.button>
+          </button>
         </div>
       );
     }
 
     if (showAddToLibrary) {
       return (
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <button
           onClick={(e) => handleAction(onAddToLibrary, e)}
           disabled={isLoading}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md cursor-pointer"
@@ -217,23 +204,21 @@ export default function AgentCard({
               <span>Add to Library</span>
             </>
           )}
-        </motion.button>
+        </button>
       );
     }
 
     return (
       <div className="space-y-2">
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+        <button
           onClick={handleOpenAgent}
           className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md cursor-pointer"
         >
           <PlayIcon className="w-4 h-4" />
           <span>Open Agent</span>
-        </motion.button>
+        </button>
         
-        <div className="w-full bg-gray-100 text-gray-500 font-medium py-3 px-4 rounded-lg text-center">
+        <div className="w-full bg-gray-500 text-gray-500 font-medium py-3 px-4 rounded-lg text-center">
           Not Available
         </div>
       </div>
@@ -241,10 +226,7 @@ export default function AgentCard({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
+    <div
       className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:border-gray-300 group"
     >
       {/* Header */}
@@ -342,30 +324,7 @@ export default function AgentCard({
         </div>
       )}
 
-      {/* Capabilities */}
-      {agent.metadata?.capabilities && agent.metadata.capabilities.length > 0 && (
-        <div className="mb-4">
-          <div className="flex items-center space-x-2 mb-2">
-            <SparklesIcon className="w-4 h-4 text-blue-600" />
-            <span className="text-xs font-medium text-gray-700">Capabilities</span>
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {agent.metadata.capabilities.slice(0, 2).map((capability, index) => (
-              <span
-                key={index}
-                className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-full border border-blue-200"
-              >
-                {capability}
-              </span>
-            ))}
-            {agent.metadata.capabilities.length > 2 && (
-              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded-full border border-blue-200">
-                +{agent.metadata.capabilities.length - 2} more
-              </span>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Capabilities - Removed for POC compatibility */}
 
       {/* Category */}
       {agent.metadata?.category && (
@@ -397,6 +356,6 @@ export default function AgentCard({
           </span>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
