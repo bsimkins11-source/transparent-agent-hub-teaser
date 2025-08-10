@@ -1,412 +1,537 @@
 import { Agent } from './agent';
 
-// Agent Registry Types for Enterprise Governance
+// Enhanced type definitions with better organization and type safety
+export type AgentType = 'ai_agent' | 'workflow_agent' | 'integration_agent' | 'custom_agent';
+export type AgentStatus = 'draft' | 'pending_approval' | 'approved' | 'published' | 'deprecated' | 'archived';
+export type ComplianceLevel = 'compliant' | 'non_compliant' | 'pending' | 'not_applicable';
+export type BillingModel = 'per_token' | 'per_request' | 'subscription' | 'enterprise';
+export type ProviderType = 'openai' | 'google' | 'anthropic' | 'azure' | 'aws' | 'custom';
+export type ServiceType = 'ai_model' | 'api_service' | 'custom_service';
+
+// Core Registry Entry with enhanced type safety
 export interface AgentRegistryEntry {
-  id: string;
-  agentId: string;
-  version: string;
-  agentType: 'ai_agent' | 'workflow_agent' | 'integration_agent' | 'custom_agent';
-  status: AgentStatus;
-  metadata: AgentMetadata;
-  ownerId: string;
-  organizationId?: string;
-  networkId?: string;
-  createdAt: string;
-  updatedAt: string;
-  publishedAt?: string;
-  deprecationDate?: string;
-  deprecationReason?: string;
+  readonly id: string;
+  readonly agentId: string;
+  readonly version: string;
+  readonly agentType: AgentType;
+  readonly status: AgentStatus;
+  readonly metadata: AgentMetadata;
+  readonly ownerId: string;
+  readonly organizationId?: string;
+  readonly networkId?: string;
+  readonly createdAt: Date;
+  readonly updatedAt: Date;
+  readonly publishedAt?: Date;
+  readonly deprecationDate?: Date;
+  readonly deprecationReason?: string;
   
-  // Enhanced cost tracking
-  costStructure: CostStructure;
-  usageLimits: UsageLimits;
+  // Enhanced cost tracking with immutable structure
+  readonly costStructure: CostStructure;
+  readonly usageLimits: UsageLimits;
   
-  // Performance and compliance
-  performanceMetrics: PerformanceMetrics;
-  complianceStatus: ComplianceStatus;
+  // Performance and compliance with readonly properties
+  readonly performanceMetrics: PerformanceMetrics;
+  readonly complianceStatus: ComplianceStatus;
   
-  // Governance and approval
-  approvalWorkflow: ApprovalWorkflow;
-  accessControls: AccessControls;
+  // Governance and approval workflow
+  readonly approvalWorkflow: ApprovalWorkflow;
+  readonly accessControls: AccessControls;
   
-  // Audit and versioning
-  versionHistory: VersionHistoryEntry[];
-  auditTrail: AuditTrailEntry[];
+  // Audit and versioning with immutable arrays
+  readonly versionHistory: readonly VersionHistoryEntry[];
+  readonly auditTrail: readonly AuditTrailEntry[];
 }
 
+// POC Registry Entry - simplified but maintains enterprise structure
 export interface POCRegistryEntry extends Omit<AgentRegistryEntry, 'versionHistory' | 'auditTrail'> {
-  // Simplified for POC but maintains enterprise structure
+  readonly versionHistory: readonly VersionHistoryEntry[];
+  readonly auditTrail: readonly AuditTrailEntry[];
 }
 
+// Enhanced metadata with better organization
 export interface AgentMetadata {
-  name: string;
-  description: string;
-  category: string;
-  tags: string[];
+  readonly name: string;
+  readonly description: string;
+  readonly category: string;
+  readonly tags: readonly string[];
   
-  // Enhanced provider configuration
-  providers: ProviderConfiguration[];
-  models: ModelConfiguration[];
+  // Enhanced provider configuration with readonly arrays
+  readonly providers: readonly ProviderConfiguration[];
+  readonly models: readonly ModelConfiguration[];
   
   // API and integration details
-  apiIntegrations: APIIntegrations;
+  readonly apiIntegrations: APIIntegrations;
   
   // Capabilities and limitations
-  capabilities: string[];
-  limitations: string[];
-  useCases: string[];
+  readonly capabilities: readonly string[];
+  readonly limitations: readonly string[];
+  readonly useCases: readonly string[];
   
   // Examples and documentation
-  examples: AgentExample[];
-  documentation: DocumentationLinks;
+  readonly examples: readonly AgentExample[];
+  readonly documentation: DocumentationLinks;
   
   // Marketplace configuration
-  marketplace: MarketplaceConfig;
+  readonly marketplace: MarketplaceConfig;
 }
 
+// Credential configuration
+export interface CredentialConfiguration {
+  readonly type: 'api_key' | 'oauth2' | 'jwt' | 'service_account' | 'none';
+  readonly config: Readonly<Record<string, unknown>>;
+}
+
+// Provider configuration with enhanced type safety
 export interface ProviderConfiguration {
-  name: string;
-  type: 'ai_model' | 'api_service' | 'custom_service';
-  provider: 'openai' | 'google' | 'anthropic' | 'azure' | 'aws' | 'custom';
-  region: string;
-  credentials: CredentialConfiguration;
-  features: string[];
-  sla?: ServiceLevelAgreement;
+  readonly name: string;
+  readonly type: ServiceType;
+  readonly provider: ProviderType;
+  readonly region: string;
+  readonly credentials: CredentialConfiguration;
+  readonly features: readonly string[];
+  readonly sla?: ServiceLevelAgreement;
 }
 
+// Model configuration with performance metrics
 export interface ModelConfiguration {
-  name: string;
-  provider: string;
-  version: string;
-  capabilities: ModelCapabilities;
-  performance: ModelPerformance;
-  contextWindow: number;
-  pricing: ModelPricing;
+  readonly name: string;
+  readonly provider: string;
+  readonly version: string;
+  readonly capabilities: ModelCapabilities;
+  readonly performance: ModelPerformance;
+  readonly contextWindow: number;
+  readonly pricing: ModelPricing;
 }
 
+// Model capabilities with boolean flags
 export interface ModelCapabilities {
-  maxTokens: number;
-  supportsVision: boolean;
-  supportsAudio: boolean;
-  supportsFunctionCalling: boolean;
-  supportsStreaming: boolean;
-  supportsFineTuning: boolean;
-  supportsEmbeddings: boolean;
+  readonly maxTokens: number;
+  readonly supportsVision: boolean;
+  readonly supportsAudio: boolean;
+  readonly supportsFunctionCalling: boolean;
+  readonly supportsStreaming: boolean;
+  readonly supportsFineTuning: boolean;
+  readonly supportsEmbeddings: boolean;
 }
 
+// Model performance metrics
 export interface ModelPerformance {
-  latency: number; // ms
-  accuracy: number; // 0-1
-  costPerToken: number;
-  throughput: number; // requests/second
-  availability: number; // 0-1
+  readonly latency: number; // ms
+  readonly accuracy: number; // 0-1
+  readonly costPerToken: number;
+  readonly throughput: number; // requests/second
+  readonly availability: number; // 0-1
 }
 
+// Model pricing structure
 export interface ModelPricing {
-  inputCostPer1kTokens: number;
-  outputCostPer1kTokens: number;
-  embeddingCostPer1kTokens?: number;
-  currency: string;
-  billingModel: 'per_token' | 'per_request' | 'subscription';
+  readonly inputCostPer1kTokens: number;
+  readonly outputCostPer1kTokens: number;
+  readonly embeddingCostPer1kTokens?: number;
+  readonly currency: string;
+  readonly billingModel: BillingModel;
 }
 
+// API integrations with readonly arrays
 export interface APIIntegrations {
-  aiServices: AIServiceIntegration[];
-  externalAPIs: ExternalAPIIntegration[];
-  webhooks: WebhookConfiguration[];
-  databases: DatabaseIntegration[];
+  readonly aiServices: readonly AIServiceIntegration[];
+  readonly externalAPIs: readonly ExternalAPIIntegration[];
+  readonly webhooks: readonly WebhookConfiguration[];
+  readonly databases: readonly DatabaseIntegration[];
 }
 
+// AI service integration
 export interface AIServiceIntegration {
-  service: string;
-  endpoint: string;
-  authentication: AuthenticationMethod;
-  rateLimits: RateLimitConfig;
-  retryPolicy: RetryPolicy;
+  readonly service: string;
+  readonly endpoint: string;
+  readonly authentication: AuthenticationMethod;
+  readonly rateLimits: RateLimitConfig;
+  readonly retryPolicy: RetryPolicy;
 }
 
+// External API integration
 export interface ExternalAPIIntegration {
-  name: string;
-  baseUrl: string;
-  authentication: AuthenticationMethod;
-  endpoints: APIEndpoint[];
-  rateLimits: RateLimitConfig;
+  readonly name: string;
+  readonly baseUrl: string;
+  readonly authentication: AuthenticationMethod;
+  readonly endpoints: readonly APIEndpoint[];
+  readonly rateLimits: RateLimitConfig;
 }
 
+// Webhook configuration
 export interface WebhookConfiguration {
-  url: string;
-  events: string[];
-  authentication: AuthenticationMethod;
-  retryPolicy: RetryPolicy;
+  readonly url: string;
+  readonly events: readonly string[];
+  readonly authentication: AuthenticationMethod;
+  readonly retryPolicy: RetryPolicy;
 }
 
+// Database integration
 export interface DatabaseIntegration {
-  type: 'firestore' | 'postgresql' | 'mysql' | 'mongodb' | 'redis';
-  connectionString?: string;
-  collections?: string[];
-  tables?: string[];
-  permissions: DatabasePermissions;
+  readonly type: 'firestore' | 'postgresql' | 'mysql' | 'mongodb' | 'redis';
+  readonly connectionString?: string;
+  readonly collections?: readonly string[];
+  readonly tables?: readonly string[];
+  readonly permissions: DatabasePermissions;
 }
 
+// Authentication method with type safety
 export interface AuthenticationMethod {
-  type: 'api_key' | 'oauth2' | 'jwt' | 'service_account' | 'none';
-  config: Record<string, any>;
+  readonly type: 'api_key' | 'oauth2' | 'jwt' | 'service_account' | 'none';
+  readonly config: Readonly<Record<string, unknown>>;
 }
 
+// Rate limit configuration
 export interface RateLimitConfig {
-  requestsPerMinute: number;
-  requestsPerHour: number;
-  burstLimit: number;
+  readonly requestsPerMinute: number;
+  readonly requestsPerHour: number;
+  readonly burstLimit: number;
 }
 
+// Retry policy configuration
 export interface RetryPolicy {
-  maxRetries: number;
-  backoffMultiplier: number;
-  maxBackoff: number;
+  readonly maxRetries: number;
+  readonly backoffMultiplier: number;
+  readonly maxBackoff: number;
 }
 
+// Database permissions
 export interface DatabasePermissions {
-  read: boolean;
-  write: boolean;
-  delete: boolean;
-  admin: boolean;
+  readonly read: boolean;
+  readonly write: boolean;
+  readonly delete: boolean;
+  readonly admin: boolean;
 }
 
+// API endpoint definition
+export interface APIEndpoint {
+  readonly path: string;
+  readonly method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
+  readonly description: string;
+  readonly requiresAuth: boolean;
+}
+
+// Service level agreement
+export interface ServiceLevelAgreement {
+  readonly uptime: number; // percentage
+  readonly responseTime: number; // ms
+  readonly supportResponseTime: number; // hours
+  readonly compensation: string;
+}
+
+// Agent example with readonly properties
 export interface AgentExample {
-  title: string;
-  description: string;
-  input: string;
-  output: string;
-  tags: string[];
+  readonly title: string;
+  readonly description: string;
+  readonly input: string;
+  readonly output: string;
+  readonly tags: readonly string[];
 }
 
+// Documentation links
 export interface DocumentationLinks {
-  userGuide?: string;
-  apiReference?: string;
-  tutorials?: string[];
-  faq?: string;
-  changelog?: string;
+  readonly userGuide?: string;
+  readonly apiReference?: string;
+  readonly tutorials?: readonly string[];
+  readonly faq?: string;
+  readonly changelog?: string;
 }
 
+// Marketplace configuration
 export interface MarketplaceConfig {
-  isPublic: boolean;
-  pricing: MarketplacePricing;
-  categories: string[];
-  featured: boolean;
-  rating?: number;
-  reviewCount?: number;
+  readonly isPublic: boolean;
+  readonly pricing: MarketplacePricing;
+  readonly categories: readonly string[];
+  readonly featured: boolean;
+  readonly rating?: number;
+  readonly reviewCount?: number;
 }
 
+// Marketplace pricing
 export interface MarketplacePricing {
-  model: 'free' | 'pay_per_use' | 'subscription' | 'enterprise';
-  basePrice?: number;
-  pricePerRequest?: number;
-  pricePerToken?: number;
-  currency: string;
-  billingCycle?: 'monthly' | 'quarterly' | 'annually';
+  readonly model: 'free' | 'pay_per_use' | 'subscription' | 'enterprise';
+  readonly basePrice?: number;
+  readonly pricePerRequest?: number;
+  readonly pricePerToken?: number;
+  readonly currency: string;
+  readonly billingCycle?: 'monthly' | 'quarterly' | 'annually';
 }
 
-// Enhanced cost tracking
+// Enhanced cost structure with readonly properties
 export interface CostStructure {
-  baseCost: number;
-  costPerRequest: number;
-  costPerToken: number;
-  costPerMinute: number;
-  currency: string;
-  billingModel: 'pay_per_use' | 'subscription' | 'enterprise';
-  volumeDiscounts: VolumeDiscount[];
-  costBreakdown: CostBreakdown;
+  readonly baseCost: number;
+  readonly costPerRequest: number;
+  readonly costPerToken: number;
+  readonly costPerMinute: number;
+  readonly currency: string;
+  readonly billingModel: BillingModel;
+  readonly volumeDiscounts: readonly VolumeDiscount[];
+  readonly costBreakdown: CostBreakdown;
 }
 
+// Volume discount structure
 export interface VolumeDiscount {
-  threshold: number;
-  discountPercentage: number;
-  appliesTo: 'requests' | 'tokens' | 'minutes';
+  readonly threshold: number;
+  readonly discountPercentage: number;
+  readonly appliesTo: 'requests' | 'tokens' | 'minutes';
 }
 
+// Cost breakdown with readonly properties
 export interface CostBreakdown {
-  infrastructure: number;
-  aiModel: number;
-  apiCalls: number;
-  storage: number;
-  bandwidth: number;
-  support: number;
+  readonly infrastructure: number;
+  readonly aiModel: number;
+  readonly apiCalls: number;
+  readonly storage: number;
+  readonly bandwidth: number;
+  readonly support: number;
 }
 
+// Usage limits with readonly properties
 export interface UsageLimits {
-  maxRequestsPerDay: number;
-  maxRequestsPerMonth: number;
-  maxTokensPerRequest: number;
-  maxConcurrentRequests: number;
-  rateLimitPerMinute: number;
-  storageLimitGB: number;
+  readonly maxRequestsPerDay: number;
+  readonly maxRequestsPerMonth: number;
+  readonly maxTokensPerRequest: number;
+  readonly maxConcurrentRequests: number;
+  readonly rateLimitPerMinute: number;
+  readonly storageLimitGB: number;
 }
 
+// Performance metrics with readonly properties
 export interface PerformanceMetrics {
-  averageLatency: number;
-  p95Latency: number;
-  p99Latency: number;
-  successRate: number;
-  errorRate: number;
-  throughput: number;
-  availability: number;
-  lastUpdated: string;
+  readonly averageLatency: number;
+  readonly p95Latency: number;
+  readonly p99Latency: number;
+  readonly successRate: number;
+  readonly errorRate: number;
+  readonly throughput: number;
+  readonly availability: number;
+  readonly lastUpdated: Date;
 }
 
+// Compliance status with readonly properties
 export interface ComplianceStatus {
-  gdpr: ComplianceLevel;
-  hipaa: ComplianceLevel;
-  sox: ComplianceLevel;
-  iso27001: ComplianceLevel;
-  soc2: ComplianceLevel;
-  lastAudit: string;
-  nextAudit: string;
-  complianceNotes: string[];
+  readonly gdpr: ComplianceLevel;
+  readonly hipaa: ComplianceLevel;
+  readonly sox: ComplianceLevel;
+  readonly iso27001: ComplianceLevel;
+  readonly soc2: ComplianceLevel;
+  readonly lastAudit: Date;
+  readonly nextAudit: Date;
+  readonly complianceNotes: readonly string[];
 }
 
-export type ComplianceLevel = 'compliant' | 'non_compliant' | 'pending' | 'not_applicable';
-
+// Approval workflow with readonly properties
 export interface ApprovalWorkflow {
-  requiresApproval: boolean;
-  approvalLevels: ApprovalLevel[];
-  autoApprovalThreshold?: number;
-  approvalDeadline?: number; // hours
-  escalationPolicy?: EscalationPolicy;
+  readonly requiresApproval: boolean;
+  readonly approvalLevels: readonly ApprovalLevel[];
+  readonly autoApprovalThreshold?: number;
+  readonly approvalDeadline?: number; // hours
+  readonly escalationPolicy?: EscalationPolicy;
 }
 
+// Approval level with readonly properties
 export interface ApprovalLevel {
-  level: number;
-  role: string;
-  required: boolean;
-  autoApprove?: boolean;
+  readonly level: number;
+  readonly role: string;
+  readonly required: boolean;
+  readonly autoApprove?: boolean;
 }
 
+// Escalation policy
 export interface EscalationPolicy {
-  escalationTime: number; // hours
-  escalateTo: string;
-  notificationChannels: string[];
+  readonly escalationTime: number; // hours
+  readonly escalateTo: string;
+  readonly notificationChannels: readonly string[];
 }
 
+// Access controls with readonly properties
 export interface AccessControls {
-  allowedRoles: string[];
-  allowedOrganizations: string[];
-  allowedNetworks: string[];
-  ipWhitelist?: string[];
-  timeRestrictions?: TimeRestriction[];
-  featureFlags: Record<string, boolean>;
+  readonly allowedRoles: readonly string[];
+  readonly allowedOrganizations: readonly string[];
+  readonly allowedNetworks: readonly string[];
+  readonly ipWhitelist?: readonly string[];
+  readonly timeRestrictions?: readonly TimeRestriction[];
+  readonly featureFlags: Readonly<Record<string, boolean>>;
 }
 
+// Time restriction
 export interface TimeRestriction {
-  daysOfWeek: number[];
-  startTime: string; // HH:MM
-  endTime: string; // HH:MM
-  timezone: string;
+  readonly daysOfWeek: readonly number[];
+  readonly startTime: string; // HH:MM
+  readonly endTime: string; // HH:MM
+  readonly timezone: string;
 }
 
+// Version history entry with readonly properties
 export interface VersionHistoryEntry {
-  version: string;
-  releaseDate: string;
-  changes: string[];
-  author: string;
-  approvalStatus: 'pending' | 'approved' | 'rejected';
-  reviewer?: string;
-  reviewDate?: string;
-  reviewNotes?: string;
-  breakingChanges: boolean;
-  migrationGuide?: string;
+  readonly version: string;
+  readonly releaseDate: Date;
+  readonly changes: readonly string[];
+  readonly author: string;
+  readonly approvalStatus: 'pending' | 'approved' | 'rejected';
+  readonly reviewer?: string;
+  readonly reviewDate?: Date;
+  readonly reviewNotes?: string;
+  readonly breakingChanges: boolean;
+  readonly migrationGuide?: string;
 }
 
+// Audit trail entry with readonly properties
 export interface AuditTrailEntry {
-  action: string;
-  timestamp: string;
-  userId: string;
-  userEmail: string;
-  userName: string;
-  details: string;
-  metadata: Record<string, any>;
-  ipAddress?: string;
-  userAgent?: string;
+  readonly action: string;
+  readonly timestamp: Date;
+  readonly userId: string;
+  readonly userEmail: string;
+  readonly userName: string;
+  readonly details: string;
+  readonly metadata: Readonly<Record<string, unknown>>;
+  readonly ipAddress?: string;
+  readonly userAgent?: string;
 }
 
+// Request interfaces with readonly properties
 export interface CreateRegistryEntryRequest {
-  agentId: string;
-  version?: string;
-  agentType: AgentRegistryEntry['agentType'];
-  metadata: AgentMetadata;
-  ownerId: string;
-  organizationId?: string;
-  networkId?: string;
+  readonly agentId: string;
+  readonly version?: string;
+  readonly agentType: AgentType;
+  readonly metadata: AgentMetadata;
+  readonly ownerId: string;
+  readonly organizationId?: string;
+  readonly networkId?: string;
 }
 
 export interface UpdateRegistryEntryRequest {
-  id: string;
-  version?: string;
-  metadata?: Partial<AgentMetadata>;
-  status?: AgentStatus;
-  costStructure?: Partial<CostStructure>;
-  usageLimits?: Partial<UsageLimits>;
-  performanceMetrics?: Partial<PerformanceMetrics>;
-  complianceStatus?: Partial<ComplianceStatus>;
-  approvalWorkflow?: Partial<ApprovalWorkflow>;
-  accessControls?: Partial<AccessControls>;
+  readonly id: string;
+  readonly version?: string;
+  readonly metadata?: Partial<AgentMetadata>;
+  readonly status?: AgentStatus;
+  readonly costStructure?: Partial<CostStructure>;
+  readonly usageLimits?: Partial<UsageLimits>;
+  readonly performanceMetrics?: Partial<PerformanceMetrics>;
+  readonly complianceStatus?: Partial<ComplianceStatus>;
+  readonly approvalWorkflow?: Partial<ApprovalWorkflow>;
+  readonly accessControls?: Partial<AccessControls>;
 }
 
+// Search filters with readonly properties
 export interface RegistrySearchFilters {
-  status?: AgentStatus[];
-  category?: string[];
-  tags?: string[];
-  provider?: string[];
-  organizationId?: string;
-  networkId?: string;
-  costRange?: { min: number; max: number };
-  performanceThreshold?: { latency: number; successRate: number };
-  complianceLevel?: ComplianceLevel[];
-  createdAfter?: string;
-  createdBefore?: string;
+  readonly status?: readonly AgentStatus[];
+  readonly category?: readonly string[];
+  readonly tags?: readonly string[];
+  readonly provider?: readonly string[];
+  readonly organizationId?: string;
+  readonly networkId?: string;
+  readonly costRange?: Readonly<{ readonly min: number; readonly max: number }>;
+  readonly performanceThreshold?: Readonly<{ readonly latency: number; readonly successRate: number }>;
+  readonly complianceLevel?: readonly ComplianceLevel[];
+  readonly createdAfter?: Date;
+  readonly createdBefore?: Date;
 }
 
-export type AgentStatus = 'draft' | 'pending_approval' | 'approved' | 'published' | 'deprecated' | 'archived';
-
+// Registry statistics with readonly properties
 export interface RegistryStats {
-  totalEntries: number;
-  byStatus: Record<AgentStatus, number>;
-  byCategory: Record<string, number>;
-  byProvider: Record<string, number>;
-  byOrganization: Record<string, number>;
-  byNetwork: Record<string, number>;
-  averageCost: number;
-  averagePerformance: PerformanceMetrics;
-  complianceSummary: Record<ComplianceLevel, number>;
+  readonly totalEntries: number;
+  readonly byStatus: Readonly<Record<AgentStatus, number>>;
+  readonly byCategory: Readonly<Record<string, number>>;
+  readonly byProvider: Readonly<Record<string, number>>;
+  readonly byOrganization: Readonly<Record<string, number>>;
+  readonly byNetwork: Readonly<Record<string, number>>;
+  readonly averageCost: number;
+  readonly averagePerformance: PerformanceMetrics;
+  readonly complianceSummary: Readonly<Record<ComplianceLevel, number>>;
 }
 
-// Enhanced interfaces for better type safety
+// Enhanced service interface with better method signatures
 export interface AgentRegistryService {
+  // Core operations
   createEntry(request: CreateRegistryEntryRequest): Promise<string>;
   updateEntry(request: UpdateRegistryEntryRequest): Promise<void>;
   deleteEntry(entryId: string): Promise<void>;
   getEntry(entryId: string): Promise<AgentRegistryEntry | null>;
-  getAllEntries(filters?: RegistrySearchFilters): Promise<AgentRegistryEntry[]>;
-  getVersionHistory(agentId: string): Promise<VersionHistoryEntry[]>;
-  createNewVersion(agentId: string, changes: string[]): Promise<string>;
+  getAllEntries(filters?: RegistrySearchFilters): Promise<readonly AgentRegistryEntry[]>;
+  
+  // Version management
+  getVersionHistory(agentId: string): Promise<readonly VersionHistoryEntry[]>;
+  createNewVersion(agentId: string, changes: readonly string[]): Promise<string>;
   deprecateVersion(entryId: string, reason: string): Promise<void>;
+  
+  // Approval workflow
   submitForReview(entryId: string): Promise<void>;
   approveEntry(entryId: string, approverId: string, notes?: string): Promise<void>;
   rejectEntry(entryId: string, rejectorId: string, reason: string): Promise<void>;
+  
+  // Access control
   checkAccess(entryId: string, userId: string, tenantId: string): Promise<boolean>;
-  grantAccess(entryId: string, userId: string, permissions: string[]): Promise<void>;
+  grantAccess(entryId: string, userId: string, permissions: readonly string[]): Promise<void>;
   revokeAccess(entryId: string, userId: string): Promise<void>;
-  logAccess(entryId: string, logEntry: any): Promise<void>;
-  logPerformance(entryId: string, logEntry: any): Promise<void>;
-  getAuditTrail(entryId: string, filters?: any): Promise<any[]>;
+  
+  // Audit and logging
+  logAccess(entryId: string, logEntry: Readonly<Record<string, unknown>>): Promise<void>;
+  logPerformance(entryId: string, logEntry: Readonly<Record<string, unknown>>): Promise<void>;
+  getAuditTrail(entryId: string, filters?: Readonly<Record<string, unknown>>): Promise<readonly unknown[]>;
+  
+  // Analytics and reporting
   getRegistryStats(filters?: RegistrySearchFilters): Promise<RegistryStats>;
-  getTenantUsage(tenantId: string, timeRange: string): Promise<any>;
-  getComplianceReport(complianceType: string): Promise<any>;
-  searchEntries(query: string, filters?: RegistrySearchFilters): Promise<AgentRegistryEntry[]>;
-  getEntriesByCategory(category: string): Promise<AgentRegistryEntry[]>;
-  getEntriesByProvider(provider: string): Promise<AgentRegistryEntry[]>;
-  getEntriesByStatus(status: string): Promise<AgentRegistryEntry[]>;
-  getEntryVersions(agentId: string): Promise<AgentRegistryEntry[]>;
+  getTenantUsage(tenantId: string, timeRange: string): Promise<Readonly<Record<string, unknown>>>;
+  getComplianceReport(complianceType: string): Promise<Readonly<Record<string, unknown>>>;
+  
+  // Search and discovery
+  searchEntries(query: string, filters?: RegistrySearchFilters): Promise<readonly AgentRegistryEntry[]>;
+  getEntriesByCategory(category: string): Promise<readonly AgentRegistryEntry[]>;
+  getEntriesByProvider(provider: string): Promise<readonly AgentRegistryEntry[]>;
+  getEntriesByStatus(status: string): Promise<readonly AgentRegistryEntry[]>;
+  getEntryVersions(agentId: string): Promise<readonly AgentRegistryEntry[]>;
+  
+  // Compliance and governance
   requestReview(entryId: string, requesterId: string): Promise<void>;
   validateCompliance(entryId: string): Promise<boolean>;
-  updateComplianceStatus(entryId: string, status: any): Promise<void>;
+  updateComplianceStatus(entryId: string, status: Readonly<Record<string, unknown>>): Promise<void>;
 }
+
+// Utility types for better type safety
+export type ReadonlyAgentRegistryEntry = Readonly<AgentRegistryEntry>;
+export type ReadonlyAgentMetadata = Readonly<AgentMetadata>;
+export type ReadonlyRegistryStats = Readonly<RegistryStats>;
+
+// Type guards for runtime type checking
+export const isAgentRegistryEntry = (obj: unknown): obj is AgentRegistryEntry => {
+  return obj !== null && 
+         typeof obj === 'object' && 
+         'id' in obj && 
+         'agentId' in obj && 
+         'status' in obj;
+};
+
+export const isAgentMetadata = (obj: unknown): obj is AgentMetadata => {
+  return obj !== null && 
+         typeof obj === 'object' && 
+         'name' in obj && 
+         'description' in obj && 
+         'category' in obj;
+};
+
+// Constants for common values
+export const AGENT_STATUSES: readonly AgentStatus[] = [
+  'draft',
+  'pending_approval', 
+  'approved',
+  'published',
+  'deprecated',
+  'archived'
+] as const;
+
+export const COMPLIANCE_LEVELS: readonly ComplianceLevel[] = [
+  'compliant',
+  'non_compliant',
+  'pending',
+  'not_applicable'
+] as const;
+
+export const PROVIDER_TYPES: readonly ProviderType[] = [
+  'openai',
+  'google',
+  'anthropic',
+  'azure',
+  'aws',
+  'custom'
+] as const;

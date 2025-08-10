@@ -28,13 +28,65 @@ const api = axios.create({
 })
 
 // Add auth token to requests
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
+  // Check and refresh token if needed before each request
+  await checkAndRefreshAuth();
+  
   const token = localStorage.getItem('authToken')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })
+
+// Handle authentication errors and token refresh
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    
+    // If we get a 401 and haven't already tried to refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
+      try {
+        console.log('🔄 Token expired, attempting to refresh...');
+        
+        // Try to refresh the token by getting the current user's token
+        const { getAuth } = await import('firebase/auth');
+        const { auth } = await import('../lib/firebase');
+        
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          const newToken = await currentUser.getIdToken(true); // Force refresh
+          localStorage.setItem('authToken', newToken);
+          
+          // Update the original request with the new token
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          
+          console.log('✅ Token refreshed, retrying request...');
+          return api(originalRequest);
+        } else {
+          console.log('❌ No current user found, redirecting to login...');
+          // Clear the expired token
+          localStorage.removeItem('authToken');
+          // Redirect to login or show login modal
+          window.location.href = '/login';
+          return Promise.reject(error);
+        }
+      } catch (refreshError) {
+        console.error('❌ Token refresh failed:', refreshError);
+        // Clear the expired token
+        localStorage.removeItem('authToken');
+        // Redirect to login
+        window.location.href = '/login';
+        return Promise.reject(error);
+      }
+    }
+    
+    return Promise.reject(error);
+  }
+);
 
 export const fetchAgents = async (filters?: AgentFilters) => {
   const params = new URLSearchParams()
@@ -149,9 +201,28 @@ export const checkAndRefreshAuth = async () => {
     const now = Math.floor(Date.now() / 1000);
     
     if (payload.exp && payload.exp < now) {
-      console.log('🔍 Token expired, removing from localStorage');
-      localStorage.removeItem('authToken');
-      return false;
+      console.log('🔍 Token expired, attempting to refresh...');
+      
+      try {
+        // Try to refresh the token
+        const { auth } = await import('../lib/firebase');
+        const currentUser = auth.currentUser;
+        
+        if (currentUser) {
+          const newToken = await currentUser.getIdToken(true); // Force refresh
+          localStorage.setItem('authToken', newToken);
+          console.log('✅ Token refreshed successfully');
+          return true;
+        } else {
+          console.log('❌ No current user found, removing expired token');
+          localStorage.removeItem('authToken');
+          return false;
+        }
+      } catch (refreshError) {
+        console.error('❌ Token refresh failed:', refreshError);
+        localStorage.removeItem('authToken');
+        return false;
+      }
     }
     
     console.log('✅ Token is valid, expires at:', new Date(payload.exp * 1000));
@@ -193,7 +264,26 @@ export const addAgentToUserLibrary = async (agentId: string, assignmentReason?: 
       data: error.response?.data,
       headers: error.response?.headers
     });
-    throw error;
+    
+    // Handle specific error cases
+    if (error.response?.status === 400) {
+      const errorData = error.response.data;
+      if (errorData.error === 'Agent is already in your library') {
+        throw new Error('This agent is already in your library');
+      } else if (errorData.error === 'This agent requires approval before adding to library') {
+        throw new Error('This agent requires approval before adding to library');
+      } else {
+        throw new Error(`Failed to add agent: ${errorData.error || 'Unknown error'}`);
+      }
+    } else if (error.response?.status === 401) {
+      throw new Error('Authentication failed. Please log in again.');
+    } else if (error.response?.status === 403) {
+      throw new Error('Access denied. You do not have permission to add this agent.');
+    } else if (error.response?.status === 404) {
+      throw new Error('Agent not found.');
+    } else {
+      throw new Error(`Failed to add agent: ${error.message || 'Unknown error'}`);
+    }
   }
 };
 
@@ -223,11 +313,41 @@ export const removeAgentFromUserLibrary = async (agentId: string) => {
       data: error.response?.data,
       headers: error.response?.headers
     });
-    throw error;
+    
+    // Handle specific error cases
+    if (error.response?.status === 400) {
+      const errorData = error.response.data;
+      throw new Error(`Failed to remove agent: ${errorData.error || 'Unknown error'}`);
+    } else if (error.response?.status === 401) {
+      throw new Error('Authentication failed. Please log in again.');
+    } else if (error.response?.status === 403) {
+      throw new Error('Access denied. You do not have permission to remove this agent.');
+    } else if (error.response?.status === 404) {
+      throw new Error('Agent not found in your library.');
+    } else {
+      throw new Error(`Failed to remove agent: ${error.message || 'Unknown error'}`);
+    }
   }
 };
 
 export const fetchUserLibrary = async () => {
-  const response = await api.get('/api/agents/user-library');
-  return response.data;
+  try {
+    const response = await api.get('/api/agents/user-library');
+    return response.data;
+  } catch (error) {
+    console.error('❌ fetchUserLibrary failed:', {
+      error,
+      status: error.response?.status,
+      data: error.response?.data
+    });
+    
+    // Handle specific error cases
+    if (error.response?.status === 401) {
+      throw new Error('Authentication failed. Please log in again.');
+    } else if (error.response?.status === 403) {
+      throw new Error('Access denied. You do not have permission to view your library.');
+    } else {
+      throw new Error(`Failed to fetch user library: ${error.message || 'Unknown error'}`);
+    }
+  }
 };

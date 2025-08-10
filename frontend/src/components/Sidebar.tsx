@@ -148,7 +148,7 @@ export default function Sidebar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+            className="fixed inset-0 bg-black bg-opacity-50 z-80 lg:hidden"
             onClick={() => setIsExpanded(false)}
           />
         )}
@@ -162,7 +162,7 @@ export default function Sidebar() {
             animate={{ x: 0 }}
             exit={{ x: -320 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className={`fixed left-0 top-0 h-full w-80 bg-white/95 backdrop-blur-sm border-r border-gray-200 z-50 transition-all duration-300 ${
+            className={`fixed left-0 top-0 h-full w-80 bg-white/95 backdrop-blur-sm border-r border-gray-200 z-90 transition-all duration-300 ${
               isHovered ? 'shadow-2xl' : 'shadow-xl'
             }`}
             onMouseEnter={handleSidebarMouseEnter}

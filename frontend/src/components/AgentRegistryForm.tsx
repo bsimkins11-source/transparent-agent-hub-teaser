@@ -21,81 +21,117 @@ const AgentRegistryForm: React.FC<AgentRegistryFormProps> = ({ isOpen, onClose, 
   const [formData, setFormData] = useState<CreateRegistryEntryRequest>({
     agentId: '',
     version: '1.0.0',
-    agentType: 'internal_transparent', // Default to internal transparent agents
+    agentType: 'ai_agent', // Default to AI agent type
     metadata: {
       name: '',
       description: '',
       category: '',
       tags: [],
       // Updated provider and model structure
-      providers: {
-        primary: {
-          name: 'OpenAI',
-          type: 'ai_model',
-          provider: 'openai',
-          region: 'us-east-1',
-          credentials: {
-            type: 'api_key',
-            config: {}
-          },
-          features: ['chat', 'completion', 'embedding']
-        }
-      },
-      models: {
-        primary: {
-          name: 'gpt-4',
-          provider: 'openai',
-          version: 'latest',
-          capabilities: {
+      providers: [{
+        name: 'OpenAI',
+        type: 'ai_model',
+        provider: 'openai',
+        region: 'us-east-1',
+        credentials: {
+          type: 'api_key',
+          config: {}
+        },
+        features: ['chat', 'completion', 'embedding']
+      }],
+      models: [{
+        name: 'gpt-4',
+        provider: 'openai',
+        version: 'latest',
+                  capabilities: {
             maxTokens: 8192,
             supportsVision: false,
             supportsAudio: false,
             supportsFunctionCalling: true,
             supportsStreaming: true,
-            supportsFineTuning: false
+            supportsFineTuning: false,
+            supportsEmbeddings: false
           },
-          performance: {
+                  performance: {
             latency: 100,
             accuracy: 0.95,
-            costPerToken: 0.00003
+            costPerToken: 0.00003,
+            throughput: 10,
+            availability: 0.99
           },
-          contextWindow: 8192
-        }
-      },
+        contextWindow: 8192
+      }],
       // New API integrations
       apiIntegrations: {
         aiServices: [],
         externalAPIs: [],
-        webhooks: []
+        webhooks: [],
+        databases: []
       },
       capabilities: [],
       limitations: [],
       useCases: [],
+      examples: [],
+      documentation: {
+        userGuide: '',
+        apiReference: '',
+        tutorials: [],
+        faq: '',
+        changelog: ''
+      },
       estimatedCost: { perRequest: 0, currency: 'USD' },
-      performanceMetrics: { avgLatency: 0, successRate: 0, maxTokens: 0 }
+      performanceMetrics: { 
+        averageLatency: 0, 
+        p95Latency: 0, 
+        p99Latency: 0, 
+        successRate: 0, 
+        errorRate: 0, 
+        throughput: 0, 
+        availability: 0, 
+        lastUpdated: new Date().toISOString() 
+      },
+      marketplace: {
+        isPublic: false,
+        pricing: {
+          model: 'free',
+          basePrice: 0,
+          pricePerRequest: 0,
+          pricePerToken: 0,
+          currency: 'USD'
+        },
+        categories: [],
+        featured: false
+      }
     },
+    ownerId: '',
     governance: {
       owner: '',
       reviewers: [],
       approvalWorkflow: {
-        type: 'single_approver',
-        approvers: [],
-        requiredApprovals: 1,
-        autoApprove: false,
-        approvalThreshold: 1
+        requiresApproval: true,
+        approvalLevels: [{
+          level: 1,
+          role: 'admin',
+          required: true,
+          autoApprove: false
+        }],
+        autoApprovalThreshold: 1
       },
-      accessControl: {
+      accessControls: {
         allowedRoles: [],
-        allowedTenants: [],
-        rateLimiting: { requestsPerMinute: 60, requestsPerHour: 1000, requestsPerDay: 10000 }
+        allowedOrganizations: [],
+        allowedNetworks: [],
+        featureFlags: {}
       },
       compliance: {
-        gdprCompliant: false,
-        hipaaCompliant: false,
-        soc2Compliant: false,
-        iso27001Compliant: false,
-        dataRetentionDays: 90,
-        auditLogging: true
+        gdpr: 'not_applicable',
+        hipaa: 'not_applicable',
+        sox: 'not_applicable',
+        iso27001: 'not_applicable',
+        soc2: 'not_applicable',
+        lastAudit: new Date().toISOString(),
+        nextAudit: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+        complianceNotes: []
       },
       riskLevel: 'low',
       dataClassification: 'public'

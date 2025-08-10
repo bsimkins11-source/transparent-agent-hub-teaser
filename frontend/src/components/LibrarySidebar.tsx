@@ -106,11 +106,14 @@ export default function LibrarySidebar({
 
   return (
     <div 
-      className={`fixed left-0 top-16 h-full z-40 transition-all duration-300 ${
+      className={`fixed left-0 top-16 h-full transition-all duration-300 ${
         sidebarHovered ? 'bg-blue-50/5 border-r border-blue-200/20' : ''
       }`}
       onMouseLeave={handleSidebarMouseLeave}
-      style={{ height: 'calc(100vh - 64px)' }}
+      style={{ 
+        height: 'calc(100vh - 64px)',
+        zIndex: 90
+      }}
     >
       {/* Hover Trigger Strip */}
       <div 
@@ -118,7 +121,7 @@ export default function LibrarySidebar({
           sidebarHovered ? 'from-blue-500/30 to-blue-500/20' : 'from-blue-500/20 to-blue-500/10'
         }`}
         onMouseEnter={handleTriggerStripMouseEnter}
-        style={{ zIndex: 45 }}
+        style={{ zIndex: 89 }}
       >
         {/* Library Icons */}
         <div className="flex flex-col items-center space-y-4">
@@ -153,7 +156,7 @@ export default function LibrarySidebar({
         style={{ 
           width: '300px',
           transformOrigin: 'left center',
-          zIndex: 45
+          zIndex: 90
         }}
       >
         <div className="p-6 pt-12 flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: '#d1d5db #f3f4f6' }}>

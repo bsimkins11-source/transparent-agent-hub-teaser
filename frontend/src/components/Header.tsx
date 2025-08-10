@@ -30,14 +30,14 @@ export default function Header() {
     }
   };
 
-  // Simple header with inline styles only
+  // Enhanced header with better layout and spacing
   return (
     <div style={{
       position: 'fixed',
       top: 0,
       left: 0,
       right: 0,
-      zIndex: 50,
+      zIndex: 100,
       background: 'linear-gradient(90deg, #043C46 0%, #043C46 66%, #0F5F6B 100%)',
       borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
     }}>
@@ -46,7 +46,8 @@ export default function Header() {
           display: 'flex', 
           justifyContent: 'space-between', 
           alignItems: 'center', 
-          height: '64px' 
+          height: '64px',
+          gap: '1rem'
         }}>
           
           {/* Logo/Brand - Top Left */}
@@ -63,7 +64,8 @@ export default function Header() {
               padding: '8px 0',
               minHeight: '64px',
               zIndex: 10,
-              position: 'relative'
+              position: 'relative',
+              flexShrink: 0
             }}
             title="Click to go to Home Page"
           >
@@ -80,11 +82,18 @@ export default function Header() {
             />
           </div>
 
-          {/* Navigation - Simplified without dropdowns */}
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
+          {/* Navigation - Center with proper spacing */}
+          <nav style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '1.5rem',
+            flex: 1,
+            justifyContent: 'center',
+            flexWrap: 'wrap'
+          }}>
             {currentUser && userProfile && (
               <>
-                {/* Direct navigation links instead of dropdowns */}
+                {/* Direct navigation links with consistent styling */}
                 <Link
                   to="/agents"
                   style={{
@@ -95,15 +104,17 @@ export default function Header() {
                     textDecoration: 'none',
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    padding: '0.5rem',
+                    padding: '0.5rem 0.75rem',
                     borderRadius: '0.375rem',
-                    backgroundColor: location.pathname === '/agents' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                    backgroundColor: location.pathname === '/agents' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = location.pathname === '/agents' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                    e.currentTarget.style.backgroundColor = location.pathname === '/agents' ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
                   }}
                 >
                   <BookOpenIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
@@ -120,15 +131,17 @@ export default function Header() {
                     textDecoration: 'none',
                     fontSize: '0.875rem',
                     fontWeight: '500',
-                    padding: '0.5rem',
+                    padding: '0.5rem 0.75rem',
                     borderRadius: '0.375rem',
-                    backgroundColor: location.pathname === '/my-agents' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                    backgroundColor: location.pathname === '/my-agents' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                    transition: 'all 0.2s ease',
+                    whiteSpace: 'nowrap'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = location.pathname === '/my-agents' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                    e.currentTarget.style.backgroundColor = location.pathname === '/my-agents' ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
                   }}
                 >
                   <UserIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
@@ -147,15 +160,17 @@ export default function Header() {
                       textDecoration: 'none',
                       fontSize: '0.875rem',
                       fontWeight: '500',
-                      padding: '0.5rem',
+                      padding: '0.5rem 0.75rem',
                       borderRadius: '0.375rem',
-                      backgroundColor: location.pathname.startsWith('/company/') ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                      backgroundColor: location.pathname.startsWith('/company/') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                      transition: 'all 0.2s ease',
+                      whiteSpace: 'nowrap'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = location.pathname.startsWith('/company/') ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                      e.currentTarget.style.backgroundColor = location.pathname.startsWith('/company/') ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
                     }}
                   >
                     <BuildingOfficeIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
@@ -176,15 +191,17 @@ export default function Header() {
                         textDecoration: 'none',
                         fontSize: '0.875rem',
                         fontWeight: '500',
-                        padding: '0.5rem',
+                        padding: '0.5rem 0.75rem',
                         borderRadius: '0.375rem',
-                        backgroundColor: location.pathname === '/creator-dashboard' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                        backgroundColor: location.pathname === '/creator-dashboard' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                        transition: 'all 0.2s ease',
+                        whiteSpace: 'nowrap'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = location.pathname === '/creator-dashboard' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                        e.currentTarget.style.backgroundColor = location.pathname === '/creator-dashboard' ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
                       }}
                     >
                       <span style={{ fontSize: '1rem' }}>📊</span>
@@ -201,15 +218,17 @@ export default function Header() {
                         textDecoration: 'none',
                         fontSize: '0.875rem',
                         fontWeight: '500',
-                        padding: '0.5rem',
+                        padding: '0.5rem 0.75rem',
                         borderRadius: '0.375rem',
-                        backgroundColor: location.pathname === '/agent-submission' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                        backgroundColor: location.pathname === '/agent-submission' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                        transition: 'all 0.2s ease',
+                        whiteSpace: 'nowrap'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = location.pathname === '/agent-submission' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                        e.currentTarget.style.backgroundColor = location.pathname === '/agent-submission' ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
                       }}
                     >
                       <span style={{ fontSize: '1rem' }}>➕</span>
@@ -233,15 +252,18 @@ export default function Header() {
                             textDecoration: 'none',
                             fontSize: '0.875rem',
                             fontWeight: '500',
-                            padding: '0.5rem',
+                            padding: '0.5rem 0.75rem',
                             borderRadius: '0.375rem',
-                            backgroundColor: location.pathname === '/super-admin' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                            backgroundColor: location.pathname === '/super-admin' ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
+                            transition: 'all 0.2s ease',
+                            whiteSpace: 'nowrap',
+                            border: location.pathname === '/super-admin' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid transparent'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = location.pathname === '/super-admin' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                            e.currentTarget.style.backgroundColor = location.pathname === '/super-admin' ? 'rgba(255, 255, 255, 0.2)' : 'transparent';
                           }}
                         >
                           <span style={{ fontSize: '1rem' }}>👑</span>
@@ -258,15 +280,17 @@ export default function Header() {
                             textDecoration: 'none',
                             fontSize: '0.875rem',
                             fontWeight: '500',
-                            padding: '0.5rem',
+                            padding: '0.5rem 0.75rem',
                             borderRadius: '0.375rem',
-                            backgroundColor: location.pathname === '/creator-portal' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                            backgroundColor: location.pathname === '/creator-portal' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                            transition: 'all 0.2s ease',
+                            whiteSpace: 'nowrap'
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = location.pathname === '/creator-portal' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                            e.currentTarget.style.backgroundColor = location.pathname === '/creator-portal' ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
                           }}
                         >
                           <span style={{ fontSize: '1rem' }}>🚀</span>
@@ -287,15 +311,17 @@ export default function Header() {
                           textDecoration: 'none',
                           fontSize: '0.875rem',
                           fontWeight: '500',
-                          padding: '0.5rem',
+                          padding: '0.5rem 0.75rem',
                           borderRadius: '0.375rem',
-                          backgroundColor: location.pathname === '/admin' ? 'rgba(255, 255, 255, 0.1)' : 'transparent'
+                          backgroundColor: location.pathname === '/admin' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+                          transition: 'all 0.2s ease',
+                          whiteSpace: 'nowrap'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
                         }}
                         onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = location.pathname === '/admin' ? 'rgba(255, 255, 255, 0.1)' : 'transparent';
+                          e.currentTarget.style.backgroundColor = location.pathname === '/admin' ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
                         }}
                       >
                         <BuildingOfficeIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
@@ -308,8 +334,14 @@ export default function Header() {
             )}
           </nav>
 
-          {/* User Menu */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', color: 'white' }}>
+          {/* User Menu - Right side */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '1rem', 
+            color: 'white',
+            flexShrink: 0
+          }}>
             {currentUser ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'white' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'white' }}>
@@ -328,13 +360,16 @@ export default function Header() {
                     fontSize: '0.875rem',
                     cursor: 'pointer',
                     padding: '0.5rem',
-                    borderRadius: '0.375rem'
+                    borderRadius: '0.375rem',
+                    transition: 'all 0.2s ease'
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.opacity = '0.8';
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.opacity = '1';
+                    e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
                   <ArrowRightOnRectangleIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
@@ -352,7 +387,8 @@ export default function Header() {
                   padding: '0.75rem 1.5rem',
                   borderRadius: '0.5rem',
                   textDecoration: 'none',
-                  border: '1px solid rgba(255, 255, 255, 0.2)'
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';

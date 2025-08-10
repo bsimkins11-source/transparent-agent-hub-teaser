@@ -1,213 +1,499 @@
-# Services Architecture
+# Enhanced Agent Library Architecture
 
 ## Overview
 
-This directory contains the service layer for the Transparent AI Agent Hub. We've implemented a **service abstraction layer** that allows easy migration between Firebase (for POC development) and Cloud Run (for production scaling).
+The Enhanced Agent Library represents a significant evolution of the original agent management system, implementing best-in-class patterns for performance, scalability, maintainability, and enterprise-grade features.
 
-## Architecture
+## Key Improvements
 
-```
-services/
-├── interfaces/           # Service contracts
-│   ├── IAgentService.ts
-│   └── ILibraryService.ts
-├── implementations/      # Concrete implementations
-│   ├── FirebaseAgentService.ts
-│   └── FirebaseLibraryService.ts
-├── ServiceFactory.ts     # Service selection and management
-├── agentManagementServiceAdapter.ts  # Backward compatibility
-└── README.md            # This file
-```
+### 🚀 Performance Optimizations
+- **Multi-level Caching**: LRU cache with configurable TTL and size limits
+- **Batch Operations**: Efficient database operations with configurable batch sizes
+- **Query Optimization**: Smart query construction with proper indexing strategies
+- **Memory Management**: Automatic cleanup and memory leak prevention
 
-## Key Principles
+### 🛡️ Enhanced Security & Compliance
+- **Role-based Access Control**: Granular permissions and tenant isolation
+- **Audit Logging**: Comprehensive audit trails for all operations
+- **Compliance Validation**: Built-in compliance checking for regulatory requirements
+- **Data Encryption**: Configurable encryption for sensitive data
 
-### 1. Interface-First Design
-- All services implement well-defined interfaces
-- Easy to swap implementations without changing business logic
-- Clear contracts for what each service must provide
+### 📊 Monitoring & Observability
+- **Performance Metrics**: Real-time performance monitoring with configurable thresholds
+- **Health Checks**: Service health monitoring and alerting
+- **Error Tracking**: Structured error handling with detailed context
+- **Resource Monitoring**: Memory usage, cache performance, and database metrics
 
-### 2. Service Factory Pattern
-- Centralized service management
-- Environment-based service selection
-- Easy to switch between Firebase and Cloud Run
+### 🏗️ Architecture Improvements
+- **Dependency Injection**: Clean service factory pattern with configuration management
+- **Interface Segregation**: Well-defined contracts for all services
+- **Error Handling**: Consistent error handling patterns across all services
+- **Type Safety**: Enhanced TypeScript types with strict validation
 
-### 3. Backward Compatibility
-- Existing code continues to work
-- Gradual migration possible
-- No breaking changes to components
+## Architecture Components
 
-## How to Use
+### 1. Enhanced Agent Registry Service (`EnhancedAgentRegistryService`)
 
-### For New Code
+The core service that manages agent registry entries with enterprise-grade features:
 
 ```typescript
-import { serviceFactory } from '../services/ServiceFactory';
+import { EnhancedAgentRegistryService } from './implementations/EnhancedAgentRegistryService';
 
-// Get the appropriate service
-const agentService = serviceFactory.getAgentService();
-const libraryService = serviceFactory.getLibraryService();
+const registryService = new EnhancedAgentRegistryService();
 
-// Use normally
-const agents = await agentService.getAllAgents();
-```
+// Create a new agent entry
+const entryId = await registryService.createEntry({
+  agentId: 'my-agent-001',
+  agentType: 'ai_agent',
+  metadata: {
+    name: 'My AI Agent',
+    description: 'A powerful AI agent for task automation',
+    category: 'automation',
+    tags: ['ai', 'automation', 'productivity']
+  },
+  ownerId: 'user-123',
+  organizationId: 'org-456'
+});
 
-### For Existing Code
+// Get agent entry with caching
+const entry = await registryService.getEntry(entryId);
 
-```typescript
-// Import from the adapter (same interface as before)
-import { createAgent, getAllAgents } from '../services/agentManagementServiceAdapter';
-
-// Use exactly as before
-const agentId = await createAgent(agentData);
-const agents = await getAllAgents();
-```
-
-## Service Selection
-
-### Environment Variables
-
-```bash
-# .env file
-VITE_SERVICE_PROVIDER=firebase        # For POC development
-VITE_SERVICE_PROVIDER=cloudrun        # For production
-VITE_CLOUD_RUN_BASE_URL=https://...  # Cloud Run endpoint
-VITE_CLOUD_RUN_API_KEY=...           # Cloud Run API key
-```
-
-### Runtime Configuration
-
-```typescript
-import { serviceFactory } from '../services/ServiceFactory';
-
-// Check current provider
-console.log('Using:', serviceFactory.getCurrentProvider());
-
-// Manual configuration (if needed)
-serviceFactory.configure({
-  provider: 'firebase'
+// Search with advanced filters
+const entries = await registryService.getAllEntries({
+  status: ['approved', 'pending_review'],
+  category: ['automation', 'analytics'],
+  organizationId: 'org-456'
 });
 ```
 
-## Adding New Services
+**Key Features:**
+- Automatic caching with LRU eviction
+- Batch operations for better performance
+- Comprehensive audit logging
+- Version management and history
+- Compliance validation
+- Access control and permissions
 
-### 1. Define the Interface
+### 2. Enhanced Service Factory (`EnhancedServiceFactory`)
+
+A configuration-driven service factory with environment-specific optimizations:
 
 ```typescript
-// interfaces/INewService.ts
-export interface INewService {
-  newMethod(): Promise<void>;
+import { EnhancedServiceFactory, DEFAULT_CONFIGURATIONS } from './ServiceFactory';
+
+// Initialize with production configuration
+const factory = EnhancedServiceFactory.getInstance({
+  environment: 'production',
+  enableCaching: true,
+  enableMetrics: true,
+  cacheConfig: {
+    maxSize: 2000,
+    ttl: 15 * 60 * 1000, // 15 minutes
+    cleanupInterval: 5 * 60 * 1000 // 5 minutes
+  }
+});
+
+// Get services with automatic configuration
+const registryService = factory.getAgentRegistryService();
+const agentService = factory.getAgentService();
+
+// Monitor service health
+const health = factory.getServiceHealth();
+const metrics = factory.getServiceMetrics();
+```
+
+**Configuration Options:**
+- Environment-specific settings (development, staging, production)
+- Cache configuration (size, TTL, cleanup intervals)
+- Performance settings (batch sizes, timeouts, concurrency limits)
+- Security features (encryption, access control, compliance)
+
+### 3. Performance Monitoring Service (`PerformanceMonitoringService`)
+
+Comprehensive performance monitoring with alerting and metrics:
+
+```typescript
+import { performanceMonitoring, monitorPerformance, usePerformanceMonitoring } from './implementations/PerformanceMonitoringService';
+
+// Monitor a method automatically
+class MyService {
+  @monitorPerformance('processData')
+  async processData(data: unknown[]) {
+    // Method execution is automatically monitored
+    return data.map(item => item.toString());
+  }
+}
+
+// Manual monitoring
+const operationId = performanceMonitoring.startOperation('customOperation', { dataSize: 1000 });
+try {
+  // ... perform operation
+  performanceMonitoring.endOperation(operationId, true);
+} catch (error) {
+  performanceMonitoring.endOperation(operationId, false, error.message);
+}
+
+// React component monitoring
+function MyComponent() {
+  const { startOperation, endOperation } = usePerformanceMonitoring('MyComponent');
+  
+  const handleClick = async () => {
+    const opId = startOperation('buttonClick');
+    try {
+      await performAction();
+      endOperation(opId, true);
+    } catch (error) {
+      endOperation(opId, false, error.message);
+    }
+  };
+  
+  return <button onClick={handleClick}>Click Me</button>;
 }
 ```
 
-### 2. Implement Firebase Version
+**Monitoring Features:**
+- Automatic operation timing
+- Performance thresholds and alerting
+- Cache performance metrics
+- Memory usage monitoring
+- Error rate tracking
+- Historical metrics and trends
+
+## Best Practices
+
+### 1. Service Usage
 
 ```typescript
-// implementations/FirebaseNewService.ts
-export class FirebaseNewService implements INewService {
-  async newMethod(): Promise<void> {
-    // Firebase implementation
+// ✅ Good: Use service factory for dependency injection
+const factory = EnhancedServiceFactory.getInstance();
+const registryService = factory.getAgentRegistryService();
+
+// ❌ Bad: Direct instantiation
+const registryService = new EnhancedAgentRegistryService();
+```
+
+### 2. Error Handling
+
+```typescript
+// ✅ Good: Proper error handling with context
+try {
+  const entry = await registryService.getEntry(entryId);
+  if (!entry) {
+    throw new NotFoundError('Agent registry entry', entryId);
+  }
+  return entry;
+} catch (error) {
+  if (error instanceof NotFoundError) {
+    // Handle not found specifically
+    return null;
+  }
+  // Re-throw other errors
+  throw error;
+}
+
+// ❌ Bad: Generic error handling
+try {
+  return await registryService.getEntry(entryId);
+} catch (error) {
+  console.error('Error:', error);
+  return null;
+}
+```
+
+### 3. Caching Strategy
+
+```typescript
+// ✅ Good: Leverage built-in caching
+const entry = await registryService.getEntry(entryId); // Automatically cached
+const entry2 = await registryService.getEntry(entryId); // Served from cache
+
+// ❌ Bad: Manual cache management
+let cachedEntry = cache.get(entryId);
+if (!cachedEntry) {
+  cachedEntry = await registryService.getEntry(entryId);
+  cache.set(entryId, cachedEntry);
+}
+```
+
+### 4. Performance Monitoring
+
+```typescript
+// ✅ Good: Use decorators for automatic monitoring
+class DataProcessor {
+  @monitorPerformance('processLargeDataset')
+  async processLargeDataset(data: unknown[]) {
+    // Automatically monitored
+    return data.map(this.transformItem);
+  }
+}
+
+// ✅ Good: Manual monitoring for custom operations
+const opId = performanceMonitoring.startOperation('customTransform', { 
+  dataSize: data.length,
+  transformType: 'custom'
+});
+try {
+  const result = await customTransform(data);
+  performanceMonitoring.endOperation(opId, true);
+  return result;
+} catch (error) {
+  performanceMonitoring.endOperation(opId, false, error.message);
+  throw error;
+}
+```
+
+## Configuration Management
+
+### Environment-Specific Configuration
+
+```typescript
+// Development (default)
+{
+  environment: 'development',
+  enableCaching: true,
+  cacheConfig: {
+    maxSize: 100,
+    ttl: 2 * 60 * 1000, // 2 minutes
+    cleanupInterval: 30 * 1000 // 30 seconds
+  }
+}
+
+// Production
+{
+  environment: 'production',
+  enableCaching: true,
+  cacheConfig: {
+    maxSize: 1000,
+    ttl: 10 * 60 * 1000, // 10 minutes
+    cleanupInterval: 2 * 60 * 1000 // 2 minutes
   }
 }
 ```
 
-### 3. Add to Service Factory
+### Runtime Configuration Changes
 
 ```typescript
-// ServiceFactory.ts
-public getNewService(): INewService {
-  switch (this.config.provider) {
-    case 'firebase':
-      return new FirebaseNewService();
-    case 'cloudrun':
-      return new CloudRunNewService(); // Future implementation
+const factory = EnhancedServiceFactory.getInstance();
+
+// Reconfigure services at runtime
+factory.reconfigure({
+  cacheConfig: {
+    maxSize: 2000,
+    ttl: 20 * 60 * 1000 // 20 minutes
   }
-}
+});
+
+// Clear affected services for reconfiguration
+factory.clearServices();
 ```
 
-## Migration Path
+## Migration Guide
 
-### Phase 1: POC Development (Current)
-- ✅ Use Firebase for all services
-- ✅ Build features with clean architecture
-- ✅ Test business logic
+### From Legacy Service Factory
 
-### Phase 2: Cloud Run Implementation (Future)
-- 🔄 Implement Cloud Run versions of services
-- 🔄 Add HTTP client and error handling
-- 🔄 Test both implementations
+```typescript
+// Old way
+import { ServiceFactory } from './ServiceFactory';
+const factory = ServiceFactory.getInstance();
+const registryService = factory.getAgentRegistryService();
 
-### Phase 3: Production Migration
-- 🔄 Update environment variables
-- 🔄 Deploy and monitor
-- 🔄 Rollback capability
+// New way
+import { EnhancedServiceFactory } from './ServiceFactory';
+const factory = EnhancedServiceFactory.getInstance();
+const registryService = factory.getAgentRegistryService();
+```
 
-## Benefits
+### From Direct Service Usage
 
-### For Development
-- **Fast iteration** with Firebase
-- **Clean code** that's easy to maintain
-- **No vendor lock-in**
+```typescript
+// Old way
+import { FirebasePOCAgentRegistryService } from './implementations/FirebasePOCAgentRegistryService';
+const registryService = new FirebasePOCAgentRegistryService();
 
-### For Production
-- **Easy migration** to Cloud Run
-- **Proven interfaces** that work
-- **Gradual migration** possible
+// New way
+import { EnhancedServiceFactory } from './ServiceFactory';
+const factory = EnhancedServiceFactory.getInstance();
+const registryService = factory.getAgentRegistryService();
+```
+
+## Performance Tuning
+
+### Cache Optimization
+
+```typescript
+// Adjust cache size based on memory constraints
+const factory = EnhancedServiceFactory.getInstance({
+  cacheConfig: {
+    maxSize: 5000, // Increase for high-traffic scenarios
+    ttl: 30 * 60 * 1000, // 30 minutes for stable data
+    cleanupInterval: 5 * 60 * 1000 // 5 minutes for aggressive cleanup
+  }
+});
+```
+
+### Batch Operations
+
+```typescript
+// Configure batch sizes for bulk operations
+const factory = EnhancedServiceFactory.getInstance({
+  performanceConfig: {
+    batchSize: 1000, // Larger batches for bulk operations
+    batchTimeout: 500, // Longer timeout for large batches
+    maxConcurrentRequests: 50 // Higher concurrency for parallel processing
+  }
+});
+```
+
+## Monitoring & Alerting
+
+### Performance Thresholds
+
+```typescript
+// Customize performance thresholds
+const monitoring = new PerformanceMonitoringService({
+  slowOperationThreshold: 500, // Alert on operations > 500ms
+  errorRateThreshold: 2, // Alert on error rate > 2%
+  memoryUsageThreshold: 85, // Alert on memory usage > 85%
+  cacheHitRateThreshold: 80 // Alert on cache hit rate < 80%
+});
+```
+
+### Health Checks
+
+```typescript
+// Monitor service health
+const factory = EnhancedServiceFactory.getInstance();
+const health = factory.getServiceHealth();
+
+// Check specific service status
+if (health.agentRegistryService.status === 'unhealthy') {
+  console.error('Agent registry service is unhealthy');
+  // Implement fallback or alerting
+}
+```
 
 ## Testing
 
-### Unit Tests
-```typescript
-// Test against interfaces, not implementations
-import { IAgentService } from './interfaces/IAgentService';
+### Unit Testing
 
-// Mock the service
-const mockAgentService: IAgentService = {
-  getAllAgents: jest.fn().mockResolvedValue([])
-};
+```typescript
+import { EnhancedAgentRegistryService } from './implementations/EnhancedAgentRegistryService';
+
+describe('EnhancedAgentRegistryService', () => {
+  let service: EnhancedAgentRegistryService;
+  
+  beforeEach(() => {
+    service = new EnhancedAgentRegistryService();
+  });
+  
+  afterEach(() => {
+    service.reset(); // Reset performance metrics
+  });
+  
+  it('should create agent entries efficiently', async () => {
+    const startTime = performance.now();
+    
+    const entryId = await service.createEntry({
+      agentId: 'test-agent',
+      agentType: 'ai_agent',
+      metadata: { name: 'Test Agent', description: 'Test' },
+      ownerId: 'test-user'
+    });
+    
+    const duration = performance.now() - startTime;
+    expect(duration).toBeLessThan(100); // Should complete in < 100ms
+    expect(entryId).toBeDefined();
+  });
+});
 ```
 
-### Integration Tests
+### Integration Testing
+
 ```typescript
-// Test both implementations
-import { serviceFactory } from './ServiceFactory';
+import { EnhancedServiceFactory } from './ServiceFactory';
 
-// Test Firebase
-serviceFactory.configure({ provider: 'firebase' });
-const firebaseResult = await serviceFactory.getAgentService().getAllAgents();
-
-// Test Cloud Run (when ready)
-serviceFactory.configure({ provider: 'cloudrun' });
-const cloudRunResult = await serviceFactory.getAgentService().getAllAgents();
+describe('EnhancedServiceFactory Integration', () => {
+  let factory: EnhancedServiceFactory;
+  
+  beforeEach(() => {
+    factory = EnhancedServiceFactory.getInstance({
+      environment: 'test',
+      enableCaching: false // Disable caching for tests
+    });
+  });
+  
+  afterEach(() => {
+    factory.clearServices();
+  });
+  
+  it('should provide configured services', () => {
+    const registryService = factory.getAgentRegistryService();
+    expect(registryService).toBeDefined();
+    expect(registryService).toHaveProperty('createEntry');
+  });
+});
 ```
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Service not found**: Check environment variables
-2. **Type errors**: Ensure interfaces match implementations
-3. **Performance issues**: Monitor service factory configuration
+1. **High Memory Usage**
+   - Reduce cache sizes
+   - Increase cleanup intervals
+   - Monitor memory metrics
+
+2. **Slow Operations**
+   - Check performance metrics
+   - Optimize database queries
+   - Increase batch sizes
+
+3. **Cache Misses**
+   - Increase cache TTL
+   - Optimize cache keys
+   - Monitor cache hit rates
 
 ### Debug Mode
 
 ```typescript
 // Enable debug logging
-console.log('Current provider:', serviceFactory.getCurrentProvider());
-console.log('Is Firebase:', serviceFactory.isFirebase());
-console.log('Is Cloud Run:', serviceFactory.isCloudRun());
+const factory = EnhancedServiceFactory.getInstance({
+  environment: 'development',
+  enableMetrics: true,
+  enableAuditLogging: true
+});
+
+// Get detailed metrics
+const metrics = factory.getServiceMetrics();
+console.log('Service metrics:', metrics);
 ```
 
-## Next Steps
+## Future Enhancements
 
-1. **Continue POC development** using Firebase
-2. **Add new features** through the interface layer
-3. **Plan Cloud Run implementation** when ready to scale
-4. **Implement Cloud Run services** following the same patterns
+- **Distributed Caching**: Redis integration for multi-instance deployments
+- **Advanced Analytics**: Machine learning-based performance optimization
+- **Auto-scaling**: Automatic resource allocation based on load
+- **Multi-region Support**: Geographic distribution for global deployments
+- **Advanced Security**: OAuth2, JWT, and enterprise SSO integration
+
+## Contributing
+
+When contributing to the enhanced agent library:
+
+1. Follow the established patterns and interfaces
+2. Add comprehensive error handling
+3. Include performance monitoring
+4. Write unit tests for new functionality
+5. Update documentation for new features
+6. Follow TypeScript best practices
+7. Ensure backward compatibility
 
 ## Support
 
-For questions about the service architecture:
-- Check the interfaces in `interfaces/`
-- Review implementations in `implementations/`
-- See the main `ServiceFactory.ts`
-- Refer to `MIGRATION_GUIDE.md` in the project root
+For questions, issues, or contributions:
+
+1. Check the troubleshooting section
+2. Review performance metrics and logs
+3. Consult the migration guide
+4. Open an issue with detailed context
+5. Provide performance data when reporting issues

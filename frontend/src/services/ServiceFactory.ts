@@ -1,20 +1,339 @@
-import { IAgentService } from './interfaces/IAgentService';
-import { ILibraryService } from './interfaces/ILibraryService';
 import { IAgentRegistryService } from './interfaces/IAgentRegistryService';
-import { IObservabilityService, IPOCObservabilityService } from './interfaces/IObservabilityService';
-import { ITenantSecurityService, IPOCTenantSecurityService } from './interfaces/ITenantSecurityService';
-import { IDataSecurityService } from './interfaces/IDataSecurityService';
-import { FirebaseAgentService } from './implementations/FirebaseAgentService';
-import { FirebaseLibraryService } from './implementations/FirebaseLibraryService';
-import { FirebasePOCObservabilityService } from './implementations/FirebasePOCObservabilityService';
+import { EnhancedAgentRegistryService } from './implementations/EnhancedAgentRegistryService';
 import { FirebasePOCAgentRegistryService } from './implementations/FirebasePOCAgentRegistryService';
-import { FirebasePOCTenantSecurityService } from './implementations/FirebasePOCTenantSecurityService';
+import { IAgentService } from './interfaces/IAgentService';
+import { FirebaseAgentService } from './implementations/FirebaseAgentService';
+import { ILibraryService } from './interfaces/ILibraryService';
+import { FirebaseLibraryService } from './implementations/FirebaseLibraryService';
+import { IObservabilityService } from './interfaces/IObservabilityService';
+import { FirebasePOCObservabilityService } from './implementations/FirebasePOCObservabilityService';
+import { ISecurityConfigurationService } from './interfaces/ISecurityConfigurationService';
+import { FirebasePOCSecurityConfigurationService } from './implementations/FirebasePOCSecurityConfigurationService';
+import { IDataSecurityService } from './interfaces/IDataSecurityService';
 import { DataSecurityService } from './implementations/DataSecurityService';
-import { ServiceProvider, ServiceConfig, getServiceConfig } from '../config/services';
+import { ITenantSecurityService } from './interfaces/ITenantSecurityService';
+import { FirebasePOCTenantSecurityService } from './implementations/FirebasePOCTenantSecurityService';
 
-class ServiceFactory {
+// Enhanced configuration interface for better service management
+export interface ServiceConfiguration {
+  readonly environment: 'development' | 'staging' | 'production';
+  readonly enableCaching: boolean;
+  readonly enableMetrics: boolean;
+  readonly enableAuditLogging: boolean;
+  readonly cacheConfig: {
+    readonly maxSize: number;
+    readonly ttl: number;
+    readonly cleanupInterval: number;
+  };
+  readonly performanceConfig: {
+    readonly batchSize: number;
+    readonly batchTimeout: number;
+    readonly maxConcurrentRequests: number;
+  };
+  readonly securityConfig: {
+    readonly enableEncryption: boolean;
+    readonly enableAccessControl: boolean;
+    readonly enableCompliance: boolean;
+  };
+}
+
+// Default configuration for different environments
+export const DEFAULT_CONFIGURATIONS: Record<string, ServiceConfiguration> = {
+  development: {
+    environment: 'development',
+    enableCaching: true,
+    enableMetrics: true,
+    enableAuditLogging: true,
+    cacheConfig: {
+      maxSize: 100,
+      ttl: 2 * 60 * 1000, // 2 minutes
+      cleanupInterval: 30 * 1000 // 30 seconds
+    },
+    performanceConfig: {
+      batchSize: 100,
+      batchTimeout: 50,
+      maxConcurrentRequests: 5
+    },
+    securityConfig: {
+      enableEncryption: false,
+      enableAccessControl: true,
+      enableCompliance: true
+    }
+  },
+  staging: {
+    environment: 'staging',
+    enableCaching: true,
+    enableMetrics: true,
+    enableAuditLogging: true,
+    cacheConfig: {
+      maxSize: 500,
+      ttl: 5 * 60 * 1000, // 5 minutes
+      cleanupInterval: 60 * 1000 // 1 minute
+    },
+    performanceConfig: {
+      batchSize: 250,
+      batchTimeout: 100,
+      maxConcurrentRequests: 10
+    },
+    securityConfig: {
+      enableEncryption: true,
+      enableAccessControl: true,
+      enableCompliance: true
+    }
+  },
+  production: {
+    environment: 'production',
+    enableCaching: true,
+    enableMetrics: true,
+    enableAuditLogging: true,
+    cacheConfig: {
+      maxSize: 1000,
+      ttl: 10 * 60 * 1000, // 10 minutes
+      cleanupInterval: 2 * 60 * 1000 // 2 minutes
+    },
+    performanceConfig: {
+      batchSize: 500,
+      batchTimeout: 200,
+      maxConcurrentRequests: 20
+    },
+    securityConfig: {
+      enableEncryption: true,
+      enableAccessControl: true,
+      enableCompliance: true
+    }
+  }
+};
+
+// Enhanced service factory with better configuration management and dependency injection
+export class EnhancedServiceFactory {
+  private static instance: EnhancedServiceFactory;
+  private readonly services = new Map<string, unknown>();
+  private readonly configuration: ServiceConfiguration;
+
+  private constructor(configuration?: Partial<ServiceConfiguration>) {
+    // Determine environment from configuration or environment variables
+    const env = configuration?.environment || 
+                (import.meta.env?.MODE as keyof typeof DEFAULT_CONFIGURATIONS) || 
+                'development';
+    
+    this.configuration = {
+      ...DEFAULT_CONFIGURATIONS[env],
+      ...configuration
+    };
+
+    console.log(`ServiceFactory initialized with ${env} configuration:`, this.configuration);
+  }
+
+  // Singleton pattern with configuration support
+  public static getInstance(configuration?: Partial<ServiceConfiguration>): EnhancedServiceFactory {
+    if (!EnhancedServiceFactory.instance) {
+      EnhancedServiceFactory.instance = new EnhancedServiceFactory(configuration);
+    }
+    return EnhancedServiceFactory.instance;
+  }
+
+  // Get configuration for external use
+  public getConfiguration(): Readonly<ServiceConfiguration> {
+    return this.configuration;
+  }
+
+  // Enhanced agent registry service with configuration-based initialization
+  public getAgentRegistryService(): IAgentRegistryService {
+    const cacheKey = 'agentRegistryService';
+    
+    if (!this.services.has(cacheKey)) {
+      let service: IAgentRegistryService;
+      
+      if (this.configuration.environment === 'production' || this.configuration.environment === 'staging') {
+        // Use enhanced service for production and staging
+        service = new EnhancedAgentRegistryService();
+        console.log('Using EnhancedAgentRegistryService for', this.configuration.environment);
+      } else {
+        // Use POC service for development
+        service = new FirebasePOCAgentRegistryService();
+        console.log('Using FirebasePOCAgentRegistryService for development');
+      }
+      
+      this.services.set(cacheKey, service);
+    }
+    
+    return this.services.get(cacheKey) as IAgentRegistryService;
+  }
+
+  // Enhanced agent service with better error handling
+  public getAgentService(): IAgentService {
+    const cacheKey = 'agentService';
+    
+    if (!this.services.has(cacheKey)) {
+      const service = new FirebaseAgentService();
+      this.services.set(cacheKey, service);
+    }
+    
+    return this.services.get(cacheKey) as IAgentService;
+  }
+
+  // Enhanced library service
+  public getLibraryService(): ILibraryService {
+    const cacheKey = 'libraryService';
+    
+    if (!this.services.has(cacheKey)) {
+      const service = new FirebaseLibraryService();
+      this.services.set(cacheKey, service);
+    }
+    
+    return this.services.get(cacheKey) as ILibraryService;
+  }
+
+  // Enhanced observability service
+  public getObservabilityService(): IObservabilityService {
+    const cacheKey = 'observabilityService';
+    
+    if (!this.services.has(cacheKey)) {
+      const service = new FirebasePOCObservabilityService();
+      this.services.set(cacheKey, service);
+    }
+    
+    return this.services.get(cacheKey) as IObservabilityService;
+  }
+
+  // Enhanced security configuration service
+  public getSecurityConfigurationService(): ISecurityConfigurationService {
+    const cacheKey = 'securityConfigurationService';
+    
+    if (!this.services.has(cacheKey)) {
+      let service: ISecurityConfigurationService;
+      
+      if (this.configuration.securityConfig.enableEncryption) {
+        service = new FirebasePOCSecurityConfigurationService();
+      } else {
+        service = new FirebasePOCSecurityConfigurationService();
+      }
+      
+      this.services.set(cacheKey, service);
+    }
+    
+    return this.services.get(cacheKey) as ISecurityConfigurationService;
+  }
+
+  // Enhanced data security service
+  public getDataSecurityService(): IDataSecurityService {
+    const cacheKey = 'dataSecurityService';
+    
+    if (!this.services.has(cacheKey)) {
+      const service = new DataSecurityService();
+      this.services.set(cacheKey, service);
+    }
+    
+    return this.services.get(cacheKey) as IDataSecurityService;
+  }
+
+  // Enhanced tenant security service
+  public getTenantSecurityService(): ITenantSecurityService {
+    const cacheKey = 'tenantSecurityService';
+    
+    if (!this.services.has(cacheKey)) {
+      const service = new FirebasePOCTenantSecurityService();
+      this.services.set(cacheKey, service);
+    }
+    
+    return this.services.get(cacheKey) as ITenantSecurityService;
+  }
+
+  // Method to clear all services (useful for testing or reconfiguration)
+  public clearServices(): void {
+    this.services.clear();
+    console.log('All services cleared from factory');
+  }
+
+  // Method to get service status and health
+  public getServiceHealth(): Record<string, { status: 'healthy' | 'unhealthy' | 'unknown'; lastCheck: Date }> {
+    const health: Record<string, { status: 'healthy' | 'unhealthy' | 'unknown'; lastCheck: Date }> = {};
+    
+    for (const [serviceName, service] of this.services.entries()) {
+      try {
+        // Basic health check - could be enhanced with actual health checks
+        if (service && typeof service === 'object') {
+          health[serviceName] = {
+            status: 'healthy',
+            lastCheck: new Date()
+          };
+        } else {
+          health[serviceName] = {
+            status: 'unhealthy',
+            lastCheck: new Date()
+          };
+        }
+      } catch (error) {
+        health[serviceName] = {
+          status: 'unhealthy',
+          lastCheck: new Date()
+        };
+      }
+    }
+    
+    return health;
+  }
+
+  // Method to reconfigure services (useful for runtime configuration changes)
+  public reconfigure(newConfiguration: Partial<ServiceConfiguration>): void {
+    const oldConfig = { ...this.configuration };
+    
+    // Update configuration
+    Object.assign(this.configuration, newConfiguration);
+    
+    // Clear services that might be affected by configuration changes
+    if (newConfiguration.cacheConfig || newConfiguration.performanceConfig) {
+      this.services.delete('agentRegistryService');
+      console.log('Agent registry service cleared due to configuration change');
+    }
+    
+    if (newConfiguration.securityConfig) {
+      this.services.delete('securityConfigurationService');
+      this.services.delete('dataSecurityService');
+      this.services.delete('tenantSecurityService');
+      console.log('Security services cleared due to configuration change');
+    }
+    
+    console.log('Service factory reconfigured:', {
+      from: oldConfig,
+      to: this.configuration
+    });
+  }
+
+  // Method to get service metrics
+  public getServiceMetrics(): Record<string, unknown> {
+    const metrics: Record<string, unknown> = {
+      totalServices: this.services.size,
+      configuration: this.configuration,
+      health: this.getServiceHealth(),
+      cacheStats: this.getCacheStats()
+    };
+    
+    return metrics;
+  }
+
+  // Private method to get cache statistics
+  private getCacheStats(): Record<string, unknown> {
+    const stats: Record<string, unknown> = {};
+    
+    try {
+      const agentRegistryService = this.services.get('agentRegistryService');
+      if (agentRegistryService && 'getRegistryStats' in agentRegistryService) {
+        // This would need to be implemented in the service to expose cache stats
+        stats.agentRegistryCache = 'available';
+      }
+    } catch (error) {
+      stats.agentRegistryCache = 'error';
+    }
+    
+    return stats;
+  }
+}
+
+// Legacy factory for backward compatibility
+export class ServiceFactory {
   private static instance: ServiceFactory;
-  private config: ServiceConfig = { provider: 'firebase' };
+  private readonly services = new Map<string, unknown>();
 
   private constructor() {}
 
@@ -25,176 +344,85 @@ class ServiceFactory {
     return ServiceFactory.instance;
   }
 
-  public configure(config: ServiceConfig): void {
-    this.config = config;
-    console.log(`ServiceFactory: Configured to use ${config.provider}`);
+  public getAgentRegistryService(): IAgentRegistryService {
+    const cacheKey = 'agentRegistryService';
+    
+    if (!this.services.has(cacheKey)) {
+      // Use enhanced service by default
+      const service = new EnhancedAgentRegistryService();
+      this.services.set(cacheKey, service);
+    }
+    
+    return this.services.get(cacheKey) as IAgentRegistryService;
   }
 
-  // Core Services (Existing)
   public getAgentService(): IAgentService {
-    switch (this.config.provider) {
-      case 'firebase':
-        return new FirebaseAgentService();
-      case 'cloudrun':
-        // TODO: Implement Cloud Run version
-        throw new Error('Cloud Run agent service not yet implemented');
-      default:
-        throw new Error(`Unknown service provider: ${this.config.provider}`);
+    const cacheKey = 'agentService';
+    
+    if (!this.services.has(cacheKey)) {
+      const service = new FirebaseAgentService();
+      this.services.set(cacheKey, service);
     }
+    
+    return this.services.get(cacheKey) as IAgentService;
   }
 
   public getLibraryService(): ILibraryService {
-    switch (this.config.provider) {
-      case 'firebase':
-        return new FirebaseLibraryService();
-      case 'cloudrun':
-        // TODO: Implement Cloud Run version
-        throw new Error('Cloud Run library service not yet implemented');
-      default:
-        throw new Error(`Unknown service provider: ${this.config.provider}`);
+    const cacheKey = 'libraryService';
+    
+    if (!this.services.has(cacheKey)) {
+      const service = new FirebaseLibraryService();
+      this.services.set(cacheKey, service);
     }
-  }
-
-  // Enterprise Services (New)
-  public getAgentRegistryService(): IAgentRegistryService {
-    switch (this.config.provider) {
-      case 'firebase':
-        return new FirebasePOCAgentRegistryService(); // Use POC implementation
-      case 'cloudrun':
-        // TODO: Implement Cloud Run Agent Registry Service
-        throw new Error('Cloud Run agent registry service not yet implemented');
-      default:
-        throw new Error(`Unknown service provider: ${this.config.provider}`);
-    }
+    
+    return this.services.get(cacheKey) as ILibraryService;
   }
 
   public getObservabilityService(): IObservabilityService {
-    switch (this.config.provider) {
-      case 'firebase':
-        // TODO: Implement Firebase Observability Service
-        throw new Error('Firebase observability service not yet implemented');
-      case 'cloudrun':
-        // TODO: Implement Cloud Run Observability Service
-        throw new Error('Cloud Run observability service not yet implemented');
-      default:
-        throw new Error(`Unknown service provider: ${this.config.provider}`);
+    const cacheKey = 'observabilityService';
+    
+    if (!this.services.has(cacheKey)) {
+      const service = new FirebasePOCObservabilityService();
+      this.services.set(cacheKey, service);
     }
+    
+    return this.services.get(cacheKey) as IObservabilityService;
   }
 
-  public getTenantSecurityService(): ITenantSecurityService {
-    switch (this.config.provider) {
-      case 'firebase':
-        // TODO: Implement Firebase Tenant Security Service
-        throw new Error('Firebase tenant security service not yet implemented');
-      case 'cloudrun':
-        // TODO: Implement Cloud Run Tenant Security Service
-        throw new Error('Cloud Run tenant security service not yet implemented');
-      default:
-        throw new Error(`Unknown service provider: ${this.config.provider}`);
+  public getSecurityConfigurationService(): ISecurityConfigurationService {
+    const cacheKey = 'securityConfigurationService';
+    
+    if (!this.services.has(cacheKey)) {
+      const service = new FirebasePOCSecurityConfigurationService();
+      this.services.set(cacheKey, service);
     }
-  }
-
-  // POC-Ready Services (Simplified versions for rapid development)
-  public getPOCObservabilityService(): IPOCObservabilityService {
-    switch (this.config.provider) {
-      case 'firebase':
-        return new FirebasePOCObservabilityService();
-      case 'cloudrun':
-        // TODO: Implement Cloud Run POC Observability Service
-        throw new Error('Cloud Run POC observability service not yet implemented');
-      default:
-        throw new Error(`Unknown service provider: ${this.config.provider}`);
-    }
-  }
-
-  public getPOCTenantSecurityService(): IPOCTenantSecurityService {
-    switch (this.config.provider) {
-      case 'firebase':
-        return new FirebasePOCTenantSecurityService(); // Implemented
-      case 'cloudrun':
-        // TODO: Implement Cloud Run POC Tenant Security Service
-        throw new Error('Cloud Run POC tenant security service not yet implemented');
-      default:
-        throw new Error(`Unknown service provider: ${this.config.provider}`);
-    }
+    
+    return this.services.get(cacheKey) as ISecurityConfigurationService;
   }
 
   public getDataSecurityService(): IDataSecurityService {
-    switch (this.config.provider) {
-      case 'firebase':
-        return new DataSecurityService();
-      case 'cloudrun':
-        // TODO: Implement Cloud Run Data Security Service
-        throw new Error('Cloud Run data security service not yet implemented');
-      default:
-        throw new Error(`Unknown service provider: ${this.config.provider}`);
+    const cacheKey = 'dataSecurityService';
+    
+    if (!this.services.has(cacheKey)) {
+      const service = new DataSecurityService();
+      this.services.set(cacheKey, service);
     }
+    
+    return this.services.get(cacheKey) as IDataSecurityService;
   }
 
-  public getPOCAgentRegistryService(): IAgentRegistryService {
-    switch (this.config.provider) {
-      case 'firebase':
-        return new FirebasePOCAgentRegistryService(); // Implemented
-      case 'cloudrun':
-        // TODO: Implement Cloud Run POC Agent Registry Service
-        throw new Error('Cloud Run POC agent registry service not yet implemented');
-      default:
-        throw new Error(`Unknown service provider: ${this.config.provider}`);
+  public getTenantSecurityService(): ITenantSecurityService {
+    const cacheKey = 'tenantSecurityService';
+    
+    if (!this.services.has(cacheKey)) {
+      const service = new FirebasePOCTenantSecurityService();
+      this.services.set(cacheKey, service);
     }
-  }
-
-  // Utility Methods
-  public getCurrentProvider(): ServiceProvider {
-    return this.config.provider;
-  }
-
-  public isCloudRun(): boolean {
-    return this.config.provider === 'cloudrun';
-  }
-
-  public isFirebase(): boolean {
-    return this.config.provider === 'firebase';
-  }
-
-  // Service Health Check
-  public async checkServiceHealth(): Promise<ServiceHealthStatus> {
-    const health: ServiceHealthStatus = {
-      provider: this.config.provider,
-      services: {},
-      overall: 'healthy',
-      timestamp: new Date()
-    };
-
-    try {
-      // Check core services
-      const agentService = this.getAgentService();
-      const libraryService = this.getLibraryService();
-      
-      health.services.agentService = 'available';
-      health.services.libraryService = 'available';
-    } catch (error) {
-      health.services.agentService = 'error';
-      health.services.libraryService = 'error';
-      health.overall = 'degraded';
-    }
-
-    return health;
+    
+    return this.services.get(cacheKey) as ITenantSecurityService;
   }
 }
 
-// Service Health Status Interface
-export interface ServiceHealthStatus {
-  provider: ServiceProvider;
-  services: Record<string, 'available' | 'error' | 'unavailable'>;
-  overall: 'healthy' | 'degraded' | 'unhealthy';
-  timestamp: Date;
-}
-
-// Export singleton instance
-export const serviceFactory = ServiceFactory.getInstance();
-
-// Environment-based configuration
-export const initializeServices = (): void => {
-  const config = getServiceConfig();
-  serviceFactory.configure(config);
-};
+// Export both factories for different use cases
+export { EnhancedServiceFactory as ServiceFactoryV2 };
+export default ServiceFactory;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -114,7 +114,7 @@ export default function HierarchicalAgentLibrary({
   initialLibrary = 'global',
   showTabs = true 
 }: HierarchicalAgentLibraryProps) {
-  const { userProfile } = useAuth();
+  const { userProfile, loading: authLoading } = useAuth();
   const [currentLibrary, setCurrentLibrary] = useState<LibraryType>(initialLibrary);
   const [agents, setAgents] = useState<AgentWithContext[]>([]);
   const [loading, setLoading] = useState(true);
@@ -258,14 +258,18 @@ export default function HierarchicalAgentLibrary({
   }, [agents]);
 
   useEffect(() => {
-    loadLibraryData();
-  }, [currentLibrary, userProfile]);
+    // Only load library data when auth is not loading and user profile is available
+    if (!authLoading && userProfile) {
+      loadLibraryData();
+    }
+  }, [currentLibrary, userProfile, authLoading]);
 
 
 
   const loadLibraryData = async (forceRefresh = false) => {
     if (!userProfile) {
-      console.log('❌ No user profile - cannot load library data');
+      // This should not happen since we check userProfile before calling this function
+      console.warn('loadLibraryData called without userProfile - this should not happen');
       return;
     }
     
@@ -752,8 +756,36 @@ export default function HierarchicalAgentLibrary({
     toast.success('Current filters saved as default');
   };
 
+  // Show loading state while authentication is in progress
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 pl-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Authenticating...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if user is not authenticated
+  if (!userProfile) {
+    return (
+      <div className="min-h-screen bg-gray-50 pl-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🔐</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Authentication Required</h2>
+          <p className="text-gray-600 mb-4">Please sign in to access the agent library.</p>
+          <Link to="/login" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+            Sign In
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   return (
-            <div className="min-h-screen bg-gray-50 pl-8">
+    <div className="min-h-screen bg-gray-50 pl-8">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pl-8">
