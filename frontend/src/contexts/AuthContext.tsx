@@ -19,11 +19,24 @@ export interface UserProfile {
   uid: string
   email: string
   displayName: string
-  role: 'user' | 'company_admin' | 'network_admin' | 'super_admin'
+  role: 'user' | 'company_admin' | 'network_admin' | 'super_admin' | 'creator'
   organizationId: string
   organizationName: string
   networkId?: string  // Only populated for network_admin role
   networkName?: string  // Only populated for network_admin role
+  
+  // Creator-specific fields
+  creatorProfile?: {
+    id: string
+    bio?: string
+    website?: string
+    github?: string
+    linkedin?: string
+    avatar?: string
+    isVerified: boolean
+    tier: 'basic' | 'verified' | 'premium' | 'enterprise'
+  }
+  
   permissions: {
     canCreateAgents: boolean
     canManageUsers: boolean
@@ -31,6 +44,11 @@ export interface UserProfile {
     canViewAnalytics: boolean
     canManageCompany: boolean  // Only true for company_admin and super_admin
     canManageNetwork: boolean  // True for network_admin, company_admin, and super_admin
+    
+    // Creator-specific permissions
+    canSubmitAgents: boolean
+    canViewCreatorAnalytics: boolean
+    canManageCreatorProfile: boolean
   }
   assignedAgents: string[]
 }
@@ -105,7 +123,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // In development mode, allow any email to be super_admin for testing
       const isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'development'
-      const role = transparentAdminEmails.includes(user.email || '') || isDevelopment ? 'super_admin' : 'user'
+      
+      // Determine role - check for creators first, then admins
+      let role: 'user' | 'company_admin' | 'network_admin' | 'super_admin' | 'creator' = 'user'
+      
+      if (transparentAdminEmails.includes(user.email || '') || isDevelopment) {
+        role = 'super_admin'
+      } else {
+        // Check if user is a creator (for now, any non-admin user can be a creator)
+        // In production, this would check against a creator registry or allow self-registration
+        role = 'creator'
+      }
       
       // Determine organization info - only Bryan and Darren get automatic Transparent Partners access
       let organizationId = 'unassigned'
@@ -121,6 +149,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         organizationName = `Pending Assignment (${emailDomain})`
       }
       
+      // Create creator profile if user is a creator
+      let creatorProfile = undefined
+      if (role === 'creator') {
+        creatorProfile = {
+          id: `creator_${user.uid}`,
+          bio: '',
+          website: '',
+          github: '',
+          linkedin: '',
+          avatar: '',
+          isVerified: false,
+          tier: 'basic' as const
+        }
+      }
+      
       const profile: UserProfile = {
         uid: user.uid,
         email: user.email || '',
@@ -128,13 +171,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role,
         organizationId,
         organizationName,
+        creatorProfile,
         permissions: {
           canCreateAgents: role === 'super_admin',
           canManageUsers: ['super_admin', 'company_admin', 'network_admin'].includes(role),
           canManageOrganization: role === 'super_admin',  // Only super admin can manage organizations
           canViewAnalytics: role !== 'user',
           canManageCompany: ['super_admin', 'company_admin'].includes(role),  // Company-level management
-          canManageNetwork: ['super_admin', 'company_admin', 'network_admin'].includes(role)  // Network-level management
+          canManageNetwork: ['super_admin', 'company_admin', 'network_admin'].includes(role),  // Network-level management
+          
+          // Creator-specific permissions
+          canSubmitAgents: ['creator', 'super_admin'].includes(role),
+          canViewCreatorAnalytics: role === 'creator',
+          canManageCreatorProfile: role === 'creator'
         },
         assignedAgents: []
       }

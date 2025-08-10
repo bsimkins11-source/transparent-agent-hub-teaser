@@ -212,6 +212,60 @@ export default function Header() {
                         <UserIcon style={{ width: '1rem', height: '1rem', color: '#d1d5db' }} />
                         <span>My Library</span>
                       </Link>
+                      
+                      {userProfile.role === 'creator' && (
+                        <>
+                          <Link
+                            to="/creator-dashboard"
+                            onClick={() => setIsLibrariesDropdownOpen(false)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              padding: '0.5rem',
+                              color: 'white',
+                              textDecoration: 'none',
+                              fontSize: '0.875rem',
+                              borderRadius: '0.25rem',
+                              backgroundColor: location.pathname === '/creator-dashboard' ? '#2563eb' : 'transparent'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#374151';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = location.pathname === '/creator-dashboard' ? '#2563eb' : 'transparent';
+                            }}
+                          >
+                            <span style={{ fontSize: '1rem' }}>📊</span>
+                            <span>Creator Dashboard</span>
+                          </Link>
+                          
+                          <Link
+                            to="/agent-submission"
+                            onClick={() => setIsLibrariesDropdownOpen(false)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              padding: '0.5rem',
+                              color: 'white',
+                              textDecoration: 'none',
+                              fontSize: '0.875rem',
+                              borderRadius: '0.25rem',
+                              backgroundColor: location.pathname === '/agent-submission' ? '#2563eb' : 'transparent'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#374151';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = location.pathname === '/agent-submission' ? '#2563eb' : 'transparent';
+                            }}
+                          >
+                            <span style={{ fontSize: '1rem' }}>➕</span>
+                            <span>Submit Agent</span>
+                          </Link>
+                        </>
+                      )}
                     </div>
                   )}
                 </div>
@@ -284,6 +338,36 @@ export default function Header() {
                             <div>
                               <div style={{ fontWeight: '500' }}>Super Admin</div>
                               <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Global management</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {userProfile.role === 'super_admin' && (
+                          <Link
+                            to="/creator-portal"
+                            onClick={() => setIsAdminDropdownOpen(false)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.5rem',
+                              padding: '0.5rem',
+                              color: 'white',
+                              textDecoration: 'none',
+                              fontSize: '0.875rem',
+                              borderRadius: '0.25rem',
+                              backgroundColor: location.pathname === '/creator-portal' ? '#2563eb' : 'transparent'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.backgroundColor = '#374151';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.backgroundColor = location.pathname === '/creator-portal' ? '#2563eb' : 'transparent';
+                            }}
+                          >
+                            <span style={{ fontSize: '1rem' }}>🚀</span>
+                            <div>
+                              <div style={{ fontWeight: '500' }}>Creator Portal</div>
+                              <div style={{ fontSize: '0.75rem', color: '#9ca3af' }}>Manage agent submissions</div>
                             </div>
                           </Link>
                         )}

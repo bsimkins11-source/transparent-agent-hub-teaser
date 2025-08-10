@@ -7,6 +7,8 @@ import HomePage from './pages/HomePage'
 import AgentLibraryPage from './pages/AgentLibraryPage'
 import MyAgentsPage from './pages/MyAgentsPage'
 import AgentPage from './pages/AgentPage'
+import CreatorDashboard from './components/CreatorDashboard'
+import AgentSubmission from './components/AgentSubmission'
 
 
 import AdminUserManagement from './pages/AdminUserManagement'
@@ -18,6 +20,7 @@ import NetworkAdminDashboard from './pages/NetworkAdminDashboard'
 import AdminRoute from './components/AdminRoute'
 import AdminRouteHandler from './components/AdminRouteHandler'
 import LoginPage from './pages/LoginPage'
+import CreatorPortal from './pages/CreatorPortal'
 
 // Wrapper component to provide company branding context with route params
 function CompanyAdminWrapper() {
@@ -128,6 +131,35 @@ function App() {
                 </AdminRoute>
               } 
             />
+            
+            {/* Creator Routes */}
+            <Route 
+              path="creator-dashboard" 
+              element={
+                <AdminRoute requiredRole={['creator', 'super_admin']}>
+                  <CreatorDashboard />
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="agent-submission" 
+              element={
+                <AdminRoute requiredRole={['creator', 'super_admin']}>
+                  <AgentSubmission />
+                </AdminRoute>
+              } 
+            />
+            
+            {/* Super Admin Creator Portal */}
+            <Route 
+              path="creator-portal" 
+              element={
+                <AdminRoute requiredRole="super_admin">
+                  <CreatorPortal />
+                </AdminRoute>
+              } 
+            />
+            
             <Route path="login" element={<LoginPage />} />
           </Route>
           </Routes>

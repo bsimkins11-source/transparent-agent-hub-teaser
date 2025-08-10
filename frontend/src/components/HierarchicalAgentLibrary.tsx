@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
@@ -10,7 +11,8 @@ import {
   CheckCircleIcon,
   XMarkIcon,
   AdjustmentsHorizontalIcon,
-  ArrowsUpDownIcon
+  ArrowsUpDownIcon,
+  PlusIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import AgentCard from './AgentCard';
@@ -114,6 +116,8 @@ export default function HierarchicalAgentLibrary({
     operation: string;
     isRunning: boolean;
   } | null>(null);
+
+  const navigate = useNavigate();
 
   // Memoized filtered and sorted agents for performance
   const filteredAndSortedAgents = useMemo(() => {
@@ -631,6 +635,38 @@ export default function HierarchicalAgentLibrary({
               {libraryInfo.description}
             </p>
             
+            {/* Submit Agent Button */}
+            {(userProfile?.role === 'creator' || userProfile?.role === 'super_admin') && (
+              <div className="mb-6">
+                <button
+                  onClick={() => navigate('/agent-submission')}
+                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  <PlusIcon className="w-5 h-5 mr-2" />
+                  Submit New Agent
+                </button>
+                <p className="text-sm text-gray-500 mt-2">
+                  Have a great AI agent? Submit it to our marketplace!
+                </p>
+              </div>
+            )}
+            
+            {/* Become a Creator Button for non-creators */}
+            {!userProfile?.role || (userProfile?.role !== 'creator' && userProfile?.role !== 'super_admin') ? (
+              <div className="mb-6">
+                <button
+                  onClick={() => navigate('/creator-dashboard')}
+                  className="inline-flex items-center px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                >
+                  <SparklesIcon className="w-5 h-5 mr-2" />
+                  Become a Creator
+                </button>
+                <p className="text-sm text-gray-500 mt-2">
+                  Want to submit agents? Apply to become a creator!
+                </p>
+              </div>
+            ) : null}
+            
             {/* Enhanced Search Bar */}
             <div className="max-w-2xl mx-auto">
               <div className="relative">
@@ -734,6 +770,39 @@ export default function HierarchicalAgentLibrary({
                 )}
               </div>
             </div>
+            
+            {/* Submission Process Info */}
+            <div className="mt-8 max-w-4xl mx-auto">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    <SparklesIcon className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-blue-900 mb-1">
+                      Want to contribute to our AI agent marketplace?
+                    </h3>
+                    <p className="text-sm text-blue-700 mb-3">
+                      Submit your AI agents to help others discover powerful tools and solutions. Our review process ensures quality and safety.
+                    </p>
+                    <div className="flex flex-wrap gap-2 text-xs text-blue-600">
+                      <span className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full">
+                        ✓ Quality Review
+                      </span>
+                      <span className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full">
+                        ✓ Safety Checks
+                      </span>
+                      <span className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full">
+                        ✓ Community Feedback
+                      </span>
+                      <span className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full">
+                        ✓ Revenue Sharing
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </motion.div>
         </div>
       </div>
@@ -742,29 +811,57 @@ export default function HierarchicalAgentLibrary({
       {showTabs && (
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex space-x-8 overflow-x-auto">
-              {availableLibraries.map((libraryType) => {
-                const tabInfo = getLibraryTabInfo(libraryType);
-                return (
+            <div className="flex items-center justify-between">
+              <div className="flex space-x-8 overflow-x-auto">
+                {availableLibraries.map((libraryType) => {
+                  const tabInfo = getLibraryTabInfo(libraryType);
+                  return (
+                    <button
+                      key={libraryType}
+                      onClick={() => setCurrentLibrary(libraryType)}
+                      className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap transition-all duration-200 ${
+                        currentLibrary === libraryType
+                          ? 'border-blue-500 text-blue-600'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      <span>{tabInfo.icon}</span>
+                      <span>{tabInfo.name}</span>
+                      {tabInfo.count !== undefined && (
+                        <span className="bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs">
+                          {tabInfo.count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              
+              {/* Submit Agent Tab */}
+              {(userProfile?.role === 'creator' || userProfile?.role === 'super_admin') && (
+                <div className="flex-shrink-0">
                   <button
-                    key={libraryType}
-                    onClick={() => setCurrentLibrary(libraryType)}
-                    className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                      currentLibrary === libraryType
-                        ? 'border-blue-500 text-blue-600'
-                        : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                    }`}
+                    onClick={() => navigate('/agent-submission')}
+                    className="flex items-center space-x-2 py-4 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm"
                   >
-                    <span>{tabInfo.icon}</span>
-                    <span>{tabInfo.name}</span>
-                    {tabInfo.count !== undefined && (
-                      <span className="bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs">
-                        {tabInfo.count}
-                      </span>
-                    )}
+                    <PlusIcon className="w-4 h-4" />
+                    <span>Submit Agent</span>
                   </button>
-                );
-              })}
+                </div>
+              )}
+              
+              {/* Become Creator Tab for non-creators */}
+              {!userProfile?.role || (userProfile?.role !== 'creator' && userProfile?.role !== 'super_admin') ? (
+                <div className="flex-shrink-0">
+                  <button
+                    onClick={() => navigate('/creator-dashboard')}
+                    className="flex items-center space-x-2 py-4 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 font-medium text-sm"
+                  >
+                    <SparklesIcon className="w-4 h-4" />
+                    <span>Become Creator</span>
+                  </button>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -1266,6 +1363,36 @@ export default function HierarchicalAgentLibrary({
               </button>
             </div>
           </motion.div>
+        </div>
+      )}
+
+      {/* Floating Action Button for Mobile */}
+      {(userProfile?.role === 'creator' || userProfile?.role === 'super_admin') && (
+        <div className="fixed bottom-6 right-6 z-40 lg:hidden">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => navigate('/agent-submission')}
+            className="w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200"
+            aria-label="Submit new agent"
+          >
+            <PlusIcon className="w-6 h-6" />
+          </motion.button>
+        </div>
+      )}
+      
+      {/* Become Creator Floating Button for Mobile (non-creators) */}
+      {(!userProfile?.role || (userProfile?.role !== 'creator' && userProfile?.role !== 'super_admin')) && (
+        <div className="fixed bottom-6 right-6 z-40 lg:hidden">
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => navigate('/creator-dashboard')}
+            className="w-14 h-14 bg-green-600 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200"
+            aria-label="Become a creator"
+          >
+            <SparklesIcon className="w-6 h-6" />
+          </motion.button>
         </div>
       )}
     </div>
