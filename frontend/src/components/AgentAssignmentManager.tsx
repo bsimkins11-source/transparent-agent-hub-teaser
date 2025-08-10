@@ -338,7 +338,7 @@ export default function AgentAssignmentManager({
                     <tr>
                       <td colSpan={6} className="px-6 py-12 text-center">
                         <div className="flex justify-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" role="status" aria-label="Loading"></div>
                         </div>
                       </td>
                     </tr>

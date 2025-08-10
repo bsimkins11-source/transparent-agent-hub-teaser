@@ -66,6 +66,7 @@ export default function UserAgentAssignment({
   const [assignmentReason, setAssignmentReason] = useState('');
   const [denyReason, setDenyReason] = useState('');
   const [selectedRequest, setSelectedRequest] = useState<string | null>(null);
+  const [denyError, setDenyError] = useState<string>('');
 
   // Filter agents based on user's current assignments
   const unassignedAgents = availableAgents.filter(agent => 
@@ -99,10 +100,11 @@ export default function UserAgentAssignment({
 
   const handleDenyRequest = (requestId: string) => {
     if (!denyReason.trim()) {
-      toast.error('Please provide a reason for denial');
+      setDenyError('Please provide a reason for denial');
       return;
     }
 
+    setDenyError('');
     onApproveRequest(requestId, 'deny', denyReason);
     toast.success('Agent request denied');
     setDenyReason('');
@@ -148,6 +150,7 @@ export default function UserAgentAssignment({
           <button
             onClick={onClose}
             className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+            aria-label="Close modal"
           >
             <XMarkIcon className="w-6 h-6" />
           </button>
@@ -396,11 +399,19 @@ export default function UserAgentAssignment({
                           </label>
                           <textarea
                             value={denyReason}
-                            onChange={(e) => setDenyReason(e.target.value)}
+                            onChange={(e) => {
+                              setDenyReason(e.target.value);
+                              if (denyError) setDenyError('');
+                            }}
                             className="w-full border border-red-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-red-500"
                             rows={3}
                             placeholder="Please provide a clear reason for denying this request..."
                           />
+                          {denyError && (
+                            <div className="mt-2 text-sm text-red-600">
+                              {denyError}
+                            </div>
+                          )}
                           <div className="flex items-center justify-end space-x-3 mt-3">
                             <button
                               onClick={() => {
