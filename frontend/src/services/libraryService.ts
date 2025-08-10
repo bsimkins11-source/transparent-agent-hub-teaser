@@ -177,12 +177,23 @@ export const getLibraryAgents = async (
             agentId: agent.id,
             inUserLibrary,
             userLibraryAgents,
-            includes: userLibraryAgents.includes(agent.id)
+            includes: userLibraryAgents.includes(agent.id),
+            context: context,
+            libraryType: libraryType
           });
         }
         
         // For personal library, override context for agents already in user's library
         if (libraryType === 'personal' && inUserLibrary) {
+          console.log(`🔒 Overriding context for ${agent.name} (already in user library):`, {
+            before: { ...context },
+            after: {
+              accessLevel: 'direct',
+              canAdd: false,
+              canRequest: false,
+              availableIn: ['personal']
+            }
+          });
           context.accessLevel = 'direct';
           context.canAdd = false; // Already added
           context.canRequest = false; // No need to request
@@ -225,7 +236,27 @@ const getAgentContext = async (
     assignmentType: 'approval' // Default to approval
   };
   
-
+  // For personal library, we need to handle this differently
+  if (currentLibrary === 'personal') {
+    // For personal library, free agents can be added directly
+    if (agent.metadata?.tier === 'free' || !agent.metadata?.tier) {
+      context.availableIn = ['personal'];
+      context.accessLevel = 'direct';
+      context.canAdd = true;
+      context.canRequest = false;
+      context.assignmentType = 'free';
+      context.grantedBy = 'super_admin';
+    } else if (agent.metadata?.tier === 'premium') {
+      // Premium agents require approval
+      context.availableIn = ['personal'];
+      context.accessLevel = 'request';
+      context.canAdd = false;
+      context.canRequest = true;
+      context.assignmentType = 'approval';
+      context.grantedBy = 'super_admin';
+    }
+    return context;
+  }
   
   // For global library, free agents are always available to add
   if (currentLibrary === 'global' && (agent.metadata?.tier === 'free' || !agent.metadata?.tier)) {
@@ -250,7 +281,7 @@ const getAgentContext = async (
     context.grantedBy = 'super_admin';
     return context;
   }
-  
+
   if (!userProfile || userProfile.organizationId === 'unassigned') {
     return context;
   }
@@ -329,28 +360,6 @@ const getAgentContext = async (
         context.canAdd = false;
         context.canRequest = true;
         break;
-    }
-    
-    // Personal library logic
-    if (currentLibrary === 'personal') {
-      // For personal library, we'll handle the context based on the agent's tier
-      // The inUserLibrary property will be set by the calling function
-      if (agent.metadata?.tier === 'free' || !agent.metadata?.tier) {
-        // Free agents can be added directly
-        context.accessLevel = 'direct';
-        context.canAdd = true;
-        context.canRequest = false;
-        context.assignmentType = 'free';
-        context.grantedBy = 'super_admin';
-      } else if (agent.metadata?.tier === 'premium') {
-        // Premium agents require approval
-        context.accessLevel = 'request';
-        context.canAdd = false;
-        context.canRequest = true;
-        context.assignmentType = 'approval';
-        context.grantedBy = 'super_admin';
-      }
-      context.availableIn = ['personal'];
     }
     
   } catch (error) {
