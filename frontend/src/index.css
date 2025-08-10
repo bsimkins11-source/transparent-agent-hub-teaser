@@ -58,20 +58,43 @@
     color: white !important;
   }
   
-  /* NUCLEAR OPTION: Force dropdown styling with highest specificity */
-  :where(.header-global .absolute) {
-    background: red !important;
-    border: 5px solid yellow !important;
-    color: white !important;
-    font-size: 20px !important;
-    font-weight: bold !important;
-    padding: 20px !important;
-    z-index: 9999 !important;
+  /* FINAL ATTEMPT: CSS custom properties with maximum specificity */
+  .header-global .absolute {
+    --debug-bg: red !important;
+    --debug-border: 5px solid yellow !important;
+    --debug-color: white !important;
+    --debug-size: 20px !important;
+    --debug-weight: bold !important;
+    --debug-padding: 20px !important;
+    --debug-z: 9999 !important;
+    
+    background: var(--debug-bg) !important;
+    border: var(--debug-border) !important;
+    color: var(--debug-color) !important;
+    font-size: var(--debug-size) !important;
+    font-weight: var(--debug-weight) !important;
+    padding: var(--debug-padding) !important;
+    z-index: var(--debug-z) !important;
   }
   
-  :where(.header-global .absolute *) {
-    color: white !important;
+  .header-global .absolute * {
+    color: var(--debug-color) !important;
     background: transparent !important;
+  }
+  
+  /* DEBUG: Add a visible element to confirm CSS is loading */
+  .header-global::before {
+    content: "🚨 CSS IS LOADED! 🚨";
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: lime;
+    color: black;
+    padding: 10px;
+    z-index: 10000;
+    font-size: 16px;
+    font-weight: bold;
+    border: 3px solid blue;
   }
   
   /* Ensure logo and brand text are visible */
