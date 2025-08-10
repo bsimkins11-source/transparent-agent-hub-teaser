@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import {
   PlusIcon,
   MinusIcon,
@@ -81,10 +82,19 @@ export default function AgentCard({
   onRequestAccess,
   onRemoveFromLibrary
 }: AgentCardProps) {
+  const navigate = useNavigate();
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleAction = async (action: () => void) => {
+  const handleCardClick = () => {
+    // Navigate to the agent page
+    navigate(`/agent/${agent.id}`);
+  };
+
+  const handleAction = async (action: () => void, event: React.MouseEvent) => {
+    // Prevent the card click from firing when clicking action buttons
+    event.stopPropagation();
+    
     setIsLoading(true);
     try {
       await action();
@@ -105,7 +115,7 @@ export default function AgentCard({
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => handleAction(onRemoveFromLibrary)}
+          onClick={(e) => handleAction(onRemoveFromLibrary, e)}
           disabled={isLoading}
           className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
         >
@@ -126,7 +136,7 @@ export default function AgentCard({
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => handleAction(onRequestAccess)}
+          onClick={(e) => handleAction(onRequestAccess, e)}
           disabled={isLoading}
           className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
         >
@@ -147,7 +157,7 @@ export default function AgentCard({
         <motion.button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          onClick={() => handleAction(onAddToLibrary)}
+          onClick={(e) => handleAction(onAddToLibrary, e)}
           disabled={isLoading}
           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
         >
@@ -175,7 +185,8 @@ export default function AgentCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:border-gray-300 group"
+      onClick={handleCardClick}
+      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:border-gray-300 group cursor-pointer"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
@@ -184,6 +195,7 @@ export default function AgentCard({
             <span className="text-2xl">{getProviderIcon(agent.provider)}</span>
             <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
               {agent.name}
+              <span className="ml-2 text-sm text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
             </h3>
           </div>
           
