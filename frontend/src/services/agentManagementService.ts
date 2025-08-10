@@ -63,7 +63,7 @@ export const updateAgent = async (updateData: UpdateAgentRequest): Promise<void>
     const { id, ...dataToUpdate } = updateData;
     const agentRef = doc(db, 'agents', id);
     
-    const updatePayload: any = {
+    const updatePayload: Partial<UpdateAgentRequest> & { updatedAt: string; metadata?: any } = {
       ...dataToUpdate,
       updatedAt: new Date().toISOString()
     };

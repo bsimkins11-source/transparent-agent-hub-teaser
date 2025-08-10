@@ -7,8 +7,8 @@ import HomePage from './pages/HomePage'
 import AgentLibraryPage from './pages/AgentLibraryPage'
 import MyAgentsPage from './pages/MyAgentsPage'
 import AgentPage from './pages/AgentPage'
-import AdminPage from './pages/AdminPage'
-import AdminDashboard from './pages/AdminDashboard'
+
+
 import AdminUserManagement from './pages/AdminUserManagement'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
 import CompanyAdminDashboard from './pages/CompanyAdminDashboard'
@@ -119,7 +119,7 @@ function App() {
               } 
             />
             
-            {/* Legacy routes for reference */}
+            {/* User Management Route */}
             <Route 
               path="admin/users" 
               element={
@@ -128,8 +128,6 @@ function App() {
                 </AdminRoute>
               } 
             />
-            <Route path="admin/legacy" element={<AdminPage />} />
-            <Route path="admin/legacy" element={<AdminPage />} />
             <Route path="login" element={<LoginPage />} />
           </Route>
           </Routes>

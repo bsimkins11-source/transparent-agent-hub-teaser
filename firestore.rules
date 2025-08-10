@@ -5,7 +5,8 @@ service cloud.firestore {
     match /agents/{agentId} {
       allow read: if true; // Public read access
       allow write: if request.auth != null && 
-        request.auth.token.admin == true; // Admin only write
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['super_admin', 'company_admin']; // Admin only write
     }
     
     // Users collection - users can read/write their own data
@@ -18,7 +19,8 @@ service cloud.firestore {
     match /agent_logs/{logId} {
       allow read: if request.auth != null && 
         (request.auth.uid == resource.data.userId || 
-         request.auth.token.admin == true);
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['super_admin', 'company_admin', 'network_admin']);
       allow write: if request.auth != null;
     }
     
@@ -26,7 +28,8 @@ service cloud.firestore {
     match /agentAssignments/{assignmentId} {
       allow read: if request.auth != null && 
         (request.auth.uid == resource.data.userId || 
-         request.auth.token.admin == true);
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['super_admin', 'company_admin', 'network_admin']);
       allow write: if request.auth != null;
     }
     
@@ -34,7 +37,8 @@ service cloud.firestore {
     match /agentRequests/{requestId} {
       allow read: if request.auth != null && 
         (request.auth.uid == resource.data.userId || 
-         request.auth.token.admin == true);
+         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['super_admin', 'company_admin', 'network_admin']);
       allow write: if request.auth != null;
     }
     

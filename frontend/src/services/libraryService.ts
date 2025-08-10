@@ -9,6 +9,7 @@ import {
   getCompanyAgentPermissions,
   getNetworkAgentPermissions
 } from './hierarchicalPermissionService';
+import { UserProfile } from '../contexts/AuthContext';
 
 export type LibraryType = 'global' | 'company' | 'network' | 'personal';
 
@@ -36,7 +37,7 @@ export interface LibraryStats {
  */
 export const getLibraryAgents = async (
   libraryType: LibraryType,
-  userProfile: any
+  userProfile: UserProfile | null
 ): Promise<AgentWithContext[]> => {
   try {
     logger.debug(`Fetching ${libraryType} library agents`, { userId: userProfile?.uid }, 'LibraryService');
@@ -45,8 +46,8 @@ export const getLibraryAgents = async (
     
     switch (libraryType) {
       case 'global':
-        // Global library shows all public agents - the master catalog
-        const globalData = await fetchAgentsFromFirestore({ visibility: 'public' });
+        // Global library shows all agents - the master catalog (both public and private)
+        const globalData = await fetchAgentsFromFirestore();
         agents = globalData.agents || [];
         break;
         
@@ -80,7 +81,7 @@ export const getLibraryAgents = async (
               }
               
                           // Get all agents from global collection and filter to assigned ones
-            const globalData = await fetchAgentsFromFirestore({ visibility: 'public' });
+            const globalData = await fetchAgentsFromFirestore();
             const allAgents = globalData.agents || [];
             
             // Filter to only assigned agents
@@ -131,7 +132,7 @@ export const getLibraryAgents = async (
  */
 const getAgentContext = async (
   agent: Agent,
-  userProfile: any,
+  userProfile: UserProfile | null,
   currentLibrary: LibraryType
 ): Promise<Omit<AgentWithContext, keyof Agent | 'inUserLibrary'>> => {
   // Debug logging removed for production
@@ -286,7 +287,7 @@ const getUserLibraryAgents = async (userId?: string): Promise<string[]> => {
  */
 export const getLibraryStats = async (
   libraryType: LibraryType,
-  userProfile: any
+  userProfile: UserProfile | null
 ): Promise<LibraryStats> => {
   try {
     const agents = await getLibraryAgents(libraryType, userProfile);
@@ -328,7 +329,7 @@ export const getLibraryStats = async (
  */
 export const canAccessLibrary = (
   libraryType: LibraryType,
-  userProfile: any
+  userProfile: UserProfile | null
 ): boolean => {
   switch (libraryType) {
     case 'global':
@@ -355,7 +356,7 @@ export const canAccessLibrary = (
  */
 export const getLibraryInfo = (
   libraryType: LibraryType,
-  userProfile: any
+  userProfile: UserProfile | null
 ): {
   name: string;
   description: string;

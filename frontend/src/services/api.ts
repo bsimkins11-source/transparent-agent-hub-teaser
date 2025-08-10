@@ -1,6 +1,23 @@
 import axios from 'axios'
 import { Agent } from '../types/agent'
 
+// Filter interfaces for type safety
+interface AgentFilters {
+  search?: string;
+  category?: string;
+  provider?: string;
+  tier?: string;
+  visibility?: string;
+}
+
+interface AdminLogFilters {
+  level?: string;
+  component?: string;
+  startDate?: string;
+  endDate?: string;
+  userId?: string;
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080'
 
 const api = axios.create({
@@ -19,7 +36,7 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-export const fetchAgents = async (filters?: any) => {
+export const fetchAgents = async (filters?: AgentFilters) => {
   const params = new URLSearchParams()
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {
@@ -75,7 +92,7 @@ export const deleteAgent = async (id: string) => {
   return response.data
 }
 
-export const fetchAdminLogs = async (filters?: any) => {
+export const fetchAdminLogs = async (filters?: AdminLogFilters) => {
   const params = new URLSearchParams()
   if (filters) {
     Object.entries(filters).forEach(([key, value]) => {

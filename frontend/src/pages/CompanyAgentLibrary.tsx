@@ -210,7 +210,7 @@ export default function CompanyAgentLibrary() {
     toast.success(`${agent.name} added to your library!`);
     
     // In production, this would update the user's profile in Firestore
-    console.log(`Added free agent ${agent.name} to user library`);
+    
   };
 
   const submitAgentRequest = async () => {

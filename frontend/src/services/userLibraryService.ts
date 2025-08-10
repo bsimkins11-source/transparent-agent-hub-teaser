@@ -1,6 +1,40 @@
-import { doc, updateDoc, getDoc, setDoc, arrayUnion, arrayRemove, collection, addDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, setDoc, arrayUnion, arrayRemove, collection, addDoc, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { logger } from '../utils/logger';
+
+// Interfaces for type safety
+interface AgentAssignmentData {
+  userId: string;
+  userEmail: string;
+  userName: string;
+  agentId: string;
+  agentName: string;
+  assignedBy: string;
+  assignedByEmail: string;
+  assignedByName: string;
+  organizationId: string;
+  organizationName: string;
+  assignmentType: 'direct';
+  status: 'active';
+  assignmentReason: string;
+  createdAt: string;
+  updatedAt: string;
+  networkId?: string;
+  networkName?: string;
+}
+
+interface UserProfileData {
+  email: string;
+  displayName: string;
+  organizationId: string;
+  organizationName: string;
+  assignedAgents?: string[];
+  createdAt?: string;
+  updatedAt: string;
+  networkId?: string;
+  networkName?: string;
+  role?: 'user' | 'company_admin' | 'network_admin' | 'super_admin';
+}
 
 /**
  * Create a direct agent assignment record
@@ -23,7 +57,7 @@ async function directAgentAssignment(
   try {
     logger.debug('Creating direct agent assignment', { userId, agentId }, 'UserLibraryService');
     
-    const assignmentData: any = {
+    const assignmentData: AgentAssignmentData = {
       userId,
       userEmail,
       userName,
@@ -108,7 +142,7 @@ export const addAgentToUserLibrary = async (
     if (!userDoc.exists()) {
       logger.debug('User document does not exist, creating it', { userId }, 'UserLibraryService');
       // Create the user document first
-      const newUserData: any = {
+      const newUserData: UserProfileData = {
         email: userEmail,
         displayName: userName,
         organizationId: organizationId,
@@ -162,7 +196,21 @@ export const removeAgentFromUserLibrary = async (
       updatedAt: new Date().toISOString()
     });
     
-    // TODO: Also deactivate the assignment record
+    // Deactivate the assignment record
+    const assignmentsQuery = query(
+      collection(db, 'agentAssignments'),
+      where('userId', '==', userId),
+      where('agentId', '==', agentId)
+    );
+    const assignmentDocs = await getDocs(assignmentsQuery);
+    
+    for (const assignmentDoc of assignmentDocs.docs) {
+      await updateDoc(assignmentDoc.ref, {
+        status: 'inactive',
+        deactivatedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+    }
     
     logger.info('Agent removed from user library successfully', { userId, agentId }, 'UserLibraryService');
     
@@ -221,6 +269,7 @@ export const createOrUpdateUserProfile = async (
   userName: string,
   organizationId: string,
   organizationName: string,
+  role: 'user' | 'company_admin' | 'network_admin' | 'super_admin',
   networkId?: string,
   networkName?: string
 ): Promise<void> => {
@@ -230,11 +279,12 @@ export const createOrUpdateUserProfile = async (
     const userDocRef = doc(db, 'users', userId);
     const userDoc = await getDoc(userDocRef);
     
-    const userData: any = {
+    const userData: UserProfileData = {
       email: userEmail,
       displayName: userName,
       organizationId,
       organizationName,
+      role,
       updatedAt: new Date().toISOString()
     };
     

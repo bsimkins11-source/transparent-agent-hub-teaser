@@ -3,7 +3,14 @@ import { db } from '../lib/firebase'
 import { logger } from '../utils/logger'
 import { Agent } from '../types/agent'
 
-export const fetchAgentsFromFirestore = async (filters?: any): Promise<{ agents: Agent[] }> => {
+// Filter interface for type safety
+interface AgentFilters {
+  visibility?: string;
+  provider?: string;
+  category?: string;
+}
+
+export const fetchAgentsFromFirestore = async (filters?: AgentFilters): Promise<{ agents: Agent[] }> => {
   try {
     logger.debug('Fetching agents from Firestore', filters, 'Firestore')
     

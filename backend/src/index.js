@@ -15,7 +15,11 @@ const PORT = process.env.PORT || 8080;
 // Security middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: [
+    process.env.FRONTEND_URL || 'https://ai-agent-hub-web-portal-79fb0.web.app',
+    'http://localhost:3000',
+    'http://localhost:5173' // Vite dev server
+  ],
   credentials: true
 }));
 

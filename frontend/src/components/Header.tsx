@@ -68,16 +68,27 @@ export default function Header() {
           height: '64px' 
         }}>
           
-          {/* Logo/Brand */}
+          {/* Logo/Brand - Top Left */}
           <Link to="/" style={{ 
             display: 'flex', 
             alignItems: 'center', 
             textDecoration: 'none',
             color: 'white',
-            fontSize: '1.5rem',
-            fontWeight: 'bold'
+            marginLeft: '0',
+            flexShrink: 0,
+            padding: '8px 0',
+            minHeight: '64px'
           }}>
-            Transparent Agent Hub
+            <img 
+              src="/transparent-partners-logo-white.png" 
+              alt="Transparent Partners Logo" 
+              style={{ 
+                height: '60px',
+                maxWidth: '250px',
+                objectFit: 'contain',
+                display: 'block'
+              }} 
+            />
           </Link>
 
           {/* Navigation */}
@@ -109,19 +120,22 @@ export default function Header() {
                   </button>
                   
                   {isLibrariesDropdownOpen && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '100%',
-                      left: 0,
-                      marginTop: '0.5rem',
-                      width: '14rem',
-                      background: '#1f2937',
-                      border: '1px solid #4b5563',
-                      borderRadius: '0.375rem',
-                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                      zIndex: 50,
-                      padding: '0.25rem'
-                    }}>
+                    <div 
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        marginTop: '0.5rem',
+                        width: '14rem',
+                        background: '#1f2937',
+                        border: '1px solid #4b5563',
+                        borderRadius: '0.375rem',
+                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                        zIndex: 50,
+                        padding: '0.25rem'
+                      }}
+                      onMouseLeave={() => setIsLibrariesDropdownOpen(false)}
+                    >
                       <Link
                         to="/agents"
                         onClick={() => setIsLibrariesDropdownOpen(false)}
@@ -228,19 +242,22 @@ export default function Header() {
                     </button>
                     
                     {isAdminDropdownOpen && (
-                      <div style={{
-                        position: 'absolute',
-                        top: '100%',
-                        left: 0,
-                        marginTop: '0.5rem',
-                        width: '13rem',
-                        background: '#1f2937',
-                        border: '1px solid #4b5563',
-                        borderRadius: '0.375rem',
-                        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                        zIndex: 50,
-                        padding: '0.25rem'
-                      }}>
+                      <div 
+                        style={{
+                          position: 'absolute',
+                          top: '100%',
+                          left: 0,
+                          marginTop: '0.5rem',
+                          width: '13rem',
+                          background: '#1f2937',
+                          border: '1px solid #4b5563',
+                          borderRadius: '0.375rem',
+                          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                          zIndex: 50,
+                          padding: '0.25rem'
+                        }}
+                        onMouseLeave={() => setIsAdminDropdownOpen(false)}
+                      >
                         {userProfile.role === 'super_admin' && (
                           <Link
                             to="/super-admin"

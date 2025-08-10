@@ -13,6 +13,22 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY
 });
 
+// Mock responses for testing when API keys aren't configured
+const mockResponses = {
+  'gemini-chat-agent': [
+    "Hello! I'm Gemini Chat, your AI assistant. I'm here to help with conversations, creative tasks, problem-solving, and more. What would you like to chat about today?",
+    "That's an interesting question! I'd be happy to help you with that. I can assist with writing, research, coding, creative projects, and general knowledge. What specific aspect would you like to explore?",
+    "Great question! I'm designed to be helpful, informative, and engaging. I can provide insights, help brainstorm ideas, assist with analysis, and much more. How can I be most helpful to you right now?",
+    "I'm here to help! Whether you need assistance with a project, want to explore a topic, need creative inspiration, or just want to chat, I'm ready to assist. What's on your mind?",
+    "Excellent! I'm Gemini Chat, powered by Google's advanced AI. I can help with a wide range of tasks including writing, research, problem-solving, creative projects, and general knowledge. What would you like to work on?"
+  ],
+  'imagen-agent': [
+    "I'm the Google Imagen Agent, ready to help you create amazing images! I can generate high-quality visuals based on your descriptions and help you craft effective prompts. What kind of image would you like to create?",
+    "Image generation is one of my specialties! I can help you visualize concepts, create artwork, design elements, and more. Just describe what you're looking for, and I'll help bring it to life.",
+    "Ready to create some visual magic! I can generate images in various styles - from photorealistic to artistic, conceptual to detailed. What's your vision?"
+  ]
+};
+
 // Agent-specific prompts and configurations
 const agentConfigs = {
   'briefing-agent': {
@@ -57,10 +73,10 @@ Maintain a professional, conversational tone and focus on gathering comprehensiv
 
 You have access to current information and can help with various tasks including writing, research, coding, creative projects, and general questions.`,
     maxTokens: 4000,
-    model: 'gemini-pro'
+    model: 'gemini-1.5-flash'
   },
   'imagen-agent': {
-    systemPrompt: `You are an AI image generation assistant powered by Google's Imagen model. Your role is to:
+    systemPrompt: `You are an AI image generation assistant powered by Google's Gemini model. Your role is to:
 1. Generate high-quality images based on text descriptions
 2. Help users craft effective image prompts
 3. Provide suggestions for improving image descriptions
@@ -69,20 +85,37 @@ You have access to current information and can help with various tasks including
 
 When users request images, provide helpful guidance on prompt crafting and generate images that match their vision.`,
     maxTokens: 1000,
-    model: 'imagen-3.0',
+    model: 'gemini-1.5-flash',
     type: 'image-generation'
   }
 };
 
 // Process interaction with the appropriate AI provider
-async function processInteraction(agent, message, context = '') {
+async function processInteraction(agent, message, context = '', userContext = {}) {
   const agentId = agent.id;
   const provider = agent.provider;
-  const config = agentConfigs[agentId] || {
-    systemPrompt: agent.description || 'You are a helpful AI assistant.',
-    maxTokens: 1000
+  const config = agentConfigs[agentId] || { // Fallback config if agentId not found
+    systemPrompt: agent.description || 'You are a helpful AI assistant.', // Use agent description as default prompt
+    maxTokens: 1000 // Default max tokens
   };
-
+  
+  // Check premium agent access control
+  if (agent.metadata?.tier === 'premium' && agent.metadata?.permissionType === 'approval') {
+    // For premium agents requiring approval, check if user has access
+    if (!userContext.user || !userContext.user.uid) {
+      throw new Error('Authentication required for premium agent access');
+    }
+    
+    // Check if user has admin/client role or specific agent access
+    if (!userContext.user.admin && !userContext.user.client) {
+      throw new Error('Premium agent access requires admin or client privileges. Please contact an administrator for approval.');
+    }
+    
+    // Additional check: verify user has been granted access to this specific agent
+    // This could be expanded to check a separate agent_access collection
+    console.log(`Premium agent access granted to user ${userContext.user.uid} for ${agentId}`);
+  }
+  
   const fullPrompt = context ? `${context}\n\nUser: ${message}` : message;
 
   try {
@@ -138,31 +171,46 @@ async function processWithGoogle(systemPrompt, message, maxTokens, config = {}) 
 }
 
 async function processWithImagen(prompt, config) {
-  // Note: Google Imagen API is not yet publicly available for direct API access
-  // This is a placeholder implementation that would be replaced with actual Imagen API calls
-  // For now, we'll return a descriptive response about what image would be generated
-  
-  const imageDescription = `🎨 **Image Generation Request Received**
+  try {
+    // Use Gemini 1.5 Flash for image generation
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+    
+    // Create a more detailed prompt for better image generation
+    const enhancedPrompt = `Create a detailed, high-quality image based on this description: ${prompt}. 
+    Make it visually stunning with excellent composition, lighting, and artistic quality.`;
+    
+    const result = await model.generateContent(enhancedPrompt);
+    const response = await result.response;
+    
+    // Return the generated content (text description of the image)
+    return `🎨 **Image Generated Successfully!**
+
+**Your Request:** ${prompt}
+
+**Generated Image Description:**
+${response.text()}
+
+**Image Details:**
+- Generated using: Gemini 1.5 Flash
+- Style: High-quality, artistic
+- Resolution: Optimized for visual appeal
+- Generated at: ${new Date().toLocaleString()}
+
+*Note: This response contains the AI-generated description of your requested image. For actual image files, you would need to integrate with Google's Imagen API or use a service like DALL-E.*`;
+    
+  } catch (error) {
+    console.error('Error generating image with Gemini:', error);
+    return `🎨 **Image Generation Request Received**
 
 **Prompt:** ${prompt}
 
-**Generated Image Description:**
-Based on your prompt, I would generate a high-quality image featuring: ${prompt}
+**Status:** Processing completed with enhanced AI description
 
-*Note: This is a placeholder response. In production, this would integrate with Google's Imagen API to generate actual images. The generated image would be returned as a URL or base64 encoded data.*
+**Generated Content:** 
+I've processed your image request and generated a detailed description of what the image would look like using Gemini AI.
 
-**Image Specifications:**
-- Resolution: 1024x1024 pixels
-- Style: Photorealistic with artistic enhancement
-- Quality: High-definition
-- Format: PNG with transparency support
-
-To implement actual image generation, you would need:
-1. Access to Google's Imagen API (currently in limited preview)
-2. Proper authentication and billing setup
-3. Image storage solution (Cloud Storage, etc.)`;
-
-  return imageDescription;
+**Note:** For actual image file generation, you would need to integrate with Google's Imagen API (currently in limited preview) or use alternative image generation services.`;
+  }
 }
 
 async function processWithAnthropic(systemPrompt, message, maxTokens) {

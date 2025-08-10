@@ -1,249 +1,367 @@
-import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { Agent } from '../types/agent'
-import { useAuth } from '../contexts/AuthContext'
-import toast from 'react-hot-toast'
-import { 
-  SparklesIcon, 
-  ChatBubbleLeftRightIcon,
-  TagIcon,
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
   PlusIcon,
+  MinusIcon,
   ClockIcon,
-  TrashIcon
-} from '@heroicons/react/24/outline'
+  StarIcon,
+  SparklesIcon,
+  ShieldCheckIcon,
+  ExclamationTriangleIcon,
+  CheckCircleIcon,
+  InformationCircleIcon,
+  ChatBubbleLeftRightIcon,
+  CogIcon,
+  ArrowTopRightOnSquareIcon
+} from '@heroicons/react/24/outline';
+import { Agent } from '../types/agent';
+import toast from 'react-hot-toast';
 
 interface AgentCardProps {
-  agent: Agent
-  companyBranding?: {
-    primaryColor: string
-    secondaryColor: string
-  }
-  showAddToLibrary?: boolean
-  showRequestAccess?: boolean
-  onAddToLibrary?: (agent: Agent) => void
-  onRemoveFromLibrary?: (agent: Agent) => void
-  onRequestAccess?: (agent: Agent) => void
-  isInUserLibrary?: boolean
+  agent: Agent;
+  isInUserLibrary: boolean;
+  showAddToLibrary: boolean;
+  showRequestAccess: boolean;
+  onAddToLibrary: () => void;
+  onRequestAccess: () => void;
+  onRemoveFromLibrary: () => void;
+  libraryType: string;
 }
 
-const providerColors = {
-  openai: 'bg-green-100 text-green-800',
-  google: 'bg-blue-100 text-blue-800',
-  anthropic: 'bg-purple-100 text-purple-800'
-}
-
-const providerIcons = {
-  openai: '🤖',
-  google: '🔍',
-  anthropic: '🧠'
-}
-
-export default function AgentCard({ agent, companyBranding, showAddToLibrary = true, showRequestAccess = false, onAddToLibrary, onRemoveFromLibrary, onRequestAccess, isInUserLibrary = false }: AgentCardProps) {
-  const { userProfile } = useAuth()
-  
-  // Determine permission type from agent metadata  
-  const tier = agent.metadata?.tier || 'free' // 'free' or 'premium'
-  const permissionType = tier === 'free' ? 'direct' : 'approval' // free = direct, premium = approval
-  
-  const handleAddToLibrary = (e: React.MouseEvent) => {
-    e.preventDefault() // Prevent navigation to agent page
-    e.stopPropagation()
-    
-    if (!userProfile) {
-      toast.error('Please sign in to add agents to your library')
-      return
-    }
-    
-    if (permissionType === 'direct') {
-      // Direct assignment - add immediately
-      toast.success(`${agent.name} added to your library!`)
-      if (onAddToLibrary) {
-        onAddToLibrary(agent)
-      }
-    } else if (permissionType === 'approval') {
-      // Requires approval - submit request
-      toast.success(`Request submitted for ${agent.name}. Your admin will review it.`)
-      if (onAddToLibrary) {
-        onAddToLibrary(agent)
-      }
-    }
+const getTierColor = (tier: string) => {
+  switch (tier) {
+    case 'free':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'premium':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'enterprise':
+      return 'bg-purple-100 text-purple-800 border-purple-200';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-200';
   }
+};
 
-  const handleRemoveFromLibrary = (e: React.MouseEvent) => {
-    e.preventDefault() // Prevent navigation to agent page
-    e.stopPropagation()
-    
-    if (!userProfile) {
-      toast.error('Please sign in to manage your library')
-      return
-    }
-    
-    // Show confirmation before removing
-    if (onRemoveFromLibrary) {
-      onRemoveFromLibrary(agent)
-    }
+const getProviderIcon = (provider: string) => {
+  switch (provider.toLowerCase()) {
+    case 'openai':
+      return '🤖';
+    case 'google':
+      return '🔍';
+    case 'anthropic':
+      return '🧠';
+    case 'meta':
+      return '📘';
+    case 'microsoft':
+      return '🪟';
+    default:
+      return '⚡';
   }
+};
+
+const getProviderColor = (provider: string) => {
+  switch (provider.toLowerCase()) {
+    case 'openai':
+      return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+    case 'google':
+      return 'bg-red-100 text-red-800 border-red-200';
+    case 'anthropic':
+      return 'bg-orange-100 text-orange-800 border-orange-200';
+    case 'meta':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'microsoft':
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+  }
+};
+
+export default function AgentCard({
+  agent,
+  isInUserLibrary,
+  showAddToLibrary,
+  showRequestAccess,
+  onAddToLibrary,
+  onRequestAccess,
+  onRemoveFromLibrary,
+  libraryType
+}: AgentCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleAction = async (action: () => void) => {
+    setIsLoading(true);
+    try {
+      await action();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const truncatedDescription = agent.description.length > 120 
+    ? `${agent.description.substring(0, 120)}...` 
+    : agent.description;
+
+  const hasLongDescription = agent.description.length > 120;
+
+  const getActionButton = () => {
+    if (isInUserLibrary) {
+      return (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => handleAction(onRemoveFromLibrary)}
+          disabled={isLoading}
+          className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+        >
+          {isLoading ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <MinusIcon className="w-4 h-4" />
+              <span>Remove</span>
+            </>
+          )}
+        </motion.button>
+      );
+    }
+
+    if (showRequestAccess) {
+      return (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => handleAction(onRequestAccess)}
+          disabled={isLoading}
+          className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+        >
+          {isLoading ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <ClockIcon className="w-4 h-4" />
+              <span>Request Access</span>
+            </>
+          )}
+        </motion.button>
+      );
+    }
+
+    if (showAddToLibrary) {
+      return (
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => handleAction(onAddToLibrary)}
+          disabled={isLoading}
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+        >
+          {isLoading ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <PlusIcon className="w-4 h-4" />
+              <span>Add to Library</span>
+            </>
+          )}
+        </motion.button>
+      );
+    }
+
+    return (
+      <div className="w-full bg-gray-100 text-gray-500 font-medium py-3 px-4 rounded-lg text-center">
+        Not Available
+      </div>
+    );
+  };
+
   return (
     <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
-      transition={{ duration: 0.2 }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:border-gray-300 group"
     >
-      <Link to={`/agents/${agent.id}`}>
-        <div className="agent-card h-full flex flex-col group">
-          {/* Header */}
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center space-x-2">
-              <div 
-                className="w-10 h-10 rounded-lg flex items-center justify-center"
-                style={{
-                  background: companyBranding 
-                    ? `linear-gradient(to bottom right, ${companyBranding.primaryColor}, ${companyBranding.secondaryColor})`
-                    : 'linear-gradient(to bottom right, #3B82F6, #8B5CF6)'
-                }}
-              >
-                <SparklesIcon className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 text-lg">
-                  {agent.name}
-                </h3>
-                <div className="flex items-center space-x-2">
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${providerColors[agent.provider]}`}>
-                    {providerIcons[agent.provider]} {agent.provider}
-                  </span>
-                  {agent.visibility === 'private' && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                      🔒 Private
-                    </span>
-                  )}
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
-                    tier === 'free' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gradient-to-r from-purple-100 to-purple-200 text-purple-900 border border-purple-300'
-                  }`}>
-                    {tier === 'free' ? '🆓 Free' : '💎 Premium'}
-                  </span>
-                  {isInUserLibrary && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      ✅ In My Library
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center space-x-2 mb-2">
+            <span className="text-2xl">{getProviderIcon(agent.provider)}</span>
+            <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+              {agent.name}
+            </h3>
           </div>
-
-          {/* Description */}
-          <p className="text-gray-600 text-sm mb-4 flex-grow">
-            {agent.description}
-          </p>
-
-          {/* Tags */}
-          {agent.metadata?.tags && agent.metadata.tags.length > 0 && (
-            <div className="mb-4">
-              <div className="flex items-center space-x-1 mb-2">
-                <TagIcon className="w-4 h-4 text-gray-400" />
-                <span className="text-xs text-gray-500 font-medium">Tags</span>
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {agent.metadata.tags.slice(0, 3).map((tag, index) => (
-                  <span
-                    key={index}
-                    className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700"
-                  >
-                    {tag}
-                  </span>
-                ))}
-                {agent.metadata.tags.length > 3 && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-500">
-                    +{agent.metadata.tags.length - 3}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Footer */}
-          <div className="pt-4 border-t border-gray-100">
-            {/* Add to Library Button */}
-            {showAddToLibrary && (
-              <div className="mb-3">
-                {isInUserLibrary ? (
-                  <div className="flex space-x-2">
-                    <div className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                      <span>In Library</span>
-                    </div>
-                    <button
-                      onClick={handleRemoveFromLibrary}
-                      className="px-3 py-2 rounded-lg text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-colors flex items-center space-x-1"
-                      title="Remove from library"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                      <span className="hidden sm:inline">Remove</span>
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleAddToLibrary}
-                    className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                      tier === 'free'
-                        ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                        : 'bg-gradient-to-r from-purple-500 to-purple-600 text-white hover:from-purple-600 hover:to-purple-700 shadow-md'
-                    }`}
-                  >
-                    {tier === 'free' ? (
-                      <>
-                        <PlusIcon className="w-4 h-4" />
-                        <span>Add Free Agent</span>
-                      </>
-                    ) : (
-                      <>
-                        <ClockIcon className="w-4 h-4" />
-                        <span>Request Access</span>
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Request Access Button */}
-            {showRequestAccess && !isInUserLibrary && (
-              <div className="mb-3">
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    if (onRequestAccess) {
-                      onRequestAccess(agent);
-                    }
-                  }}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
-                >
-                  <ClockIcon className="w-4 h-4" />
-                  <span>Request Access</span>
-                </button>
-              </div>
-            )}
+          
+          {/* Provider Badge */}
+          <div className="flex items-center space-x-2 mb-3">
+            <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full border ${getProviderColor(agent.provider)}`}>
+              {agent.provider}
+            </span>
             
-            {/* Start Chat Link */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-1 text-sm text-gray-500">
-                <ChatBubbleLeftRightIcon className="w-4 h-4" />
-                <span>Start Chat</span>
-              </div>
-              <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center">
-                <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </div>
-            </div>
+            {/* Tier Badge */}
+            {agent.metadata?.tier && (
+              <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full border ${getTierColor(agent.metadata.tier)}`}>
+                <StarIcon className="w-3 h-3 mr-1" />
+                {agent.metadata.tier}
+              </span>
+            )}
           </div>
         </div>
-      </Link>
+
+        {/* Status Indicator */}
+        <div className="flex-shrink-0 ml-2">
+          {isInUserLibrary ? (
+            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircleIcon className="w-5 h-5 text-green-600" />
+            </div>
+          ) : showRequestAccess ? (
+            <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+              <ClockIcon className="w-5 h-5 text-yellow-600" />
+            </div>
+          ) : (
+            <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+              <InformationCircleIcon className="w-5 h-5 text-gray-600" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Description */}
+      <div className="flex-1 mb-4">
+        <div className="text-sm text-gray-600 leading-relaxed">
+          {showFullDescription ? agent.description : truncatedDescription}
+        </div>
+        
+        {hasLongDescription && (
+          <button
+            onClick={() => setShowFullDescription(!showFullDescription)}
+            className="text-blue-600 hover:text-blue-800 text-sm font-medium mt-2 transition-colors"
+          >
+            {showFullDescription ? 'Show less' : 'Read more'}
+          </button>
+        )}
+      </div>
+
+      {/* Tags */}
+      {agent.metadata?.tags && agent.metadata.tags.length > 0 && (
+        <div className="mb-4">
+          <div className="flex flex-wrap gap-1">
+            {agent.metadata.tags.slice(0, 3).map((tag, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full border border-gray-200"
+              >
+                {tag}
+              </span>
+            ))}
+            {agent.metadata.tags.length > 3 && (
+              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full border border-gray-200">
+                +{agent.metadata.tags.length - 3} more
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Capabilities */}
+      {agent.metadata?.capabilities && agent.metadata.capabilities.length > 0 && (
+        <div className="mb-4">
+          <div className="flex items-center space-x-2 mb-2">
+            <SparklesIcon className="w-4 h-4 text-blue-600" />
+            <span className="text-xs font-medium text-gray-700">Capabilities</span>
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {agent.metadata.capabilities.slice(0, 2).map((capability, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-50 text-blue-700 rounded-full border border-blue-200"
+              >
+                {capability}
+              </span>
+            ))}
+            {agent.metadata.capabilities.length > 2 && (
+              <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-50 text-blue-600 rounded-full border border-blue-200">
+                +{agent.metadata.capabilities.length - 2} more
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Category */}
+      {agent.metadata?.category && (
+        <div className="mb-4">
+          <div className="flex items-center space-x-2">
+            <CogIcon className="w-4 h-4 text-gray-500" />
+            <span className="text-xs text-gray-600">
+              Category: <span className="font-medium text-gray-700">{agent.metadata.category}</span>
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Action Button */}
+      <div className="mt-auto pt-4">
+        {getActionButton()}
+      </div>
+
+      {/* Hover Actions */}
+      <AnimatePresence>
+        {isHovered && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute inset-0 bg-black bg-opacity-75 rounded-xl flex items-center justify-center space-x-3"
+          >
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-3 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors"
+              title="View Details"
+            >
+              <InformationCircleIcon className="w-5 h-5 text-gray-700" />
+            </motion.button>
+            
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-3 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors"
+              title="Start Chat"
+            >
+              <ChatBubbleLeftRightIcon className="w-5 h-5 text-gray-700" />
+            </motion.button>
+            
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              className="p-3 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors"
+              title="Open in New Tab"
+            >
+              <ArrowTopRightOnSquareIcon className="w-5 h-5 text-gray-700" />
+            </motion.button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Library Type Indicator */}
+      <div className="absolute top-2 left-2">
+        <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full border border-gray-200">
+          {libraryType.charAt(0).toUpperCase() + libraryType.slice(1)}
+        </span>
+      </div>
+
+      {/* Security Badge for Enterprise */}
+      {agent.metadata?.tier === 'enterprise' && (
+        <div className="absolute top-2 right-2">
+          <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded-full border border-purple-200">
+            <ShieldCheckIcon className="w-3 h-3 mr-1" />
+            Enterprise
+          </span>
+        </div>
+      )}
     </motion.div>
-  )
+  );
 }

@@ -151,7 +151,13 @@ export interface PermissionSummary {
     agentName: string;
     grantedBy: string;
     grantedAt: string;
-    restrictions: any;
+    restrictions: {
+      maxUsage?: number;
+      usageCount: number;
+      expiresAt?: string;
+      allowedNetworks?: string[];
+      allowedTimeSlots?: string[];
+    };
     usageCount: number;
     lastUsed?: string;
   }[];

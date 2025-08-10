@@ -47,15 +47,17 @@ const googleAgents = [
   {
     id: 'imagen-agent',
     name: 'Google Imagen Agent',
-    description: 'AI-powered image generation using Google\'s Imagen model. Create high-quality images from text descriptions, get help crafting effective prompts, and explore various artistic styles.',
+    description: 'AI-powered image generation using Google\'s Imagen model. Create high-quality images from text descriptions, get help crafting effective prompts, and explore various artistic styles. **PREMIUM ACCESS REQUIRED** - Contact admin for approval.',
     provider: 'google',
     route: '/agents/imagen-agent',
     metadata: {
-      tags: ['image-generation', 'creative', 'art', 'design', 'visual', 'prompting'],
-      category: 'Creative AI'
+      tags: ['image-generation', 'creative', 'art', 'design', 'visual', 'premium', 'request-only'],
+      category: 'Creative AI',
+      tier: 'premium',
+      permissionType: 'approval'
     },
-    visibility: 'public',
-    allowedRoles: ['admin', 'client', 'user'],
+    visibility: 'private',
+    allowedRoles: ['admin', 'client'],
     capabilities: [
       'Text-to-image generation',
       'Prompt crafting assistance',

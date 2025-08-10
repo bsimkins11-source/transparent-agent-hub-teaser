@@ -99,16 +99,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Determine user role based on specific email addresses
       const transparentAdminEmails = [
         'bryan.simkins@transparent.partners',
-        'drankine@transparent.partners'
+        'drankine@transparent.partners',
+        'test@transparent.partners' // Test email for development
       ]
       
-      const role = transparentAdminEmails.includes(user.email || '') ? 'super_admin' : 'user'
+      // In development mode, allow any email to be super_admin for testing
+      const isDevelopment = import.meta.env.DEV || import.meta.env.MODE === 'development'
+      const role = transparentAdminEmails.includes(user.email || '') || isDevelopment ? 'super_admin' : 'user'
       
       // Determine organization info - only Bryan and Darren get automatic Transparent Partners access
       let organizationId = 'unassigned'
       let organizationName = 'Unassigned'
       
-      if (transparentAdminEmails.includes(user.email || '')) {
+      if (transparentAdminEmails.includes(user.email || '') || isDevelopment) {
         organizationId = 'transparent-partners'
         organizationName = 'Transparent Partners'
       } else {
@@ -142,7 +145,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user.email || '',
         user.displayName || '',
         organizationId,
-        organizationName
+        organizationName,
+        role
       )
       
       setUserProfile(profile)

@@ -64,11 +64,11 @@ export default function LoginPage() {
       setLoading(true)
       
       if (isRegistering) {
-        console.log('🔐 Starting email registration...')
+  
         await registerWithEmail(formData.email, formData.password, formData.displayName)
         toast.success('Account created successfully!')
       } else {
-        console.log('🔐 Starting email login...')
+
         await loginWithEmail(formData.email, formData.password)
         toast.success('Logged in successfully!')
       }

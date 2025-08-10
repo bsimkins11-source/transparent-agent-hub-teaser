@@ -30,7 +30,12 @@ interface AgentManagementProps {
 export default function AgentManagement({ onClose }: AgentManagementProps) {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<{
+    total: number;
+    byTier: Record<string, number>;
+    byProvider: Record<string, number>;
+    byCategory: Record<string, number>;
+  } | null>(null);
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);

@@ -11,7 +11,7 @@ import {
   PhotoIcon,
   CubeIcon
 } from '@heroicons/react/24/outline';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import AgentManagement from '../components/AgentManagement';
 import StatCard from '../components/StatCard';
@@ -48,31 +48,36 @@ interface CompanyNetwork {
 }
 
 export default function SuperAdminDashboard() {
-  const { userProfile } = useAuth();
+  const { userProfile, loading } = useAuth();
+  const navigate = useNavigate();
+  
   const [companies, setCompanies] = useState<Company[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [companySearchTerm, setCompanySearchTerm] = useState<string>('');
-  const [expandedCompanies, setExpandedCompanies] = useState<{[companyId: string]: boolean}>({});
   const [isCreateCompanyModalOpen, setIsCreateCompanyModalOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
   const [isAssignAdminModalOpen, setIsAssignAdminModalOpen] = useState(false);
   const [isAgentPermissionsModalOpen, setIsAgentPermissionsModalOpen] = useState(false);
-  const [companyAgentPermissions, setCompanyAgentPermissions] = useState<{[companyId: string]: {[agentId: string]: {granted: boolean; assignmentType: 'free' | 'direct' | 'approval'}}}>({});
-  
-  // Network management state
   const [isNetworkPermissionsModalOpen, setIsNetworkPermissionsModalOpen] = useState(false);
+  const [isGlobalAgentModalOpen, setIsGlobalAgentModalOpen] = useState(false);
+  const [isAgentManagementModalOpen, setIsAgentManagementModalOpen] = useState(false);
+  const [stats, setStats] = useState({
+    totalCompanies: 0,
+    totalNetworks: 0,
+    totalUsers: 0,
+    totalAgents: 0,
+    activeCompanies: 0
+  });
+  // Error state
+  const [error, setError] = useState<string | null>(null);
+  
+  // Additional state variables
+  const [companySearchTerm, setCompanySearchTerm] = useState<string>('');
+  const [expandedCompanies, setExpandedCompanies] = useState<{[companyId: string]: boolean}>({});
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [selectedNetwork, setSelectedNetwork] = useState<{company: Company; network: CompanyNetwork} | null>(null);
   const [networkAgentPermissions, setNetworkAgentPermissions] = useState<{[companyId: string]: {[networkId: string]: {[agentId: string]: {granted: boolean; assignmentType: 'free' | 'direct' | 'approval'}}}}>({});
-  
-  // Global agent management state
-  const [isGlobalAgentModalOpen, setIsGlobalAgentModalOpen] = useState(false);
+  const [companyAgentPermissions, setCompanyAgentPermissions] = useState<{[companyId: string]: {[agentId: string]: {granted: boolean; assignmentType: 'free' | 'direct' | 'approval'}}}>({});
   const [globalAgentSettings, setGlobalAgentSettings] = useState<{[agentId: string]: {enabled: boolean; defaultTier: 'free' | 'premium' | 'enterprise'; defaultAssignmentType: 'free' | 'direct' | 'approval'}}>({});
-  
-  // Agent management modal state
-  const [isAgentManagementModalOpen, setIsAgentManagementModalOpen] = useState(false);
-  
-  // New company form state
   const [newCompany, setNewCompany] = useState({
     name: '',
     domain: '',
@@ -82,16 +87,34 @@ export default function SuperAdminDashboard() {
     secondaryColor: '#1E40AF'
   });
 
-  const [stats, setStats] = useState({
-    totalCompanies: 0,
-    totalUsers: 0,
-    totalAgents: 0,
-    activeCompanies: 0
-  });
+  // Check if user has access
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!userProfile || userProfile.role !== 'super_admin') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h1>
+          <p className="text-gray-600">You don't have permission to access this page.</p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     const loadData = async () => {
       try {
+        setError(null);
+        
         // Load global agent settings from Firestore
         const { getGlobalAgentSettings } = await import('../services/hierarchicalPermissionService');
         const globalSettings = await getGlobalAgentSettings();
@@ -135,6 +158,27 @@ export default function SuperAdminDashboard() {
         
       } catch (error) {
         console.error('Error loading global agent settings:', error);
+        setError(`Failed to load global agent settings: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        // Set default settings on error
+        const fallbackSettings: {[agentId: string]: {enabled: boolean; defaultTier: 'free' | 'premium' | 'enterprise'; defaultAssignmentType: 'free' | 'direct' | 'approval'}} = {
+          'gemini-chat-agent': { enabled: true, defaultTier: 'free', defaultAssignmentType: 'free' },
+          'google-imagen-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'approval' },
+          'briefing-agent': { enabled: true, defaultTier: 'free', defaultAssignmentType: 'free' },
+          'analytics-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'direct' },
+          'research-agent': { enabled: true, defaultTier: 'free', defaultAssignmentType: 'direct' },
+          'writing-agent': { enabled: true, defaultTier: 'free', defaultAssignmentType: 'free' },
+          'code-review-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'direct' },
+          'data-scientist-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'approval' },
+          'social-media-agent': { enabled: true, defaultTier: 'free', defaultAssignmentType: 'free' },
+          'email-marketing-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'direct' },
+          'seo-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'direct' },
+          'financial-advisor-agent': { enabled: false, defaultTier: 'enterprise', defaultAssignmentType: 'approval' },
+          'legal-contract-agent': { enabled: false, defaultTier: 'enterprise', defaultAssignmentType: 'approval' },
+          'hr-recruiter-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'approval' },
+          'customer-support-agent': { enabled: true, defaultTier: 'free', defaultAssignmentType: 'free' },
+          'project-manager-agent': { enabled: true, defaultTier: 'premium', defaultAssignmentType: 'direct' }
+        };
+        setGlobalAgentSettings(fallbackSettings);
       }
     };
     
@@ -226,13 +270,13 @@ export default function SuperAdminDashboard() {
         ]
       },
       {
-        id: 'acme-corp',
-        name: 'Acme Corporation',
-        domain: 'acme.com',
+        id: 'acme-branch',
+        name: 'Acme Corporation (Branch)',
+        domain: 'acme-branch.com',
         logo: 'https://logo.clearbit.com/acme.com',
         primaryColor: '#10B981',
         secondaryColor: '#059669',
-        adminEmail: 'admin@acme.com',
+        adminEmail: 'admin@acme-branch.com',
         adminName: 'John Smith',
         userCount: 45,
         agentCount: 12,
@@ -244,7 +288,7 @@ export default function SuperAdminDashboard() {
             name: 'Sales Team',
             slug: 'sales',
             type: 'department',
-            adminEmail: 'sales.admin@acme.com',
+            adminEmail: 'sales.admin@acme-branch.com',
             adminName: 'Lisa Chen',
             description: 'Sales and business development',
             userCount: 15,
@@ -257,7 +301,7 @@ export default function SuperAdminDashboard() {
             name: 'Engineering',
             slug: 'engineering',
             type: 'department',
-            adminEmail: 'eng.admin@acme.com',
+            adminEmail: 'eng.admin@acme-branch.com',
             adminName: 'Mike Johnson',
             description: 'Product development and engineering',
             userCount: 25,
@@ -270,7 +314,7 @@ export default function SuperAdminDashboard() {
             name: 'HR Department',
             slug: 'hr',
             type: 'department',
-            adminEmail: 'hr.admin@acme.com',
+            adminEmail: 'hr.admin@acme-branch.com',
             adminName: 'Sarah Wilson',
             description: 'Human resources and talent management',
             userCount: 5,
@@ -381,6 +425,21 @@ export default function SuperAdminDashboard() {
 
     setCompanies(mockCompanies);
     
+    // Calculate and set stats
+    const totalNetworks = mockCompanies.reduce((sum, company) => 
+      sum + (company.networks?.length || 0), 0
+    );
+    
+    const calculatedStats = {
+      totalCompanies: mockCompanies.length,
+      totalNetworks: totalNetworks,
+      totalUsers: mockCompanies.reduce((sum, c) => sum + c.userCount, 0),
+      totalAgents: mockCompanies.reduce((sum, c) => sum + c.agentCount, 0),
+      activeCompanies: mockCompanies.filter(c => c.status === 'active').length
+    };
+    
+    setStats(calculatedStats);
+    
     // Load real company agent permissions from Firestore
     const loadCompanyPermissions = async () => {
       try {
@@ -463,13 +522,7 @@ export default function SuperAdminDashboard() {
     
     loadNetworkPermissions();
     
-    const totalNetworks = mockCompanies.reduce((sum, c) => sum + (c.networks?.length || 0), 0);
-    setStats({
-      totalCompanies: mockCompanies.length,
-      totalUsers: mockCompanies.reduce((sum, c) => sum + c.userCount, 0),
-      totalAgents: mockCompanies.reduce((sum, c) => sum + c.agentCount, 0),
-      activeCompanies: mockCompanies.filter(c => c.status === 'active').length
-    });
+        // Stats are already calculated and set above, no need to recalculate
   }, []);
 
   const filteredCompanies = companies.filter(company =>
@@ -616,7 +669,7 @@ export default function SuperAdminDashboard() {
     });
   };
 
-  const toggleGlobalAgentSetting = (agentId: string, setting: 'enabled' | 'defaultTier' | 'defaultAssignmentType', value: any) => {
+  const toggleGlobalAgentSetting = (agentId: string, setting: 'enabled' | 'defaultTier' | 'defaultAssignmentType', value: boolean | 'free' | 'premium' | 'enterprise' | 'direct' | 'approval') => {
     setGlobalAgentSettings(prev => ({
       ...prev,
       [agentId]: {
@@ -778,6 +831,22 @@ export default function SuperAdminDashboard() {
     return colors[Math.floor(Math.random() * colors.length)];
   };
 
+  const getContrastColor = (hexColor: string) => {
+    // Remove # if present
+    const hex = hexColor.replace('#', '');
+    
+    // Convert to RGB
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    // Calculate luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+    // Return black for light backgrounds, white for dark backgrounds
+    return luminance > 0.5 ? '#000000' : '#FFFFFF';
+  };
+
   const handleAssignAdmin = (adminEmail: string, adminName: string) => {
     if (selectedCompany) {
       setCompanies(companies.map(c => 
@@ -790,19 +859,59 @@ export default function SuperAdminDashboard() {
     }
   };
 
-  if (!userProfile || userProfile.role !== 'super_admin') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center p-8 bg-white rounded-xl shadow-soft border border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
-          <p className="text-gray-600">Super Admin access required.</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 p-8">
+      {/* Debug Information */}
+      {import.meta.env.DEV && (
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-blue-800">Debug Information</h3>
+              <div className="mt-2 text-sm text-blue-700">
+                <p><strong>Loading:</strong> {loading ? 'Yes' : 'No'}</p>
+                <p><strong>User Profile:</strong> {userProfile ? 'Loaded' : 'Not loaded'}</p>
+                <p><strong>User Role:</strong> {userProfile?.role || 'None'}</p>
+                <p><strong>User Email:</strong> {userProfile?.email || 'None'}</p>
+                <p><strong>Companies Loaded:</strong> {companies.length}</p>
+                <p><strong>Stats:</strong> {JSON.stringify(stats)}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Error Display */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error Loading Dashboard</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{error}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Fallback if no companies loaded */}
+      {companies.length === 0 && (
+        <div className="text-center p-8 bg-white rounded-xl shadow-soft border border-gray-200">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Loading Companies...</h2>
+          <p className="text-gray-600">Please wait while we load company data.</p>
+        </div>
+      )}
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -820,26 +929,30 @@ export default function SuperAdminDashboard() {
           <StatCard 
             title="Total Companies" 
             value={stats.totalCompanies} 
-            icon={BuildingOfficeIcon} 
-            iconColor="text-blue-500" 
+            icon={<BuildingOfficeIcon className="w-6 h-6" />}
+            color="text-blue-500"
+            bgColor="bg-blue-100"
           />
           <StatCard 
             title="Total Users" 
             value={stats.totalUsers} 
-            icon={UsersIcon} 
-            iconColor="text-green-500" 
+            icon={<UsersIcon className="w-6 h-6" />}
+            color="text-green-500"
+            bgColor="bg-green-100"
           />
           <StatCard 
             title="Total Agents" 
             value={stats.totalAgents} 
-            icon={Cog6ToothIcon} 
-            iconColor="text-purple-500" 
+            icon={<Cog6ToothIcon className="w-6 h-6" />}
+            color="text-purple-500"
+            bgColor="bg-purple-100"
           />
           <StatCard 
             title="Active Companies" 
             value={stats.activeCompanies} 
-            icon={BuildingOfficeIcon} 
-            iconColor="text-emerald-500" 
+            icon={<BuildingOfficeIcon className="w-6 h-6" />}
+            color="text-emerald-500"
+            bgColor="bg-emerald-100"
           />
         </div>
 
@@ -1057,49 +1170,67 @@ export default function SuperAdminDashboard() {
             <input
               type="text"
               placeholder="Search companies..."
-              className="input-field pl-10"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
           {/* Companies Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="col-span-full p-4 bg-yellow-100 border border-yellow-300 rounded-lg mb-4">
+            <p className="text-sm text-yellow-800">
+              <strong>Debug Info:</strong> Found {filteredCompanies.length} companies. 
+              {filteredCompanies.length > 0 ? ` First company: ${filteredCompanies[0].name} (ID: ${filteredCompanies[0].id})` : ' No companies loaded'}
+            </p>
+          </div>
             {filteredCompanies.map((company) => (
-              <motion.div
-                key={company.id}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:shadow-medium transition-all duration-200"
-              >
+                <motion.div
+                  key={company.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="bg-gray-50 rounded-xl p-6 border border-gray-200 transition-all duration-200 hover:shadow-md relative z-10 cursor-pointer hover:border-blue-300"
+                  style={{ pointerEvents: 'auto' }}
+                  onClick={(e) => {
+                    try {
+                      navigate(`/admin/company/${company.id}`);
+                    } catch (error) {
+                      console.error('Navigation failed:', error);
+                    }
+                  }}
+                >
                 {/* Company Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <Link 
-                    to={`/admin/company/${company.id}`}
-                    className="flex items-center space-x-3 hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors group"
-                  >
+                <div className="flex items-center justify-between mb-4 group">
+                  <div className="flex items-center gap-3">
                     {company.logo ? (
                       <img src={company.logo} alt={company.name} className="w-10 h-10 rounded-lg" />
                     ) : (
                       <div 
-                        className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold"
-                        style={{ backgroundColor: company.primaryColor }}
+                        className="w-10 h-10 rounded-lg flex items-center justify-center text-sm font-bold"
+                        style={{ 
+                          backgroundColor: company.primaryColor,
+                          color: getContrastColor(company.primaryColor)
+                        }}
                       >
                         {company.name.charAt(0)}
                       </div>
                     )}
                     <div>
-                      <h3 className="font-semibold text-gray-900 group-hover:text-brand-600 transition-colors">
+                      <h3 className="font-semibold text-gray-900 text-base m-0 !text-gray-900">
                         {company.name}
                       </h3>
-                      <p className="text-sm text-gray-500">{company.domain}</p>
-                      <p className="text-xs text-brand-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <p className="text-sm text-gray-600 m-0 mt-1 !text-gray-600">
+                        {company.domain}
+                      </p>
+                      <p className="text-xs text-cyan-600 opacity-0 m-0 mt-1 transition-opacity duration-200 group-hover:opacity-100">
                         Click to manage company →
                       </p>
                     </div>
-                  </Link>
+                  </div>
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                    company.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    company.status === 'active' 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-red-100 text-red-800'
                   }`}>
                     {company.status}
                   </span>
@@ -1108,31 +1239,37 @@ export default function SuperAdminDashboard() {
                 {/* Company Stats */}
                 <div className="grid grid-cols-3 gap-4 mb-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{company.userCount}</div>
-                    <div className="text-sm text-gray-500">Users</div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {company.userCount}
+                    </div>
+                    <div className="text-sm text-gray-600">Users</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{company.agentCount}</div>
-                    <div className="text-sm text-gray-500">Agents</div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {company.agentCount}
+                    </div>
+                    <div className="text-sm text-gray-600">Agents</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900">{company.networks?.length || 0}</div>
-                    <div className="text-sm text-gray-500">Networks</div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {company.networks?.length || 0}
+                    </div>
+                    <div className="text-sm text-gray-600">Networks</div>
                   </div>
                 </div>
 
                 {/* Admin Info */}
                 <div className="mb-4 p-3 bg-white rounded-lg">
                   <div className="text-sm font-medium text-gray-900">Company Admin</div>
-                  <div className="text-sm text-gray-600">{company.adminName}</div>
-                  <div className="text-sm text-gray-500">{company.adminEmail}</div>
+                  <div className="text-sm text-gray-700">{company.adminName}</div>
+                  <div className="text-sm text-gray-600">{company.adminEmail}</div>
                 </div>
 
                 {/* Networks Section */}
                 {company.networks && company.networks.length > 0 && (
                   <div className="mb-4 p-3 bg-gray-50 rounded-lg">
                     <div className="text-sm font-medium text-gray-900 mb-2">Networks</div>
-                    <div className="space-y-2">
+                    <div className="flex flex-col gap-2">
                       {company.networks.slice(0, 2).map((network) => (
                         <div key={network.id} className="flex items-center justify-between text-sm">
                           <div>
@@ -1141,21 +1278,21 @@ export default function SuperAdminDashboard() {
                               network.type === 'business_unit' ? 'bg-blue-100 text-blue-800' :
                               network.type === 'region' ? 'bg-green-100 text-green-800' :
                               network.type === 'department' ? 'bg-purple-100 text-purple-800' :
-                              'bg-gray-100 text-gray-800'
+                              'bg-gray-100 text-gray-700'
                             }`}>
                               {network.type.replace('_', ' ')}
                             </span>
                           </div>
                           <button
                             onClick={() => openNetworkPermissionsModal(company, network)}
-                            className="text-xs text-brand-600 hover:text-brand-700 font-medium"
+                            className="text-xs text-cyan-600 font-medium bg-none border-none cursor-pointer hover:text-cyan-700 transition-colors"
                           >
                             Agents
                           </button>
                         </div>
                       ))}
                       {company.networks.length > 2 && (
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-gray-600">
                           +{company.networks.length - 2} more networks
                         </div>
                       )}
@@ -1164,40 +1301,40 @@ export default function SuperAdminDashboard() {
                 )}
 
                 {/* Actions */}
-                <div className="space-y-2">
-                  <div className="flex space-x-2">
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
                     <button
                       onClick={() => openAssignAdminModal(company)}
-                      className="flex-1 btn-secondary text-sm py-2 flex items-center justify-center space-x-1"
+                      className="flex-1 px-4 py-2 text-sm bg-gray-100 text-gray-700 border border-gray-300 rounded-lg cursor-pointer flex items-center justify-center gap-1 hover:bg-gray-200 transition-colors"
                     >
                       <UsersIcon className="w-4 h-4" />
                       <span>Admin</span>
                     </button>
                     <button
                       onClick={() => openCustomizeModal(company)}
-                      className="flex-1 btn-secondary text-sm py-2 flex items-center justify-center space-x-1"
+                      className="flex-1 px-4 py-2 text-sm bg-gray-100 text-gray-700 border border-gray-300 rounded-lg cursor-pointer flex items-center justify-center gap-1 hover:bg-gray-200 transition-colors"
                     >
                       <SwatchIcon className="w-4 h-4" />
                       <span>Brand</span>
                     </button>
                     <button
                       onClick={() => handleDeleteCompany(company.id)}
-                      className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      className="px-3 py-2 text-red-600 bg-none border-none rounded-lg cursor-pointer hover:bg-red-50 transition-colors"
                     >
                       <TrashIcon className="w-4 h-4" />
                     </button>
                   </div>
-                  <div className="space-y-2">
+                  <div className="flex flex-col gap-2">
                     <Link
                       to={`/admin/company/${company.id}`}
-                      className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-medium text-sm py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
+                      className="w-full bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white font-medium text-sm py-3 px-4 rounded-lg no-underline transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
                     >
                       <BuildingOfficeIcon className="w-5 h-5" />
                       <span>🏢 Manage Company</span>
                     </Link>
                     <button
                       onClick={() => openAgentPermissionsModal(company)}
-                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium text-sm py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
+                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium text-sm py-3 px-4 rounded-lg border-none cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
                     >
                       <Cog6ToothIcon className="w-5 h-5" />
                       <span>🎯 Assign Agents</span>
@@ -1590,14 +1727,20 @@ export default function SuperAdminDashboard() {
                   </div>
                   <div className="flex space-x-2">
                     <button 
-                      className="px-4 py-2 text-white rounded-lg font-medium"
-                      style={{ backgroundColor: selectedCompany.primaryColor }}
+                      className="px-4 py-2 rounded-lg font-medium"
+                      style={{ 
+                        backgroundColor: selectedCompany.primaryColor,
+                        color: getContrastColor(selectedCompany.primaryColor)
+                      }}
                     >
                       Primary Button
                     </button>
                     <button 
-                      className="px-4 py-2 text-white rounded-lg font-medium"
-                      style={{ backgroundColor: selectedCompany.secondaryColor }}
+                      className="px-4 py-2 rounded-lg font-medium"
+                      style={{ 
+                        backgroundColor: selectedCompany.secondaryColor,
+                        color: getContrastColor(selectedCompany.secondaryColor)
+                      }}
                     >
                       Secondary Button
                     </button>

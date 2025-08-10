@@ -1,22 +1,25 @@
 const express = require('express');
 const router = express.Router();
-const { db, optionalAuth, admin } = require('../middleware/auth');
+const { db, optionalAuth } = require('../middleware/auth');
 const agentService = require('../services/agentService');
+const admin = require('firebase-admin');
 
 // GET /api/agents - List all agents
 router.get('/', optionalAuth, async (req, res) => {
   try {
-    const { visibility = 'public', category, provider, tags } = req.query;
+    const { visibility, category, provider, tags } = req.query;
     
     let query = db.collection('agents');
     
-    // Filter by visibility
+    // Only apply visibility filter if explicitly requested
+    // This allows the global library to show all agents (public + private)
     if (visibility === 'public') {
       query = query.where('visibility', '==', 'public');
     } else if (visibility === 'private' && req.user) {
       // For private agents, check if user has access
       query = query.where('visibility', '==', 'private');
     }
+    // If no visibility filter, get all agents
     
     // Apply additional filters
     if (category) {
@@ -39,6 +42,17 @@ router.get('/', optionalAuth, async (req, res) => {
         if (!tagArray.some(tag => agent.metadata.tags.includes(tag))) {
           return; // Skip this agent
         }
+      }
+      
+      // Add access information for premium agents
+      if (agent.metadata?.tier === 'premium') {
+        agent.accessInfo = {
+          requiresApproval: agent.metadata.permissionType === 'approval',
+          userHasAccess: req.user && (req.user.admin || req.user.client),
+          accessMessage: agent.metadata.permissionType === 'approval' 
+            ? 'Premium access requires admin approval' 
+            : 'Premium access available'
+        };
       }
       
       agents.push(agent);
@@ -123,14 +137,14 @@ router.get('/:id', optionalAuth, async (req, res) => {
 router.post('/:id/interact', optionalAuth, async (req, res) => {
   try {
     const { id } = req.params;
-    const { message, context } = req.body;
+    const { message, context = '' } = req.body;
     
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
     
-    // Get agent details
     const doc = await db.collection('agents').doc(id).get();
+    
     if (!doc.exists) {
       return res.status(404).json({ error: 'Agent not found' });
     }
@@ -138,27 +152,35 @@ router.post('/:id/interact', optionalAuth, async (req, res) => {
     const agent = { id: doc.id, ...doc.data() };
     
     // Check access for private agents
-    if (agent.visibility === 'private' && (!req.user || !req.user.admin)) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (agent.visibility === 'private' && (!req.user || (!req.user.admin && !req.user.client))) {
+      return res.status(403).json({ error: 'Access denied. This agent requires special permissions.' });
     }
     
-    // Process the interaction
-    const response = await agentService.processInteraction(agent, message, context);
+    // Pass user context for premium access control
+    const userContext = req.user ? { user: req.user } : {};
     
-    // Log the interaction if user is authenticated
+    const response = await agentService.processInteraction(agent, message, context, userContext);
+    
+    // Log the interaction
     if (req.user) {
       await db.collection('agent_logs').add({
         userId: req.user.uid,
         agentId: id,
         message,
-        response: response.substring(0, 500), // Truncate for storage
+        response: response.substring(0, 500), // Limit response length in log
         timestamp: admin.firestore.FieldValue.serverTimestamp()
       });
     }
     
     res.json({ response });
   } catch (error) {
-    console.error('Error processing interaction:', error);
+    console.error('Error processing agent interaction:', error);
+    
+    // Handle specific access control errors
+    if (error.message.includes('Premium agent access')) {
+      return res.status(403).json({ error: error.message });
+    }
+    
     res.status(500).json({ error: 'Failed to process interaction' });
   }
 });
