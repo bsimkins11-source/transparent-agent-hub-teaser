@@ -39,10 +39,9 @@
     opacity: 1 !important;
   }
   
-  .header-global nav a,
-  .header-global nav button,
-  .header-global nav span,
-  .header-global nav div {
+  .header-global nav > a,
+  .header-global nav > button,
+  .header-global nav > span {
     color: white !important;
     visibility: visible !important;
     opacity: 1 !important;
@@ -59,7 +58,14 @@
     color: white !important;
   }
   
-  /* Header dropdown styling - REMOVED to prevent conflicts with inline styles */
+  /* Header dropdown styling - ensure dropdown text is NOT white */
+  .header-global .absolute {
+    color: black !important;
+  }
+  
+  .header-global .absolute * {
+    color: black !important;
+  }
   
   /* Ensure logo and brand text are visible */
   .header-global .text-xl {
