@@ -163,11 +163,15 @@ export default function Header() {
                         <Link
                           to={`/company/${userProfile.organizationId}`}
                           onClick={() => setIsLibrariesDropdownOpen(false)}
-                          className={`flex items-center space-x-2 px-4 py-2 text-sm text-white hover:bg-gray-700 hover:text-white transition-colors ${
-                            location.pathname.startsWith('/company/') ? 'bg-blue-600 text-white' : ''
+                          className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors ${
+                            location.pathname.startsWith('/company/') ? 'bg-blue-600' : ''
                           }`}
+                          style={{
+                            color: 'white',
+                            backgroundColor: location.pathname.startsWith('/company/') ? '#2563eb' : 'transparent'
+                          }}
                         >
-                          <BuildingOfficeIcon className="w-4 h-4 text-gray-300" />
+                          <BuildingOfficeIcon className="w-4 h-4" style={{ color: '#d1d5db' }} />
                           <span>{userProfile.organizationName || 'Company'}</span>
                         </Link>
                       )}
@@ -177,11 +181,15 @@ export default function Header() {
                         <Link
                           to={`/company/${userProfile.organizationId}/network/main`}
                           onClick={() => setIsLibrariesDropdownOpen(false)}
-                          className={`flex items-center space-x-2 px-4 py-2 text-sm text-white hover:bg-gray-700 hover:text-white transition-colors ${
-                            location.pathname.includes('/network/') ? 'bg-blue-600 text-white' : ''
+                          className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors ${
+                            location.pathname.includes('/network/') ? 'bg-blue-600' : ''
                           }`}
+                          style={{
+                            color: 'white',
+                            backgroundColor: location.pathname.includes('/network/') ? '#2563eb' : 'transparent'
+                          }}
                         >
-                          <UserGroupIcon className="w-4 h-4 text-gray-300" />
+                          <UserGroupIcon className="w-4 h-4" style={{ color: '#d1d5db' }} />
                           <span>Network</span>
                         </Link>
                       )}
@@ -190,11 +198,15 @@ export default function Header() {
                       <Link
                         to="/my-agents"
                         onClick={() => setIsLibrariesDropdownOpen(false)}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm text-white hover:bg-gray-700 hover:text-white transition-colors ${
-                          location.pathname === '/my-agents' ? 'bg-blue-600 text-white' : ''
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors ${
+                          location.pathname === '/my-agents' ? 'bg-blue-600' : ''
                         }`}
+                        style={{
+                          color: 'white',
+                          backgroundColor: location.pathname === '/my-agents' ? '#2563eb' : 'transparent'
+                        }}
                       >
-                        <UserIcon className="w-4 h-4 text-gray-300" />
+                        <UserIcon className="w-4 h-4" style={{ color: '#d1d5db' }} />
                         <span>My Library</span>
                       </Link>
                     </div>

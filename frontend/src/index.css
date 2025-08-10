@@ -59,25 +59,7 @@
     color: white !important;
   }
   
-  /* Header dropdown styling - ensure proper contrast */
-  .header-global .absolute {
-    background: #1f2937 !important; /* bg-gray-800 */
-    color: white !important;
-    border: 1px solid #4b5563 !important; /* border-gray-600 */
-  }
-  
-  .header-global .absolute * {
-    color: white !important;
-  }
-  
-  .header-global .absolute a:hover {
-    background-color: #374151 !important; /* bg-gray-700 */
-    color: white !important;
-  }
-  
-  .header-global .absolute a:hover * {
-    color: white !important;
-  }
+  /* Header dropdown styling - REMOVED to prevent conflicts with inline styles */
   
   /* Ensure logo and brand text are visible */
   .header-global .text-xl {
