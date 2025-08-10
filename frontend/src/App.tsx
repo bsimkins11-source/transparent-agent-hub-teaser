@@ -21,6 +21,7 @@ import AdminRoute from './components/AdminRoute'
 import AdminRouteHandler from './components/AdminRouteHandler'
 import LoginPage from './pages/LoginPage'
 import CreatorPortal from './pages/CreatorPortal'
+import AgentSystemTestSuite from './components/AgentSystemTestSuite'
 
 // Wrapper component to provide company branding context with route params
 function CompanyAdminWrapper() {
@@ -161,6 +162,9 @@ function App() {
             />
             
             <Route path="login" element={<LoginPage />} />
+            
+            {/* Test Suite Route - Development/Testing Only */}
+            <Route path="test-suite" element={<AgentSystemTestSuite />} />
           </Route>
           </Routes>
         </div>

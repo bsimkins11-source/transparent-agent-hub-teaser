@@ -29,7 +29,7 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
         authDomain: 'transparent-ai-staging.firebaseapp.com',
         projectId: 'transparent-ai-staging',
         storageBucket: 'transparent-ai-staging.appspot.com',
-        messagingSenderId: import.meta.env.VITE_FIREBASE_SENDER_ID_STAGING || '',
+        messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID_STAGING || '',
         appId: import.meta.env.VITE_FIREBASE_APP_ID_STAGING || ''
       },
       features: {
@@ -49,7 +49,7 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
       authDomain: 'ai-agent-hub-web-portal-79fb0.firebaseapp.com',
       projectId: 'ai-agent-hub-web-portal-79fb0',
       storageBucket: 'ai-agent-hub-web-portal-79fb0.appspot.com',
-      messagingSenderId: import.meta.env.VITE_FIREBASE_SENDER_ID || '',
+              messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
       appId: import.meta.env.VITE_FIREBASE_APP_ID || ''
     },
     features: {

@@ -204,6 +204,39 @@ export default function HierarchicalAgentLibrary({
     return filtered;
   }, [agents, filters]);
 
+  // Test function to verify agent assignment functionality is working
+  const testAgentAssignment = async () => {
+    if (!userProfile?.uid) {
+      toast.error('Please sign in to test agent assignment');
+      return;
+    }
+
+    console.log('🧪 Testing agent assignment functionality...');
+    
+    // Find a free agent to test with
+    const testAgent = agents.find(a => 
+      (a.metadata?.tier === 'free' || !a.metadata?.tier) && 
+      !a.inUserLibrary && 
+      a.canAdd
+    );
+
+    if (!testAgent) {
+      toast.error('No test agent available. All free agents are already in your library or not available.');
+      return;
+    }
+
+    console.log('🧪 Found test agent:', testAgent.name);
+    toast('Testing agent assignment...', { icon: '🧪' });
+    
+    try {
+      await handleAddToLibrary(testAgent);
+      toast.success('Test successful! Agent assignment is working.');
+    } catch (error) {
+      console.error('🧪 Test failed:', error);
+      toast.error('Test failed. Check console for details.');
+    }
+  };
+
   // Get unique tags from all agents for filter options
   const availableTags = useMemo(() => {
     const tagSet = new Set<string>();
@@ -365,6 +398,15 @@ export default function HierarchicalAgentLibrary({
       return;
     }
 
+    console.log('🔄 Starting agent assignment process:', {
+      agentId: agent.id,
+      agentName: agent.name,
+      userId: userProfile.uid,
+      userEmail: userProfile.email,
+      organizationId: userProfile.organizationId,
+      networkId: userProfile.networkId
+    });
+
     // Check if agent requires approval
     const requiresApproval = agent.metadata?.tier === 'premium' || agent.metadata?.permissionType === 'approval';
     
@@ -381,13 +423,21 @@ export default function HierarchicalAgentLibrary({
     
     // For free agents, check if they can be added directly
     if (!agent.canAdd) {
+      console.warn('❌ Agent cannot be added:', {
+        agentId: agent.id,
+        agentName: agent.name,
+        canAdd: agent.canAdd,
+        canRequest: agent.canRequest,
+        accessLevel: agent.accessLevel
+      });
       toast.error('This agent is not available to your organization.');
       return;
     }
     
     try {
-      // Adding agent to library
+      console.log('✅ Agent can be added, proceeding with assignment...');
       
+      // Adding agent to library
       await addAgentToUserLibrary(
         userProfile.uid,
         userProfile.email,
@@ -401,9 +451,11 @@ export default function HierarchicalAgentLibrary({
         `Added from ${currentLibrary} library`
       );
       
+      console.log('✅ Agent successfully added to user library');
       toast.success(`${agent.name} added to your library!`);
       
       // Refresh library data to update UI with force refresh
+      console.log('🔄 Refreshing library data...');
       await loadLibraryData(true);
       
       // Also refresh the current agent's state immediately for better UX
@@ -415,13 +467,20 @@ export default function HierarchicalAgentLibrary({
         )
       );
       
+      console.log('✅ UI state updated successfully');
+      
     } catch (error) {
-      console.error('Failed to add agent to library:', error);
+      console.error('❌ Failed to add agent to library:', error);
       console.error('Full error details:', {
         error,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : 'No stack trace',
         agentId: agent.id,
+        agentName: agent.name,
         userId: userProfile.uid,
-        stack: error instanceof Error ? error.stack : 'No stack trace'
+        userEmail: userProfile.email,
+        organizationId: userProfile.organizationId,
+        networkId: userProfile.networkId
       });
       toast.error(`Failed to add ${agent.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -1572,7 +1631,6 @@ export default function HierarchicalAgentLibrary({
           </motion.div>
         </div>
       )}
-
 
     </div>
   );

@@ -9,7 +9,8 @@ import {
   ShieldCheckIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  CogIcon
+  CogIcon,
+  InformationCircleIcon
 } from '@heroicons/react/24/outline';
 import { Agent } from '../types/agent';
 import toast from 'react-hot-toast';

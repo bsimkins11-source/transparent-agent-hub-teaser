@@ -226,7 +226,18 @@ const getAgentContext = async (
   userProfile: UserProfile | null,
   currentLibrary: LibraryType
 ): Promise<Omit<AgentWithContext, keyof Agent | 'inUserLibrary'>> => {
-  // Debug logging removed for production
+  // Debug logging for development
+  console.log(`🔍 Getting context for agent: ${agent.name} (${agent.id})`, {
+    currentLibrary,
+    userProfile: userProfile ? {
+      uid: userProfile.uid,
+      organizationId: userProfile.organizationId,
+      networkId: userProfile.networkId,
+      role: userProfile.role
+    } : null,
+    agentTier: agent.metadata?.tier,
+    agentPermissionType: agent.metadata?.permissionType
+  });
   
   const context: Omit<AgentWithContext, keyof Agent | 'inUserLibrary'> = {
     availableIn: [],
@@ -238,6 +249,7 @@ const getAgentContext = async (
   
   // For personal library, we need to handle this differently
   if (currentLibrary === 'personal') {
+    console.log(`🔍 Personal library context for ${agent.name}`);
     // For personal library, free agents can be added directly
     if (agent.metadata?.tier === 'free' || !agent.metadata?.tier) {
       context.availableIn = ['personal'];
@@ -246,6 +258,7 @@ const getAgentContext = async (
       context.canRequest = false;
       context.assignmentType = 'free';
       context.grantedBy = 'super_admin';
+      console.log(`✅ ${agent.name} marked as addable in personal library (free tier)`);
     } else if (agent.metadata?.tier === 'premium') {
       // Premium agents require approval
       context.availableIn = ['personal'];
@@ -254,12 +267,14 @@ const getAgentContext = async (
       context.canRequest = true;
       context.assignmentType = 'approval';
       context.grantedBy = 'super_admin';
+      console.log(`⚠️ ${agent.name} marked as requestable in personal library (premium tier)`);
     }
     return context;
   }
   
   // For global library, free agents are always available to add
   if (currentLibrary === 'global' && (agent.metadata?.tier === 'free' || !agent.metadata?.tier)) {
+    console.log(`🔍 Global library context for ${agent.name} (free tier)`);
     // Free agent in global library
     context.availableIn = ['global'];
     context.accessLevel = 'direct';
@@ -267,11 +282,13 @@ const getAgentContext = async (
     context.canRequest = false;
     context.assignmentType = 'free';
     context.grantedBy = 'super_admin';
+    console.log(`✅ ${agent.name} marked as addable in global library (free tier)`);
     return context;
   }
   
   // For global library, premium agents require approval
   if (currentLibrary === 'global' && agent.metadata?.tier === 'premium') {
+    console.log(`🔍 Global library context for ${agent.name} (premium tier)`);
     // Premium agent in global library
     context.availableIn = ['global'];
     context.accessLevel = 'request';
@@ -279,10 +296,12 @@ const getAgentContext = async (
     context.canRequest = true;
     context.assignmentType = 'approval';
     context.grantedBy = 'super_admin';
+    console.log(`⚠️ ${agent.name} marked as requestable in global library (premium tier)`);
     return context;
   }
 
   if (!userProfile || userProfile.organizationId === 'unassigned') {
+    console.log(`❌ No user profile or unassigned user for ${agent.name}`);
     return context;
   }
   
@@ -295,6 +314,7 @@ const getAgentContext = async (
     
     // Check company-level access (granted by Super Admin)
     if (userProfile.organizationId) {
+      console.log(`🔍 Checking company-level access for ${agent.name} in org: ${userProfile.organizationId}`);
       const companyPermissions = await getCompanyAgentPermissions(userProfile.organizationId);
       const companyHasAccess = companyPermissions?.permissions[agent.id]?.granted;
       
@@ -311,9 +331,11 @@ const getAgentContext = async (
         context.availableIn.push('company');
         finalAssignmentType = companyPermissions.permissions[agent.id].assignmentType;
         grantedBy = 'super_admin';
+        console.log(`✅ ${agent.name} has company-level access: ${finalAssignmentType}`);
         
         // Check network-level access (granted by Company Admin)
         if (userProfile.networkId) {
+          console.log(`🔍 Checking network-level access for ${agent.name} in network: ${userProfile.networkId}`);
           const networkPermissions = await getNetworkAgentPermissions(userProfile.organizationId, userProfile.networkId);
           const networkHasAccess = networkPermissions?.permissions[agent.id]?.granted;
           
@@ -322,6 +344,7 @@ const getAgentContext = async (
             // Network-level permissions override company-level
             finalAssignmentType = networkPermissions.permissions[agent.id].assignmentType;
             grantedBy = 'company_admin';
+            console.log(`✅ ${agent.name} has network-level access: ${finalAssignmentType}`);
           }
         }
       } else {
@@ -330,6 +353,7 @@ const getAgentContext = async (
           context.availableIn.push('company');
           finalAssignmentType = 'free'; // Free agents can be added directly
           grantedBy = 'super_admin'; // Default to super admin grant
+          console.log(`✅ ${agent.name} marked as addable (free tier fallback)`);
         }
       }
     }
@@ -345,28 +369,50 @@ const getAgentContext = async (
         context.accessLevel = 'direct';
         context.canAdd = true;
         context.canRequest = false;
+        console.log(`✅ ${agent.name} final context: canAdd=true, canRequest=false (free)`);
         break;
         
       case 'direct':
-        // Direct agents require admin assignment, users can request
-        context.accessLevel = 'request';
-        context.canAdd = false;
-        context.canRequest = true;
+        // Direct agents can be added directly by users
+        context.accessLevel = 'direct';
+        context.canAdd = true;
+        context.canRequest = false;
+        console.log(`✅ ${agent.name} final context: canAdd=true, canRequest=false (direct)`);
         break;
         
       case 'approval':
-        // Approval agents require admin approval, users can request
+        // Approval agents require admin approval
         context.accessLevel = 'request';
         context.canAdd = false;
         context.canRequest = true;
+        console.log(`⚠️ ${agent.name} final context: canAdd=false, canRequest=true (approval)`);
+        break;
+        
+      default:
+        // Restricted agents are not available
+        context.accessLevel = 'restricted';
+        context.canAdd = false;
+        context.canRequest = false;
+        console.log(`❌ ${agent.name} final context: canAdd=false, canRequest=false (restricted)`);
         break;
     }
     
+    console.log(`🎯 Final context for ${agent.name}:`, {
+      availableIn: context.availableIn,
+      accessLevel: context.accessLevel,
+      canAdd: context.canAdd,
+      canRequest: context.canRequest,
+      assignmentType: context.assignmentType,
+      grantedBy: context.grantedBy
+    });
+    
+    return context;
+    
   } catch (error) {
-    logger.warn('Error getting agent context', { agentId: agent.id, error }, 'LibraryService');
+    console.error(`❌ Error getting context for ${agent.name}:`, error);
+    logger.error('Error getting agent context', error, 'LibraryService');
+    return context;
   }
-  
-  return context;
 };
 
 /**

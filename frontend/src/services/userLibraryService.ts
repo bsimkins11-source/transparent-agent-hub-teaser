@@ -109,9 +109,20 @@ export const addAgentToUserLibrary = async (
 ): Promise<void> => {
   try {
     logger.debug('Starting addAgentToUserLibrary', { userId, agentId, agentName }, 'UserLibraryService');
+    console.log('🚀 addAgentToUserLibrary called with:', {
+      userId,
+      agentId,
+      agentName,
+      organizationId,
+      organizationName,
+      networkId,
+      networkName,
+      assignmentReason
+    });
     
     // Create a direct assignment record
     try {
+      console.log('📝 Creating direct assignment record...');
       await directAgentAssignment(
         userId,
         userEmail,
@@ -127,19 +138,23 @@ export const addAgentToUserLibrary = async (
         networkName,
         assignmentReason || 'Self-assigned free agent'
       );
+      console.log('✅ Direct assignment record created successfully');
       logger.debug('Direct assignment created', { userId, agentId }, 'UserLibraryService');
     } catch (assignmentError) {
+      console.warn('⚠️ Failed to create assignment record, continuing with user profile update:', assignmentError);
       logger.warn('Failed to create assignment record, continuing with user profile update', assignmentError, 'UserLibraryService');
       // Continue with the user profile update even if assignment record fails
     }
 
     // Update user profile with assigned agent
+    console.log('👤 Updating user profile with agent...');
     logger.debug('Updating user profile with agent', { userId, agentId }, 'UserLibraryService');
     const userDocRef = doc(db, 'users', userId);
     
     // Check if user document exists first
     const userDoc = await getDoc(userDocRef);
     if (!userDoc.exists()) {
+      console.log('📄 User document does not exist, creating it...');
       logger.debug('User document does not exist, creating it', { userId }, 'UserLibraryService');
       // Create the user document first
       const newUserData: UserProfileData = {
@@ -160,20 +175,37 @@ export const addAgentToUserLibrary = async (
         newUserData.networkName = networkName;
       }
       
+      console.log('📄 Creating new user document with data:', newUserData);
       await setDoc(userDocRef, newUserData);
+      console.log('✅ User document created successfully');
       logger.info('User document created with agent', { userId, agentId }, 'UserLibraryService');
     } else {
+      console.log('📄 User document exists, updating assignedAgents array...');
       logger.debug('User document exists, updating', { userId }, 'UserLibraryService');
+      
+      const currentData = userDoc.data();
+      const currentAssignedAgents = currentData.assignedAgents || [];
+      console.log('📄 Current assigned agents:', currentAssignedAgents);
+      
+      if (currentAssignedAgents.includes(agentId)) {
+        console.log('⚠️ Agent already in user library, skipping update');
+        logger.warn('Agent already in user library', { userId, agentId }, 'UserLibraryService');
+        return; // Agent already assigned
+      }
+      
       await updateDoc(userDocRef, {
         assignedAgents: arrayUnion(agentId),
         updatedAt: new Date().toISOString()
       });
+      console.log('✅ User profile updated successfully');
       logger.info('User profile updated with agent', { userId, agentId }, 'UserLibraryService');
     }
     
+    console.log('🎉 Agent added to user library successfully!');
     logger.info('Agent added to user library successfully', { userId, agentId, agentName }, 'UserLibraryService');
     
   } catch (error) {
+    console.error('❌ Error in addAgentToUserLibrary:', error);
     logger.error('Error adding agent to user library', error, 'UserLibraryService');
     throw error;
   }
