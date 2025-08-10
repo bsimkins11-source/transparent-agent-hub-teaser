@@ -8,7 +8,8 @@ import {
   ChatBubbleLeftRightIcon,
   TagIcon,
   PlusIcon,
-  ClockIcon
+  ClockIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline'
 
 interface AgentCardProps {
@@ -18,7 +19,10 @@ interface AgentCardProps {
     secondaryColor: string
   }
   showAddToLibrary?: boolean
+  showRequestAccess?: boolean
   onAddToLibrary?: (agent: Agent) => void
+  onRemoveFromLibrary?: (agent: Agent) => void
+  onRequestAccess?: (agent: Agent) => void
   isInUserLibrary?: boolean
 }
 
@@ -34,7 +38,7 @@ const providerIcons = {
   anthropic: '🧠'
 }
 
-export default function AgentCard({ agent, companyBranding, showAddToLibrary = true, onAddToLibrary, isInUserLibrary = false }: AgentCardProps) {
+export default function AgentCard({ agent, companyBranding, showAddToLibrary = true, showRequestAccess = false, onAddToLibrary, onRemoveFromLibrary, onRequestAccess, isInUserLibrary = false }: AgentCardProps) {
   const { userProfile } = useAuth()
   
   // Determine permission type from agent metadata  
@@ -62,6 +66,21 @@ export default function AgentCard({ agent, companyBranding, showAddToLibrary = t
       if (onAddToLibrary) {
         onAddToLibrary(agent)
       }
+    }
+  }
+
+  const handleRemoveFromLibrary = (e: React.MouseEvent) => {
+    e.preventDefault() // Prevent navigation to agent page
+    e.stopPropagation()
+    
+    if (!userProfile) {
+      toast.error('Please sign in to manage your library')
+      return
+    }
+    
+    // Show confirmation before removing
+    if (onRemoveFromLibrary) {
+      onRemoveFromLibrary(agent)
     }
   }
   return (
@@ -150,11 +169,21 @@ export default function AgentCard({ agent, companyBranding, showAddToLibrary = t
             {showAddToLibrary && (
               <div className="mb-3">
                 {isInUserLibrary ? (
-                  <div className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600 cursor-not-allowed">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    <span>Already in Library</span>
+                  <div className="flex space-x-2">
+                    <div className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-600">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      <span>In Library</span>
+                    </div>
+                    <button
+                      onClick={handleRemoveFromLibrary}
+                      className="px-3 py-2 rounded-lg text-sm font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-colors flex items-center space-x-1"
+                      title="Remove from library"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                      <span className="hidden sm:inline">Remove</span>
+                    </button>
                   </div>
                 ) : (
                   <button
@@ -178,6 +207,25 @@ export default function AgentCard({ agent, companyBranding, showAddToLibrary = t
                     )}
                   </button>
                 )}
+              </div>
+            )}
+
+            {/* Request Access Button */}
+            {showRequestAccess && !isInUserLibrary && (
+              <div className="mb-3">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (onRequestAccess) {
+                      onRequestAccess(agent);
+                    }
+                  }}
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                >
+                  <ClockIcon className="w-4 h-4" />
+                  <span>Request Access</span>
+                </button>
               </div>
             )}
             

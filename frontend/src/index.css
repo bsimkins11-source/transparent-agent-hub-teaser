@@ -8,48 +8,173 @@
   }
   
   body {
-    @apply bg-gray-50 text-gray-900;
+    @apply bg-transparent-50 text-gray-900;
+  }
+  
+  /* Global Transparent.partners color system */
+  :root {
+    --transparent-primary: #043C46;
+    --transparent-secondary: #0f766e;
+    --transparent-accent: #14b8a6;
+    --transparent-light: #5eead4;
+    --transparent-lighter: #99f6e4;
+    --transparent-lightest: #f0fdfa;
+    --transparent-orange: #EA7732;
+    --transparent-orange-light: #f5954a;
+    --transparent-orange-dark: #d65a1a;
   }
 }
 
 @layer components {
+  /* Header styling - ensure consistent appearance */
+  .header-global {
+    background: linear-gradient(90deg, #043C46 0%, #043C46 66%, #0F5F6B 100%);
+    color: white;
+  }
+  
+  .header-global * {
+    color: inherit;
+  }
+  
+  /* Ensure navigation text has proper contrast */
+  .header-global nav a,
+  .header-global nav button,
+  .header-global nav span {
+    color: white !important;
+  }
+  
+  .header-global .text-white\/80,
+  .header-global .text-white\/90 {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+  
+  .header-global .text-white\/80:hover,
+  .header-global .text-white\/90:hover {
+    color: white !important;
+  }
+  
+  /* Header dropdown styling - ensure proper contrast */
+  .header-global .absolute {
+    background: white !important;
+    color: #374151 !important; /* text-gray-700 */
+    border: 1px solid #e5e7eb !important; /* border-gray-200 */
+  }
+  
+  .header-global .absolute * {
+    color: #374151 !important; /* text-gray-700 */
+  }
+  
+  .header-global .absolute a:hover {
+    background-color: #f9fafb !important; /* bg-gray-50 */
+    color: #111827 !important; /* text-gray-900 */
+  }
+  
+  .header-global .absolute a:hover * {
+    color: #111827 !important; /* text-gray-900 */
+  }
+  
+  /* Ensure logo and brand text are visible */
+  .header-global .text-xl {
+    color: white !important;
+  }
+  
+  /* Ensure user menu text is visible */
+  .header-global .text-white\/90 {
+    color: rgba(255, 255, 255, 0.9) !important;
+  }
+  
+  .header-global .text-white\/80 {
+    color: rgba(255, 255, 255, 0.8) !important;
+  }
+  
+  .header-global .text-white\/80:hover {
+    color: white !important;
+  }
+  
+  /* Global button and form styling */
   .btn-primary {
-    @apply bg-brand-600 hover:bg-brand-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2;
+    @apply bg-transparent-800 hover:bg-transparent-900 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-transparent-500 focus:ring-offset-2;
   }
   
   .btn-secondary {
-    @apply bg-white hover:bg-gray-50 text-gray-700 font-medium py-3 px-6 rounded-lg border border-gray-300 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2;
+    @apply bg-white hover:bg-transparent-50 text-gray-700 font-medium py-3 px-6 rounded-lg border border-transparent-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-transparent-500 focus:ring-offset-2;
   }
   
   .btn-ghost {
-    @apply text-gray-600 hover:text-gray-900 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2;
+    @apply text-transparent-700 hover:text-transparent-900 font-medium py-2 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-transparent-500 focus:ring-offset-2;
   }
   
+  /* Card and form styling */
   .card {
-    @apply bg-white rounded-xl shadow-soft border border-gray-200 hover:shadow-medium transition-shadow duration-200;
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6;
   }
   
   .input-field {
-    @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200;
+    @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-transparent-500 focus:border-transparent-500;
   }
   
   .agent-card {
-    @apply card p-6 hover:shadow-large transition-all duration-200 cursor-pointer;
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow duration-200;
   }
   
   .agent-card:hover {
-    @apply transform -translate-y-1;
+    @apply shadow-md;
   }
   
   .action-card {
-    @apply card p-6 h-full hover:shadow-medium transition-all duration-200 cursor-pointer;
+    @apply bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200 cursor-pointer;
   }
   
   .action-card:hover {
     @apply transform -translate-y-1;
   }
   
-
+  /* Status badge styling */
+  .status-badge {
+    @apply px-2 py-1 rounded-full text-xs font-medium;
+  }
+  
+  .status-badge-success {
+    @apply bg-transparent-100 text-transparent-800;
+  }
+  
+  .status-badge-warning {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+  
+  .status-badge-error {
+    @apply bg-red-100 text-red-800;
+  }
+  
+  /* Transparent.partners accent color styles */
+  .accent-highlight {
+    @apply text-accent-500;
+  }
+  
+  .accent-border {
+    @apply border-accent-200;
+  }
+  
+  .accent-bg {
+    @apply bg-accent-50;
+  }
+  
+  .accent-hover {
+    @apply hover:bg-accent-50 hover:text-accent-700;
+  }
+  
+  .accent-focus {
+    @apply focus:ring-accent-500 focus:border-accent-500;
+  }
+  
+  /* Interactive elements with accent color */
+  .interactive-element {
+    @apply text-transparent-700 hover:text-accent-600 transition-colors duration-200;
+  }
+  
+  .interactive-element:hover {
+    @apply text-accent-600;
+  }
 }
 
 @layer utilities {

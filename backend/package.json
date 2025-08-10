@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
+    "setup": "node setup-and-run.js",
     "test": "jest",
     "deploy": "gcloud run deploy agent-backend --source . --region us-central1 --platform managed"
   },

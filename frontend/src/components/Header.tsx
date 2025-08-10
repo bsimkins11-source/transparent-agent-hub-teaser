@@ -25,6 +25,44 @@ export default function Header() {
   const librariesDropdownRef = useRef<HTMLDivElement>(null)
   const adminDropdownRef = useRef<HTMLDivElement>(null)
 
+  // Determine if we're in a company environment
+  const isCompanyEnvironment = userProfile && 
+    userProfile.organizationId !== 'unassigned' && 
+    userProfile.organizationId !== 'pending-assignment'
+
+  // Get company branding colors
+  const getCompanyColors = () => {
+    if (!isCompanyEnvironment) return null
+    
+    // Default Transparent Partners colors
+    if (userProfile?.organizationId === 'transparent-partners') {
+      return {
+        primary: '#043C46',     // transparent teal
+        secondary: '#0f766e',   // teal-700
+        accent: '#14b8a6',      // teal-500
+        light: '#5eead4',       // teal-300
+        text: '#ffffff'         // white text for contrast
+      }
+    }
+    
+    // For other companies, could load from localStorage or API
+    const savedBranding = localStorage.getItem(`company-branding-${userProfile?.organizationId}`)
+    if (savedBranding) {
+      const branding = JSON.parse(savedBranding)
+      return {
+        primary: branding.primaryColor || '#043C46',
+        secondary: branding.secondaryColor || '#0f766e',
+        accent: branding.accentColor || '#14b8a6',
+        light: branding.lightColor || '#5eead4',
+        text: '#ffffff'
+      }
+    }
+    
+    return null
+  }
+
+  const companyColors = getCompanyColors()
+
   // Close dropdowns when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -54,18 +92,29 @@ export default function Header() {
     <motion.header 
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200/50"
+      className={`header-global fixed top-0 left-0 right-0 z-50 backdrop-blur-md border-b ${
+        isCompanyEnvironment 
+          ? 'border-white/20' 
+          : 'border-transparent'
+      }`}
+      style={isCompanyEnvironment ? {
+        background: `linear-gradient(90deg, ${companyColors?.primary} 0%, ${companyColors?.primary} 66%, ${companyColors?.secondary} 100%)`,
+      } : {
+        background: 'linear-gradient(90deg, #043C46 0%, #043C46 66%, #0F5F6B 100%)',
+      }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <img 
-              src="/transparent-partners-logo.png" 
+              src="/transparent-partners-logo-white.png" 
               alt="Transparent Partners" 
               className="h-8 w-auto"
             />
-            <span className="text-xl font-semibold text-gray-900">
+            <span className={`text-xl font-semibold ${
+              isCompanyEnvironment ? 'text-white' : 'text-white'
+            }`}>
               Agent Hub
             </span>
           </Link>
@@ -78,7 +127,11 @@ export default function Header() {
                 <div className="relative" ref={librariesDropdownRef}>
                   <button
                     onClick={() => setIsLibrariesDropdownOpen(!isLibrariesDropdownOpen)}
-                    className="flex items-center space-x-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                    className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                      isCompanyEnvironment 
+                        ? 'text-white/80 hover:text-white' 
+                        : 'text-white/90 hover:text-white'
+                    }`}
                   >
                     <BookOpenIcon className="w-4 h-4" />
                     <span>Libraries</span>
@@ -91,11 +144,11 @@ export default function Header() {
                       <Link
                         to="/agents"
                         onClick={() => setIsLibrariesDropdownOpen(false)}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
-                          location.pathname === '/agents' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
+                          location.pathname === '/agents' ? 'bg-blue-50 text-blue-700' : ''
                         }`}
                       >
-                        <BookOpenIcon className="w-4 h-4" />
+                        <BookOpenIcon className="w-4 h-4 text-gray-600" />
                         <span>All Agents</span>
                       </Link>
                       
@@ -104,11 +157,11 @@ export default function Header() {
                         <Link
                           to={`/company/${userProfile.organizationId}`}
                           onClick={() => setIsLibrariesDropdownOpen(false)}
-                          className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
-                            location.pathname.startsWith('/company/') ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                          className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
+                            location.pathname.startsWith('/company/') ? 'bg-blue-50 text-blue-700' : ''
                           }`}
                         >
-                          <BuildingOfficeIcon className="w-4 h-4" />
+                          <BuildingOfficeIcon className="w-4 h-4 text-gray-600" />
                           <span>{userProfile.organizationName || 'Company'}</span>
                         </Link>
                       )}
@@ -118,11 +171,11 @@ export default function Header() {
                         <Link
                           to={`/company/${userProfile.organizationId}/network/main`}
                           onClick={() => setIsLibrariesDropdownOpen(false)}
-                          className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
-                            location.pathname.includes('/network/') ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                          className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
+                            location.pathname.includes('/network/') ? 'bg-blue-50 text-blue-700' : ''
                           }`}
                         >
-                          <UserGroupIcon className="w-4 h-4" />
+                          <UserGroupIcon className="w-4 h-4 text-gray-600" />
                           <span>Network</span>
                         </Link>
                       )}
@@ -131,11 +184,11 @@ export default function Header() {
                       <Link
                         to="/my-agents"
                         onClick={() => setIsLibrariesDropdownOpen(false)}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
-                          location.pathname === '/my-agents' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
+                          location.pathname === '/my-agents' ? 'bg-blue-50 text-blue-700' : ''
                         }`}
                       >
-                        <UserIcon className="w-4 h-4" />
+                        <UserIcon className="w-4 h-4 text-gray-600" />
                         <span>My Library</span>
                       </Link>
                       
@@ -157,7 +210,11 @@ export default function Header() {
                   <div className="relative" ref={adminDropdownRef}>
                     <button
                       onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
-                      className="flex items-center space-x-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                      className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                        isCompanyEnvironment 
+                          ? 'text-white/80 hover:text-white' 
+                          : 'text-white/90 hover:text-white'
+                      }`}
                     >
                       <CogIcon className="w-4 h-4" />
                       <span>Admin</span>
@@ -171,11 +228,11 @@ export default function Header() {
                           <Link
                             to="/super-admin"
                             onClick={() => setIsAdminDropdownOpen(false)}
-                            className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
-                              location.pathname === '/super-admin' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                            className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
+                              location.pathname === '/super-admin' ? 'bg-blue-50 text-blue-700' : ''
                             }`}
                           >
-                            <span className="text-purple-600">👑</span>
+                            <span className="text-accent-500">👑</span>
                             <div>
                               <div className="font-medium">Super Admin</div>
                               <div className="text-xs text-gray-500">Global management</div>
@@ -183,17 +240,17 @@ export default function Header() {
                           </Link>
                         )}
                         
-                        {/* Company Admin - For super_admin and company_admin roles */}
+                        {/* Company Admin - ONLY for super_admin and company_admin roles */}
                         {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin') && 
                          userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
                           <Link
                             to="/admin"
                             onClick={() => setIsAdminDropdownOpen(false)}
-                            className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
-                              location.pathname === '/admin' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                            className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
+                              location.pathname === '/admin' ? 'bg-blue-50 text-blue-700' : ''
                             }`}
                           >
-                            <BuildingOfficeIcon className="w-4 h-4" />
+                            <BuildingOfficeIcon className="w-4 h-4 text-gray-600" />
                             <div>
                               <div className="font-medium">Company Admin</div>
                               <div className="text-xs text-gray-500">{userProfile.organizationName}</div>
@@ -201,20 +258,38 @@ export default function Header() {
                           </Link>
                         )}
                         
-                        {/* Network Admin - For users with network admin access */}
-                        {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'network_admin') && 
+                        {/* Network Admin - For network_admin role OR higher roles accessing networks */}
+                        {userProfile.role === 'network_admin' && 
                          userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
                           <Link
                             to="/network-admin"
                             onClick={() => setIsAdminDropdownOpen(false)}
-                            className={`flex items-center space-x-2 px-4 py-2 text-sm hover:bg-gray-50 ${
-                              location.pathname === '/network-admin' ? 'text-blue-600 bg-blue-50' : 'text-gray-700'
+                            className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
+                              location.pathname === '/network-admin' ? 'bg-blue-50 text-blue-700' : ''
                             }`}
                           >
-                            <UserGroupIcon className="w-4 h-4" />
+                            <UserGroupIcon className="w-4 h-4 text-gray-600" />
                             <div>
                               <div className="font-medium">Network Admin</div>
                               <div className="text-xs text-gray-500">Team management</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {/* Network Management - For super_admin and company_admin to access specific networks */}
+                        {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin') && 
+                         userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
+                          <Link
+                            to={`/admin/company/${userProfile.organizationId}`}
+                            onClick={() => setIsAdminDropdownOpen(false)}
+                            className={`flex items-center space-x-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors ${
+                              location.pathname.includes('/admin/company/') ? 'bg-blue-50 text-blue-700' : ''
+                            }`}
+                          >
+                            <UserGroupIcon className="w-4 h-4 text-gray-600" />
+                            <div>
+                              <div className="font-medium">Manage Networks</div>
+                              <div className="text-xs text-gray-500">Network oversight</div>
                             </div>
                           </Link>
                         )}
@@ -224,9 +299,9 @@ export default function Header() {
                           <div className="flex items-center justify-between">
                             <span>Current Role:</span>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              userProfile.role === 'super_admin' ? 'bg-purple-100 text-purple-800' :
-                              userProfile.role === 'company_admin' ? 'bg-blue-100 text-blue-800' :
-                              userProfile.role === 'network_admin' ? 'bg-green-100 text-green-800' :
+                              userProfile.role === 'super_admin' ? 'bg-accent-100 text-accent-800' :
+                              userProfile.role === 'company_admin' ? 'bg-transparent-100 text-transparent-800' :
+                              userProfile.role === 'network_admin' ? 'bg-transparent-100 text-transparent-800' :
                               'bg-gray-100 text-gray-800'
                             }`}>
                               {userProfile.role.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -246,7 +321,7 @@ export default function Header() {
             {currentUser && (
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                className="p-2 rounded-md text-white/70 hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/50"
               >
                 {isMobileMenuOpen ? (
                   <XMarkIcon className="h-6 w-6" />
@@ -261,13 +336,13 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-4">
             {currentUser ? (
               <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2 text-sm text-gray-700">
+                <div className="flex items-center space-x-2 text-sm text-white/90">
                   <UserIcon className="w-4 h-4" />
                   <span>{currentUser.email}</span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                  className="flex items-center space-x-1 text-sm text-white/80 hover:text-white transition-colors"
                 >
                   <ArrowRightOnRectangleIcon className="w-4 h-4" />
                   <span>Logout</span>
@@ -291,7 +366,7 @@ export default function Header() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="md:hidden bg-white border-b border-gray-200"
+          className="md:hidden border-b border-white/20 bg-white"
         >
           <div className="px-4 pt-2 pb-3 space-y-1">
             {/* Agent Libraries */}
@@ -303,11 +378,11 @@ export default function Header() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
                   location.pathname === '/agents'
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-transparent-50 text-transparent-700'
+                    : 'text-gray-700 hover:bg-transparent-50'
                 }`}
               >
-                <BookOpenIcon className="w-4 h-4" />
+                <BookOpenIcon className="w-4 h-4 nav-icon" />
                 <span>Master Library</span>
               </Link>
               
@@ -316,11 +391,11 @@ export default function Header() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
                   location.pathname.startsWith('/company/')
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-transparent-50 text-transparent-700'
+                    : 'text-gray-700 hover:bg-transparent-50'
                 }`}
               >
-                <BuildingOfficeIcon className="w-4 h-4" />
+                <BuildingOfficeIcon className="w-4 h-4 nav-icon" />
                 <span>Company Library</span>
               </Link>
               
@@ -329,11 +404,11 @@ export default function Header() {
                 onClick={() => setIsMobileMenuOpen(false)}
                 className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium ${
                   location.pathname === '/my-agents'
-                    ? 'bg-blue-50 text-blue-700'
-                    : 'text-gray-700 hover:bg-gray-50'
+                    ? 'bg-transparent-50 text-transparent-700'
+                    : 'text-gray-700 hover:bg-transparent-50'
                 }`}
               >
-                <UserGroupIcon className="w-4 h-4" />
+                <UserGroupIcon className="w-4 h-4 nav-icon" />
                 <span>My Library</span>
               </Link>
             </div>
@@ -350,8 +425,8 @@ export default function Header() {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`block px-3 py-2 rounded-md text-sm font-medium ${
                         location.pathname === '/super-admin'
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'text-gray-700 hover:bg-gray-50'
+                          ? 'bg-transparent-50 text-transparent-700'
+                          : 'text-gray-700 hover:bg-transparent-50'
                       }`}
                     >
                       Super Admin
@@ -361,8 +436,8 @@ export default function Header() {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`block px-3 py-2 rounded-md text-sm font-medium ${
                         location.pathname === '/admin'
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'text-gray-700 hover:bg-gray-50'
+                          ? 'bg-transparent-50 text-transparent-700'
+                          : 'text-gray-700 hover:bg-transparent-50'
                       }`}
                     >
                       Company Admin
@@ -376,8 +451,8 @@ export default function Header() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`block px-3 py-2 rounded-md text-sm font-medium ${
                       location.pathname === '/admin'
-                        ? 'bg-blue-50 text-blue-700'
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? 'bg-transparent-50 text-transparent-700'
+                        : 'text-gray-700 hover:bg-transparent-50'
                     }`}
                   >
                     Company Admin

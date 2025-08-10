@@ -1,5 +1,6 @@
-import { Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './contexts/AuthContext'
+import { Routes, Route, useParams } from 'react-router-dom'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { CompanyBrandingProvider } from './contexts/CompanyBrandingContext'
 import ErrorBoundary from './components/ErrorBoundary'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
@@ -11,10 +12,52 @@ import AdminDashboard from './pages/AdminDashboard'
 import AdminUserManagement from './pages/AdminUserManagement'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
 import CompanyAdminDashboard from './pages/CompanyAdminDashboard'
+import CompanySelectionPage from './pages/CompanySelectionPage'
 import CompanyAgentLibrary from './pages/CompanyAgentLibrary'
 import NetworkAdminDashboard from './pages/NetworkAdminDashboard'
 import AdminRoute from './components/AdminRoute'
+import AdminRouteHandler from './components/AdminRouteHandler'
 import LoginPage from './pages/LoginPage'
+
+// Wrapper component to provide company branding context with route params
+function CompanyAdminWrapper() {
+  const { companyId } = useParams<{ companyId: string }>();
+  return (
+    <CompanyBrandingProvider companyId={companyId}>
+      <CompanyAdminDashboard />
+    </CompanyBrandingProvider>
+  );
+}
+
+// Wrapper for company agent library routes
+function CompanyAgentLibraryWrapper() {
+  const { companySlug } = useParams<{ companySlug: string }>();
+  return (
+    <CompanyBrandingProvider companyId={companySlug}>
+      <CompanyAgentLibrary />
+    </CompanyBrandingProvider>
+  );
+}
+
+// Wrapper for network admin routes
+function NetworkAdminWrapper() {
+  const { companyId } = useParams<{ companyId: string }>();
+  return (
+    <CompanyBrandingProvider companyId={companyId}>
+      <NetworkAdminDashboard />
+    </CompanyBrandingProvider>
+  );
+}
+
+// Wrapper for standalone network admin route (needs company context from user profile)
+function StandaloneNetworkAdminWrapper() {
+  const { userProfile } = useAuth();
+  return (
+    <CompanyBrandingProvider companyId={userProfile?.organizationId}>
+      <NetworkAdminDashboard />
+    </CompanyBrandingProvider>
+  );
+}
 
 function App() {
   return (
@@ -27,15 +70,15 @@ function App() {
             <Route path="agents" element={<AgentLibraryPage />} />
             <Route path="my-agents" element={<MyAgentsPage />} />
             <Route path="agents/:agentId" element={<AgentPage />} />
-            <Route path="company/:companySlug" element={<CompanyAgentLibrary />} />
-            <Route path="company/:companySlug/network/:networkSlug" element={<CompanyAgentLibrary />} />
+            <Route path="company/:companySlug" element={<CompanyAgentLibraryWrapper />} />
+            <Route path="company/:companySlug/network/:networkSlug" element={<CompanyAgentLibraryWrapper />} />
             
             {/* Network Admin Routes */}
             <Route 
               path="network-admin" 
               element={
                 <AdminRoute requiredRole={['super_admin', 'company_admin', 'network_admin']}>
-                  <NetworkAdminDashboard />
+                  <StandaloneNetworkAdminWrapper />
                 </AdminRoute>
               } 
             />
@@ -54,8 +97,24 @@ function App() {
             <Route 
               path="admin" 
               element={
-                <AdminRoute requiredRole="company_admin">
-                  <CompanyAdminDashboard />
+                <AdminRoute requiredRole={['super_admin', 'company_admin']}>
+                  <AdminRouteHandler />
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="admin/company/:companyId" 
+              element={
+                <AdminRoute requiredRole={['super_admin', 'company_admin']}>
+                  <CompanyAdminWrapper />
+                </AdminRoute>
+              } 
+            />
+            <Route 
+              path="admin/network/:companyId/:networkId" 
+              element={
+                <AdminRoute requiredRole={['super_admin', 'company_admin', 'network_admin']}>
+                  <NetworkAdminWrapper />
                 </AdminRoute>
               } 
             />

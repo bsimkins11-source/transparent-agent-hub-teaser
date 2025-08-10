@@ -1,7 +1,62 @@
-import { doc, updateDoc, getDoc, setDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, setDoc, arrayUnion, arrayRemove, collection, addDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { logger } from '../utils/logger';
-import { directAgentAssignment } from './requestService';
+
+/**
+ * Create a direct agent assignment record
+ */
+async function directAgentAssignment(
+  userId: string,
+  userEmail: string,
+  userName: string,
+  agentId: string,
+  agentName: string,
+  assignedBy: string,
+  assignedByEmail: string,
+  assignedByName: string,
+  organizationId: string,
+  organizationName: string,
+  networkId?: string,
+  networkName?: string,
+  assignmentReason?: string
+) {
+  try {
+    logger.debug('Creating direct agent assignment', { userId, agentId }, 'UserLibraryService');
+    
+    const assignmentData: any = {
+      userId,
+      userEmail,
+      userName,
+      agentId,
+      agentName,
+      assignedBy,
+      assignedByEmail,
+      assignedByName,
+      organizationId,
+      organizationName,
+      assignmentType: 'direct',
+      status: 'active',
+      assignmentReason: assignmentReason || 'Direct assignment',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Only include network fields if they have values
+    if (networkId) {
+      assignmentData.networkId = networkId;
+    }
+    if (networkName) {
+      assignmentData.networkName = networkName;
+    }
+
+    await addDoc(collection(db, 'agentAssignments'), assignmentData);
+    logger.info('Direct agent assignment created', { userId, agentId }, 'UserLibraryService');
+    
+  } catch (error) {
+    logger.error('Error creating direct agent assignment', error, 'UserLibraryService');
+    throw error;
+  }
+}
 
 /**
  * Add an agent to user's library
@@ -19,31 +74,68 @@ export const addAgentToUserLibrary = async (
   assignmentReason?: string
 ): Promise<void> => {
   try {
-    logger.debug('Adding agent to user library', { userId, agentId }, 'UserLibraryService');
+    logger.debug('Starting addAgentToUserLibrary', { userId, agentId, agentName }, 'UserLibraryService');
     
     // Create a direct assignment record
-    await directAgentAssignment(
-      userId,
-      userEmail,
-      userName,
-      agentId,
-      agentName,
-      userId, // Self-assignment for free agents
-      userEmail,
-      userName,
-      organizationId,
-      organizationName,
-      networkId,
-      networkName,
-      assignmentReason || 'Self-assigned free agent'
-    );
+    try {
+      await directAgentAssignment(
+        userId,
+        userEmail,
+        userName,
+        agentId,
+        agentName,
+        userId, // Self-assignment for free agents
+        userEmail,
+        userName,
+        organizationId,
+        organizationName,
+        networkId,
+        networkName,
+        assignmentReason || 'Self-assigned free agent'
+      );
+      logger.debug('Direct assignment created', { userId, agentId }, 'UserLibraryService');
+    } catch (assignmentError) {
+      logger.warn('Failed to create assignment record, continuing with user profile update', assignmentError, 'UserLibraryService');
+      // Continue with the user profile update even if assignment record fails
+    }
 
     // Update user profile with assigned agent
+    logger.debug('Updating user profile with agent', { userId, agentId }, 'UserLibraryService');
     const userDocRef = doc(db, 'users', userId);
-    await updateDoc(userDocRef, {
-      assignedAgents: arrayUnion(agentId),
-      updatedAt: new Date().toISOString()
-    });
+    
+    // Check if user document exists first
+    const userDoc = await getDoc(userDocRef);
+    if (!userDoc.exists()) {
+      logger.debug('User document does not exist, creating it', { userId }, 'UserLibraryService');
+      // Create the user document first
+      const newUserData: any = {
+        email: userEmail,
+        displayName: userName,
+        organizationId: organizationId,
+        organizationName: organizationName,
+        assignedAgents: [agentId],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Only include network fields if they have values (Firestore doesn't allow undefined)
+      if (networkId) {
+        newUserData.networkId = networkId;
+      }
+      if (networkName) {
+        newUserData.networkName = networkName;
+      }
+      
+      await setDoc(userDocRef, newUserData);
+      logger.info('User document created with agent', { userId, agentId }, 'UserLibraryService');
+    } else {
+      logger.debug('User document exists, updating', { userId }, 'UserLibraryService');
+      await updateDoc(userDocRef, {
+        assignedAgents: arrayUnion(agentId),
+        updatedAt: new Date().toISOString()
+      });
+      logger.info('User profile updated with agent', { userId, agentId }, 'UserLibraryService');
+    }
     
     logger.info('Agent added to user library successfully', { userId, agentId, agentName }, 'UserLibraryService');
     
@@ -138,15 +230,21 @@ export const createOrUpdateUserProfile = async (
     const userDocRef = doc(db, 'users', userId);
     const userDoc = await getDoc(userDocRef);
     
-    const userData = {
+    const userData: any = {
       email: userEmail,
       displayName: userName,
       organizationId,
       organizationName,
-      networkId,
-      networkName,
       updatedAt: new Date().toISOString()
     };
+    
+    // Only include network fields if they have values (Firestore doesn't allow undefined)
+    if (networkId) {
+      userData.networkId = networkId;
+    }
+    if (networkName) {
+      userData.networkName = networkName;
+    }
     
     if (!userDoc.exists()) {
       // Create new user profile

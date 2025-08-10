@@ -55,7 +55,7 @@ export default function AgentAssignmentManager({
       const currentPermission = currentPermissions[agent.id];
       initialPermissions[agent.id] = {
         granted: currentPermission?.granted || false,
-        assignmentType: currentPermission?.assignmentType || (agent.metadata.tier === 'free' ? 'direct' : 'approval')
+        assignmentType: currentPermission?.assignmentType || (agent.metadata?.tier === 'free' ? 'direct' : 'approval')
       };
     });
     
@@ -109,11 +109,11 @@ export default function AgentAssignmentManager({
   };
 
   const filteredAgents = availableAgents.filter(agent => {
-    const matchesSearch = agent.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-                         agent.description.toLowerCase().includes(filters.search.toLowerCase());
-    const matchesTier = !filters.tier || agent.metadata.tier === filters.tier;
+    const matchesSearch = (agent.name?.toLowerCase() || '').includes(filters.search.toLowerCase()) ||
+                         (agent.description?.toLowerCase() || '').includes(filters.search.toLowerCase());
+    const matchesTier = !filters.tier || agent.metadata?.tier === filters.tier;
     const matchesProvider = !filters.provider || agent.provider === filters.provider;
-    const matchesCategory = !filters.category || agent.metadata.category === filters.category;
+    const matchesCategory = !filters.category || agent.metadata?.category === filters.category;
     
     let matchesStatus = true;
     if (filters.status === 'granted') {

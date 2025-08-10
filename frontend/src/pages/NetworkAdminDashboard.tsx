@@ -16,6 +16,7 @@ import {
   MapIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
+import { useCompanyBrandingFromRoute } from '../contexts/CompanyBrandingContext';
 import StatCard from '../components/StatCard';
 import toast from 'react-hot-toast';
 import { Network, NetworkUser } from '../types/organization';
@@ -24,6 +25,7 @@ import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 export default function NetworkAdminDashboard() {
   const { companySlug, networkSlug } = useParams<{ companySlug: string; networkSlug: string }>();
   const { userProfile } = useAuth();
+  const { companyBranding, loading: brandingLoading } = useCompanyBrandingFromRoute();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [network, setNetwork] = useState<Network | null>(null);
@@ -312,6 +314,7 @@ export default function NetworkAdminDashboard() {
       >
         {/* Header */}
         <div className="mb-8">
+          {/* Company and Network Breadcrumb */}
           <div className="flex items-center space-x-3 mb-4">
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               <BuildingOfficeIcon className="w-4 h-4" />
@@ -328,18 +331,71 @@ export default function NetworkAdminDashboard() {
               {network.type.replace('_', ' ')}
             </span>
           </div>
+          
+          {/* Company Logo and Network Info */}
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {network.name} Network Admin
-              </h1>
-              <p className="text-lg text-gray-600">
-                Manage users and agents for the {network.name} network
-              </p>
+            <div className="flex items-center space-x-4">
+              {/* Company Logo */}
+              {companyBranding?.logo ? (
+                <div className="relative">
+                  <img 
+                    src={companyBranding.logo} 
+                    alt={companyBranding.name}
+                    className="w-16 h-16 rounded-xl object-cover shadow-lg"
+                    onError={(e) => {
+                      // Fallback to initials if image fails to load
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      target.nextElementSibling?.classList.remove('hidden');
+                    }}
+                  />
+                  {/* Fallback initials */}
+                  <div 
+                    className="hidden w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold text-white shadow-lg"
+                    style={{
+                      background: `linear-gradient(135deg, var(--company-primary), var(--company-secondary))`
+                    }}
+                  >
+                    {companyBranding.name.split(' ').map(word => word[0]).join('').toUpperCase()}
+                  </div>
+                </div>
+              ) : (
+                // Fallback initials when no logo
+                <div 
+                  className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl font-bold text-white shadow-lg"
+                  style={{
+                    background: companyBranding 
+                      ? `linear-gradient(135deg, var(--company-primary), var(--company-secondary))`
+                      : 'linear-gradient(135deg, #3b82f6, #8b5cf6)'
+                  }}
+                >
+                  {companyBranding?.name?.split(' ').map(word => word[0]).join('').toUpperCase() || 'N'}
+                </div>
+              )}
+              
+              <div>
+                <h1 
+                  className="text-3xl font-bold mb-2"
+                  style={{
+                    color: companyBranding ? 'var(--company-primary)' : '#111827'
+                  }}
+                >
+                  {network.name} Network Admin
+                </h1>
+                <p className="text-lg text-gray-600">
+                  Manage users and agents for the {network.name} network
+                </p>
+              </div>
             </div>
+            
             <button
               onClick={handleNavigateToAgentLibrary}
               className="btn-primary flex items-center space-x-2"
+              style={{
+                background: companyBranding 
+                  ? `linear-gradient(135deg, var(--company-primary), var(--company-secondary))`
+                  : undefined
+              }}
             >
               <CpuChipIcon className="w-5 h-5" />
               <span>Agent Library</span>

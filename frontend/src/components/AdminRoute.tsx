@@ -26,20 +26,28 @@ export default function AdminRoute({
     return <Navigate to="/login" replace />
   }
   
-  // Check role hierarchy
-  const roleHierarchy = {
-    'user': 0,
-    'network_admin': 1,
-    'company_admin': 2,
-    'super_admin': 3
+  // Check role hierarchy - super admin can access everything
+  if (userProfile.role === 'super_admin') {
+    return <>{children}</>
   }
   
   // Handle array of roles
   if (Array.isArray(requiredRole)) {
     const hasRequiredRole = requiredRole.some(role => {
-      const requiredLevel = roleHierarchy[role] || 0
-      const userRoleLevel = roleHierarchy[userProfile.role] || 0
-      return userRoleLevel >= requiredLevel
+      // Super admin can access everything
+      if (userProfile.role === 'super_admin') return true
+      
+      // Company admin can access company and network admin
+      if (userProfile.role === 'company_admin') {
+        return role === 'company_admin' || role === 'network_admin'
+      }
+      
+      // Network admin can only access network admin
+      if (userProfile.role === 'network_admin') {
+        return role === 'network_admin'
+      }
+      
+      return false
     })
     
     if (!hasRequiredRole) {
@@ -47,10 +55,30 @@ export default function AdminRoute({
     }
   } else {
     // Handle single role
-    const userRoleLevel = roleHierarchy[userProfile.role] || 0
-    const requiredLevel = roleHierarchy[requiredRole as string] || 0
+    const userRole = userProfile.role
+    const requiredRoleStr = requiredRole as string
     
-    if (userRoleLevel < requiredLevel) {
+    // Super admin can access everything
+    if (userRole === 'super_admin') {
+      return <>{children}</>
+    }
+    
+    // Company admin can access company and network admin
+    if (userRole === 'company_admin') {
+      if (requiredRoleStr !== 'company_admin' && requiredRoleStr !== 'network_admin') {
+        return <Navigate to={fallbackPath} replace />
+      }
+    }
+    
+    // Network admin can only access network admin
+    if (userRole === 'network_admin') {
+      if (requiredRoleStr !== 'network_admin') {
+        return <Navigate to={fallbackPath} replace />
+      }
+    }
+    
+    // User role can't access any admin routes
+    if (userRole === 'user') {
       return <Navigate to={fallbackPath} replace />
     }
   }

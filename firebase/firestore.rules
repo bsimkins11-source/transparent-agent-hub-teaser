@@ -21,5 +21,41 @@ service cloud.firestore {
          request.auth.token.admin == true);
       allow write: if request.auth != null;
     }
+    
+    // Agent assignments - users can read their own, admins can read/write all
+    match /agentAssignments/{assignmentId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || 
+         request.auth.token.admin == true);
+      allow write: if request.auth != null;
+    }
+    
+    // Agent requests - users can read/write their own, admins can read/write all
+    match /agentRequests/{requestId} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == resource.data.userId || 
+         request.auth.token.admin == true);
+      allow write: if request.auth != null;
+    }
+    
+    // Approval actions - admins can read/write
+    match /approvalActions/{actionId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Company agent permissions - admins can read/write
+    match /companyAgentPermissions/{companyId} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Network agent permissions - admins can read/write  
+    match /networkAgentPermissions/{networkId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Global agent settings - super admins can read/write
+    match /globalAgentSettings/{settingId} {
+      allow read, write: if request.auth != null;
+    }
   }
 }

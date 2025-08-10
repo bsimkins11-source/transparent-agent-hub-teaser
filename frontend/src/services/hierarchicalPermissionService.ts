@@ -359,3 +359,84 @@ export const getNetworkPermissionStats = async (companyId: string, networkId: st
     return { totalAvailable: 0, totalGranted: 0, byTier: {} };
   }
 };
+
+/**
+ * Global Agent Settings Interface
+ */
+export interface GlobalAgentSettings {
+  agentId: string;
+  enabled: boolean;
+  defaultTier: 'free' | 'premium' | 'enterprise';
+  defaultAssignmentType: 'free' | 'direct' | 'approval';
+  updatedAt: string;
+  updatedBy: string;
+}
+
+export interface GlobalAgentConfig {
+  settings: { [agentId: string]: GlobalAgentSettings };
+  updatedAt: string;
+  updatedBy: string;
+}
+
+/**
+ * Save global agent settings (Super Admin only)
+ */
+export const saveGlobalAgentSettings = async (
+  agentSettings: {[agentId: string]: {enabled: boolean; defaultTier: 'free' | 'premium' | 'enterprise'; defaultAssignmentType: 'free' | 'direct' | 'approval'}},
+  adminId: string,
+  adminName: string
+): Promise<void> => {
+  try {
+    logger.debug('Saving global agent settings', { agentCount: Object.keys(agentSettings).length }, 'HierarchicalPermissions');
+    
+    const settings: { [agentId: string]: GlobalAgentSettings } = {};
+    
+    Object.entries(agentSettings).forEach(([agentId, setting]) => {
+      settings[agentId] = {
+        agentId,
+        enabled: setting.enabled,
+        defaultTier: setting.defaultTier,
+        defaultAssignmentType: setting.defaultAssignmentType,
+        updatedAt: new Date().toISOString(),
+        updatedBy: adminId
+      };
+    });
+    
+    const globalConfig: GlobalAgentConfig = {
+      settings,
+      updatedAt: new Date().toISOString(),
+      updatedBy: adminId
+    };
+    
+    await setDoc(doc(db, 'globalAgentSettings', 'config'), globalConfig);
+    
+    logger.info('Successfully saved global agent settings', { 
+      totalAgents: Object.keys(settings).length,
+      enabledAgents: Object.values(settings).filter(s => s.enabled).length
+    }, 'HierarchicalPermissions');
+    
+  } catch (error) {
+    logger.error('Error saving global agent settings', error, 'HierarchicalPermissions');
+    throw error;
+  }
+};
+
+/**
+ * Get global agent settings
+ */
+export const getGlobalAgentSettings = async (): Promise<GlobalAgentConfig | null> => {
+  try {
+    const globalSettingsRef = doc(db, 'globalAgentSettings', 'config');
+    const globalDoc = await getDoc(globalSettingsRef);
+    
+    if (!globalDoc.exists()) {
+      return null;
+    }
+    
+    return globalDoc.data() as GlobalAgentConfig;
+    
+  } catch (error) {
+    logger.error('Error fetching global agent settings', error, 'HierarchicalPermissions');
+    throw error;
+  }
+};

@@ -22,11 +22,15 @@ export interface UserProfile {
   role: 'user' | 'company_admin' | 'network_admin' | 'super_admin'
   organizationId: string
   organizationName: string
+  networkId?: string  // Only populated for network_admin role
+  networkName?: string  // Only populated for network_admin role
   permissions: {
     canCreateAgents: boolean
     canManageUsers: boolean
     canManageOrganization: boolean
     canViewAnalytics: boolean
+    canManageCompany: boolean  // Only true for company_admin and super_admin
+    canManageNetwork: boolean  // True for network_admin, company_admin, and super_admin
   }
   assignedAgents: string[]
 }
@@ -124,8 +128,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         permissions: {
           canCreateAgents: role === 'super_admin',
           canManageUsers: ['super_admin', 'company_admin', 'network_admin'].includes(role),
-          canManageOrganization: ['super_admin', 'company_admin'].includes(role),
-          canViewAnalytics: role !== 'user'
+          canManageOrganization: role === 'super_admin',  // Only super admin can manage organizations
+          canViewAnalytics: role !== 'user',
+          canManageCompany: ['super_admin', 'company_admin'].includes(role),  // Company-level management
+          canManageNetwork: ['super_admin', 'company_admin', 'network_admin'].includes(role)  // Network-level management
         },
         assignedAgents: []
       }
@@ -158,13 +164,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     try {
       logger.debug('Starting Google authentication', undefined, 'Auth')
-      
       const result = await signInWithPopup(auth, provider)
       const user = result.user
       
       logger.authSuccess('Google authentication successful', { email: user.email })
       await createOrUpdateUserProfile(user)
     } catch (error) {
+      console.error('Google OAuth Error:', error)
       throw handleAuthError(error as AuthError, 'Google login')
     }
   }, [createOrUpdateUserProfile])
@@ -239,6 +245,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (error) {
         logger.error('Auth state change error', error, 'Auth')
+        // Don't show toast here - let the login handlers manage user feedback
       } finally {
         setLoading(false)
       }

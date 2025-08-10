@@ -21,22 +21,13 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     try {
       setLoading(true)
-      console.log('🔐 Starting Google login process...')
       await loginWithGoogle()
-      console.log('✅ Login successful, redirecting...')
-      toast.success('Logged in successfully')
+      toast.success('Welcome! Logged in successfully')
       navigate('/my-agents')
     } catch (error) {
-      console.error('❌ Google login error details:', error)
-      
-      // Show specific error message to user
+      console.error('Google login error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to log in with Google'
       toast.error(errorMessage)
-      
-      // Additional debugging
-      console.log('Error code:', error?.code)
-      console.log('Error message:', error?.message)
-      console.log('Full error:', error)
     } finally {
       setLoading(false)
     }
