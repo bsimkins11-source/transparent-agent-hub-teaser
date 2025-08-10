@@ -86,7 +86,7 @@ export default function AgentCard({
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleCardClick = () => {
+  const handleOpenAgent = () => {
     // Navigate to the agent page
     navigate(`/agent/${agent.id}`);
   };
@@ -112,22 +112,36 @@ export default function AgentCard({
   const getActionButton = () => {
     if (isInUserLibrary) {
       return (
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={(e) => handleAction(onRemoveFromLibrary, e)}
-          disabled={isLoading}
-          className="w-full bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
-        >
-          {isLoading ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <MinusIcon className="w-4 h-4" />
-              <span>Remove</span>
-            </>
-          )}
-        </motion.button>
+        <div className="space-y-2">
+          {/* Primary Open Button */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleOpenAgent}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+          >
+            <SparklesIcon className="w-4 h-4" />
+            <span>Open Agent</span>
+          </motion.button>
+          
+          {/* Small Remove Button */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={(e) => handleAction(onRemoveFromLibrary, e)}
+            disabled={isLoading}
+            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 text-sm py-2 px-3 rounded-md transition-all duration-200 flex items-center justify-center space-x-2"
+          >
+            {isLoading ? (
+              <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <MinusIcon className="w-3 h-3" />
+                <span>Remove</span>
+              </>
+            )}
+          </motion.button>
+        </div>
       );
     }
 
@@ -185,17 +199,15 @@ export default function AgentCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
-      onClick={handleCardClick}
-      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:border-gray-300 group cursor-pointer"
+      className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:border-gray-300 group"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-2 mb-2">
             <span className="text-2xl">{getProviderIcon(agent.provider)}</span>
-            <h3 className="text-lg font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+            <h3 className="text-lg font-semibold text-gray-900 truncate">
               {agent.name}
-              <span className="ml-2 text-sm text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity">→</span>
             </h3>
           </div>
           
