@@ -12,26 +12,35 @@ interface AgentFilters {
 
 export const fetchAgentsFromFirestore = async (filters?: AgentFilters): Promise<{ agents: Agent[] }> => {
   try {
+    console.log('🔥 fetchAgentsFromFirestore called with filters:', filters);
     logger.debug('Fetching agents from Firestore', filters, 'Firestore')
     
     let agentsQuery = collection(db, 'agents')
+    console.log('🔥 Collection reference created for agents');
     
     // Apply filters if provided
     if (filters?.visibility) {
       agentsQuery = query(agentsQuery, where('visibility', '==', filters.visibility))
+      console.log('🔥 Applied visibility filter:', filters.visibility);
     }
     if (filters?.provider) {
       agentsQuery = query(agentsQuery, where('provider', '==', filters.provider))
+      console.log('🔥 Applied provider filter:', filters.provider);
     }
     if (filters?.category) {
       agentsQuery = query(agentsQuery, where('metadata.category', '==', filters.category))
+      console.log('🔥 Applied category filter:', filters.category);
     }
     
+    console.log('🔥 Executing query...');
     const snapshot = await getDocs(agentsQuery)
+    console.log('🔥 Query executed, snapshot size:', snapshot.size);
+    
     const agents: Agent[] = []
     
     snapshot.forEach(doc => {
       const data = doc.data()
+      console.log('🔥 Processing agent document:', doc.id, data.name);
       const agent: Agent = {
         id: doc.id,
         name: data.name,
@@ -52,10 +61,12 @@ export const fetchAgentsFromFirestore = async (filters?: AgentFilters): Promise<
       agents.push(agent)
     })
     
+    console.log('🔥 Processed agents:', agents.length, 'agents');
     logger.info(`Fetched ${agents.length} agents from Firestore`, { agentNames: agents.map(a => a.name) }, 'Firestore')
     return { agents }
     
   } catch (error) {
+    console.error('❌ Error in fetchAgentsFromFirestore:', error);
     logger.error('Error fetching agents from Firestore', error, 'Firestore')
     throw error
   }

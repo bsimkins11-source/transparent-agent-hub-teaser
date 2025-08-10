@@ -1,18 +1,22 @@
-// Firebase configuration - centralized and environment-based
-export const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyAf2KwetCFEARZiaBP_QW07JVT1_tfZ_IY",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "ai-agent-hub-web-portal-79fb0.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "ai-agent-hub-web-portal-79fb0",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "ai-agent-hub-web-portal-79fb0.firebasestorage.app",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "72861076114",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:72861076114:web:1ea856ad05ef5f0eeef44b",
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-JHLXTCXEDR"
-} as const;
+import { initializeApp } from 'firebase/app';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+import { getEnvironmentConfig } from './environment';
 
-// Validate required config
-const requiredFields = ['apiKey', 'authDomain', 'projectId'] as const;
-const missingFields = requiredFields.filter(field => !firebaseConfig[field]);
+const config = getEnvironmentConfig();
 
-if (missingFields.length > 0) {
-  throw new Error(`Missing required Firebase configuration: ${missingFields.join(', ')}`);
-}
+// Initialize Firebase
+const app = initializeApp(config.firebaseConfig);
+
+// Initialize Firebase services
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+
+// Export the app instance
+export default app;
+
+// Export environment info for debugging
+export const environment = config.environment;
+export const projectId = config.projectId;

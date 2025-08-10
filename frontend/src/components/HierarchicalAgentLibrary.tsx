@@ -28,6 +28,33 @@ import {
 import { addAgentToUserLibrary, removeAgentFromUserLibrary } from '../services/userLibraryService';
 import toast from 'react-hot-toast';
 
+// Error boundary component for individual agent cards
+const AgentCardWithErrorBoundary = ({ agent, ...props }: any) => {
+  try {
+    // Validate agent data before rendering
+    if (!agent || !agent.id || !agent.name) {
+      console.error('Invalid agent data:', agent);
+      return (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+          <ExclamationTriangleIcon className="w-8 h-8 text-red-500 mx-auto mb-2" />
+          <p className="text-red-700">Invalid agent data</p>
+        </div>
+      );
+    }
+    
+    return <AgentCard agent={agent} {...props} />;
+  } catch (error) {
+    console.error('Error rendering agent card:', error, agent);
+    return (
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
+        <ExclamationTriangleIcon className="w-8 h-8 text-red-500 mx-auto mb-2" />
+        <p className="text-red-700">Error rendering agent</p>
+        <p className="text-red-600 text-sm">{error instanceof Error ? error.message : 'Unknown error'}</p>
+      </div>
+    );
+  }
+};
+
 interface HierarchicalAgentLibraryProps {
   initialLibrary?: LibraryType;
   showTabs?: boolean;
@@ -204,13 +231,19 @@ export default function HierarchicalAgentLibrary({
 
 
   const loadLibraryData = async (forceRefresh = false) => {
-    if (!userProfile) return;
+    if (!userProfile) {
+      console.log('❌ No user profile - cannot load library data');
+      return;
+    }
     
     try {
       setLoading(true);
+      console.log('🔄 Starting to load library data for:', currentLibrary);
+      console.log('👤 User profile:', { uid: userProfile.uid, email: userProfile.email });
       
       // Check if user can access this library
       if (!canAccessLibrary(currentLibrary, userProfile)) {
+        console.log('❌ User cannot access library:', currentLibrary, 'falling back to global');
         // Fall back to global library
         setCurrentLibrary('global');
         return;
@@ -219,25 +252,39 @@ export default function HierarchicalAgentLibrary({
       // Force refresh by adding a timestamp to bypass cache
       const timestamp = forceRefresh ? Date.now() : 0;
       
+      console.log('📡 Fetching library agents and stats...');
+      console.log('🔍 Calling getLibraryAgents with:', { libraryType: currentLibrary, userId: userProfile.uid });
+      
       const [libraryAgents, libraryStats] = await Promise.all([
         getLibraryAgents(currentLibrary, userProfile),
         getLibraryStats(currentLibrary, userProfile)
       ]);
       
-      // Debug logging for development
-      if (process.env.NODE_ENV === 'development') {
-        console.log('loadLibraryData Debug:', {
-          libraryType: currentLibrary,
-          userId: userProfile.uid,
-          totalAgents: libraryAgents.length,
-          agentsInUserLibrary: libraryAgents.filter(a => a.inUserLibrary).length,
-          geminiAgent: libraryAgents.find(a => a.name.includes('Gemini')),
-          timestamp
-        });
+      console.log('✅ Library data fetched successfully:', {
+        libraryType: currentLibrary,
+        userId: userProfile.uid,
+        totalAgents: libraryAgents.length,
+        agentsInUserLibrary: libraryAgents.filter(a => a.inUserLibrary).length,
+        geminiAgent: libraryAgents.find(a => a.name.includes('Gemini')),
+        timestamp,
+        rawAgents: libraryAgents
+      });
+
+      // Validate agent data before setting state
+      const validAgents = libraryAgents.filter(agent => {
+        if (!agent || !agent.id || !agent.name) {
+          console.error('❌ Invalid agent data found:', agent);
+          return false;
+        }
+        return true;
+      });
+
+      if (validAgents.length !== libraryAgents.length) {
+        console.warn(`⚠️ Filtered out ${libraryAgents.length - validAgents.length} invalid agents`);
       }
 
       // Special debugging for Gemini agent issue
-      if (process.env.NODE_ENV === 'development' && forceRefresh) {
+      if (forceRefresh) {
         console.log('🔍 Force refresh triggered - checking Gemini agent status...');
         try {
           const { doc, getDoc } = await import('firebase/firestore');
@@ -247,7 +294,7 @@ export default function HierarchicalAgentLibrary({
             const userData = userDoc.data();
             console.log('🔍 User document data:', {
               assignedAgents: userData.assignedAgents,
-              hasGemini: userData.assignedAgents?.includes('gemini-agent-id') || 'No Gemini ID found'
+              hasGemini: userData.assignedAgents?.includes('gemini-chat-agent')
             });
           }
         } catch (error) {
@@ -255,14 +302,25 @@ export default function HierarchicalAgentLibrary({
         }
       }
       
-      setAgents(libraryAgents);
+      console.log('🎯 Setting agents state with', validAgents.length, 'valid agents');
+      setAgents(validAgents);
       setStats(libraryStats);
       
     } catch (error) {
-      console.error('Failed to load library data:', error);
+      console.error('❌ Failed to load library data:', error);
+      console.error('❌ Error details:', { 
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace',
+        currentLibrary,
+        userId: userProfile?.uid
+      });
       toast.error('Failed to load agent library');
+      // Set empty arrays to prevent blank screen
+      setAgents([]);
+      setStats(null);
     } finally {
       setLoading(false);
+      console.log('🏁 Library data loading completed');
     }
   };
 
@@ -1388,6 +1446,29 @@ export default function HierarchicalAgentLibrary({
               </div>
             </div>
 
+            {/* Error State */}
+            {!loading && filteredAndSortedAgents.length === 0 && (
+              <div className="text-center py-12">
+                <ExclamationTriangleIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No agents found</h3>
+                <p className="text-gray-600 mb-4">
+                  {currentLibrary === 'personal' 
+                    ? "No agents are currently available in your personal library."
+                    : "No agents found matching your current filters."
+                  }
+                </p>
+                <button
+                  onClick={() => loadLibraryData(true)}
+                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Refresh Library
+                </button>
+              </div>
+            )}
+
             {/* Agent Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredAndSortedAgents.map((agent, index) => (
@@ -1413,7 +1494,7 @@ export default function HierarchicalAgentLibrary({
                     {getAccessBadge(agent)}
                   </div>
                   
-                  <AgentCard
+                  <AgentCardWithErrorBoundary
                     agent={agent}
                     isInUserLibrary={agent.inUserLibrary}
                     showAddToLibrary={agent.canAdd && !agent.inUserLibrary}

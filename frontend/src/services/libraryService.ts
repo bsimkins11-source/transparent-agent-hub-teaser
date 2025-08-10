@@ -41,6 +41,7 @@ export const getLibraryAgents = async (
   userProfile: UserProfile | null
 ): Promise<AgentWithContext[]> => {
   try {
+    console.log('🚀 getLibraryAgents called with:', { libraryType, userId: userProfile?.uid });
     logger.debug(`Fetching ${libraryType} library agents`, { userId: userProfile?.uid }, 'LibraryService');
     
     let agents: Agent[] = [];
@@ -49,16 +50,20 @@ export const getLibraryAgents = async (
       case 'global':
         // Global library shows all agents - the master catalog (both public and private)
         try {
+          console.log('🌍 Fetching global agents from Firestore...');
           const globalData = await fetchAgentsFromFirestore();
           agents = globalData.agents || [];
+          console.log('🌍 Global agents fetched:', agents.length, 'agents');
           
           // If no agents in Firestore, fall back to local data for testing
           if (agents.length === 0) {
+            console.log('⚠️ No agents in Firestore, falling back to local data');
             logger.info('No agents in Firestore, falling back to local data', undefined, 'LibraryService');
             const { AgentDataService } = await import('./agentDataService');
             agents = await AgentDataService.loadLocalAgents();
           }
         } catch (error) {
+          console.error('❌ Error fetching from Firestore:', error);
           logger.warn('Error fetching from Firestore, falling back to local data', error, 'LibraryService');
           const { AgentDataService } = await import('./agentDataService');
           agents = await AgentDataService.loadLocalAgents();
@@ -81,36 +86,46 @@ export const getLibraryAgents = async (
         
       case 'personal':
         // Personal library shows user's assigned agents + available agents they can add
+        console.log('👤 Processing personal library for user:', userProfile?.uid);
         if (userProfile?.uid) {
           try {
+            console.log('📄 Fetching user document...');
             const userDoc = await getDoc(doc(db, 'users', userProfile.uid));
             if (userDoc.exists()) {
               const userData = userDoc.data();
               const assignedAgentIds = userData.assignedAgents || [];
+              console.log('📄 User document found, assigned agents:', assignedAgentIds);
               
               // Get all agents from global collection
+              console.log('🌍 Fetching global agents for personal library...');
               const globalData = await fetchAgentsFromFirestore();
               const allAgents = globalData.agents || [];
+              console.log('🌍 Global agents for personal library:', allAgents.length, 'agents');
               
               // Always show assigned agents first
               const assignedAgents = allAgents.filter(agent => assignedAgentIds.includes(agent.id));
+              console.log('📋 Assigned agents:', assignedAgents.length, 'agents');
               
               // Show available agents that can be added (free agents not yet added)
               const availableFreeAgents = allAgents.filter(agent => 
                 (agent.metadata?.tier === 'free' || !agent.metadata?.tier) && 
                 !assignedAgentIds.includes(agent.id)
               );
+              console.log('🆓 Available free agents:', availableFreeAgents.length, 'agents');
               
               // Show premium agents that can be requested (not yet assigned)
               const availablePremiumAgents = allAgents.filter(agent => 
                 agent.metadata?.tier === 'premium' && 
                 !assignedAgentIds.includes(agent.id)
               );
+              console.log('💎 Available premium agents:', availablePremiumAgents.length, 'agents');
               
               // Combine all agents: assigned first, then available free, then available premium
               agents = [...assignedAgents, ...availableFreeAgents, ...availablePremiumAgents];
+              console.log('🎯 Total agents for personal library:', agents.length);
             } else {
               // User document doesn't exist yet - show available agents
+              console.log('📄 User document not found, showing available agents');
               const globalData = await fetchAgentsFromFirestore();
               const allAgents = globalData.agents || [];
               
@@ -120,14 +135,17 @@ export const getLibraryAgents = async (
                 agent.metadata?.tier === 'premium' || 
                 !agent.metadata?.tier
               );
+              console.log('🎯 Available agents for new user:', agents.length);
             }
           } catch (error) {
+            console.error('❌ Error loading personal library:', error);
             logger.error('Error loading personal library', error, 'LibraryService');
             // Return empty array instead of throwing error
             agents = [];
           }
         } else {
           // No user profile - return empty array
+          console.log('❌ No user profile UID');
           agents = [];
         }
         break;
@@ -161,6 +179,14 @@ export const getLibraryAgents = async (
             userLibraryAgents,
             includes: userLibraryAgents.includes(agent.id)
           });
+        }
+        
+        // For personal library, override context for agents already in user's library
+        if (libraryType === 'personal' && inUserLibrary) {
+          context.accessLevel = 'direct';
+          context.canAdd = false; // Already added
+          context.canRequest = false; // No need to request
+          context.availableIn = ['personal'];
         }
         
         return {
@@ -307,35 +333,24 @@ const getAgentContext = async (
     
     // Personal library logic
     if (currentLibrary === 'personal') {
-      // Check if this agent is already in the user's library
-      const userLibraryAgents = await getUserLibraryAgents(userProfile?.uid);
-      const isInUserLibrary = userLibraryAgents.includes(agent.id);
-      
-      if (isInUserLibrary) {
-        // Agent is already in user's library
+      // For personal library, we'll handle the context based on the agent's tier
+      // The inUserLibrary property will be set by the calling function
+      if (agent.metadata?.tier === 'free' || !agent.metadata?.tier) {
+        // Free agents can be added directly
         context.accessLevel = 'direct';
-        context.canAdd = false; // Already added
-        context.canRequest = false; // No need to request
-        context.availableIn = ['personal'];
-      } else {
-        // Agent is available to be added/requested
-        if (agent.metadata?.tier === 'free' || !agent.metadata?.tier) {
-          // Free agents can be added directly
-          context.accessLevel = 'direct';
-          context.canAdd = true;
-          context.canRequest = false;
-          context.assignmentType = 'free';
-          context.grantedBy = 'super_admin';
-        } else if (agent.metadata?.tier === 'premium') {
-          // Premium agents require approval
-          context.accessLevel = 'request';
-          context.canAdd = false;
-          context.canRequest = true;
-          context.assignmentType = 'approval';
-          context.grantedBy = 'super_admin';
-        }
-        context.availableIn = ['personal'];
+        context.canAdd = true;
+        context.canRequest = false;
+        context.assignmentType = 'free';
+        context.grantedBy = 'super_admin';
+      } else if (agent.metadata?.tier === 'premium') {
+        // Premium agents require approval
+        context.accessLevel = 'request';
+        context.canAdd = false;
+        context.canRequest = true;
+        context.assignmentType = 'approval';
+        context.grantedBy = 'super_admin';
       }
+      context.availableIn = ['personal'];
     }
     
   } catch (error) {

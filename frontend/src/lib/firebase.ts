@@ -2,7 +2,7 @@
 import { initializeApp, getApps, FirebaseApp } from 'firebase/app';
 import { getAuth, Auth } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
-import { firebaseConfig } from '../config/firebase';
+import { getEnvironmentConfig } from '../config/environment';
 
 // Singleton Firebase app instance
 let app: FirebaseApp;
@@ -21,7 +21,8 @@ export function initializeFirebase(): { app: FirebaseApp; auth: Auth; db: Firest
     if (existingApps.length > 0) {
       app = existingApps[0];
     } else {
-      app = initializeApp(firebaseConfig);
+      const config = getEnvironmentConfig();
+      app = initializeApp(config.firebaseConfig);
     }
     
     auth = getAuth(app);
