@@ -89,7 +89,15 @@ export default function AgentCard({
   const handleOpenAgent = () => {
     // Navigate to the agent page
     console.log('🚀 Opening agent:', agent.id, 'navigating to:', `/agents/${agent.id}`);
-    navigate(`/agents/${agent.id}`);
+    console.log('🔍 Agent data:', agent);
+    console.log('🔍 Current location:', window.location.href);
+    
+    try {
+      navigate(`/agents/${agent.id}`);
+      console.log('✅ Navigation called successfully');
+    } catch (error) {
+      console.error('❌ Navigation failed:', error);
+    }
   };
 
   const handleAction = async (action: () => void, event: React.MouseEvent) => {
