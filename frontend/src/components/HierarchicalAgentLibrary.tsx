@@ -4,23 +4,18 @@ import { useNavigate } from 'react-router-dom';
 import {
   MagnifyingGlassIcon,
   FunnelIcon,
-  SparklesIcon,
   StarIcon,
   ChevronRightIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
   XMarkIcon,
   AdjustmentsHorizontalIcon,
-  ArrowsUpDownIcon,
-  PlusIcon,
-  HomeIcon,
-  BuildingOfficeIcon,
-  GlobeAltIcon,
-  UserGroupIcon
+  ArrowsUpDownIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import AgentCard from './AgentCard';
 import FilterBar from './FilterBar';
+import LibrarySidebar from './LibrarySidebar';
 import { 
   LibraryType, 
   AgentWithContext, 
@@ -205,6 +200,8 @@ export default function HierarchicalAgentLibrary({
   useEffect(() => {
     loadLibraryData();
   }, [currentLibrary, userProfile]);
+
+
 
   const loadLibraryData = async () => {
     if (!userProfile) return;
@@ -593,7 +590,7 @@ export default function HierarchicalAgentLibrary({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pl-0 hover:pl-72 transition-all duration-300 ease-in-out">
+            <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -752,27 +749,27 @@ export default function HierarchicalAgentLibrary({
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0">
-                    <SparklesIcon className="w-6 h-6 text-blue-600" />
+                    <StarIcon className="w-6 h-6 text-blue-600" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-sm font-medium text-blue-900 mb-1">
-                      Want to contribute to our AI agent marketplace?
+                      Discover AI Agents
                     </h3>
                     <p className="text-sm text-blue-700 mb-3">
-                      Submit your AI agents to help others discover powerful tools and solutions. Our review process ensures quality and safety.
+                      Browse our curated collection of AI agents to enhance your productivity and workflow.
                     </p>
                     <div className="flex flex-wrap gap-2 text-xs text-blue-600">
                       <span className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full">
-                        ✓ Quality Review
+                        ✓ Quality Assured
                       </span>
                       <span className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full">
-                        ✓ Safety Checks
+                        ✓ Security Verified
                       </span>
                       <span className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full">
-                        ✓ Community Feedback
+                        ✓ Community Tested
                       </span>
                       <span className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full">
-                        ✓ Revenue Sharing
+                        ✓ Easy Integration
                       </span>
                     </div>
                   </div>
@@ -783,94 +780,12 @@ export default function HierarchicalAgentLibrary({
         </div>
       </div>
 
-      {/* Left Navigation Sidebar */}
-      <div className="fixed left-0 top-0 h-full z-40">
-        {/* Hover Indicator */}
-        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-2 h-16 bg-blue-500 rounded-r-full opacity-0 hover:opacity-100 transition-opacity duration-300 z-50"></div>
-        
-        <div 
-          className="h-full bg-white border-r border-gray-200 shadow-lg transition-all duration-300 ease-in-out transform hover:translate-x-0 -translate-x-full hover:shadow-2xl"
-          style={{ width: '280px' }}
-        >
-          <div className="p-6">
-            {/* Navigation Header */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Navigation</h3>
-              <p className="text-sm text-gray-600">Quick access to key areas</p>
-            </div>
-
-            {/* Navigation Items */}
-            <nav className="space-y-2">
-              {/* Home */}
-              <button
-                onClick={() => navigate('/')}
-                className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 group"
-              >
-                <HomeIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                <span className="font-medium">Home</span>
-              </button>
-
-              {/* Company Library or Network Library */}
-              {userProfile?.organizationId ? (
-                <button
-                  onClick={() => navigate('/company-agent-library')}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 group"
-                >
-                  <BuildingOfficeIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                  <span className="font-medium">Company Library</span>
-                </button>
-              ) : userProfile?.networkId ? (
-                <button
-                  onClick={() => navigate('/network-agent-library')}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 group"
-                >
-                  <UserGroupIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                  <span className="font-medium">Network Library</span>
-                </button>
-              ) : null}
-
-              {/* Public Agent Marketplace */}
-              <button
-                onClick={() => navigate('/agent-marketplace')}
-                className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 group"
-              >
-                <GlobeAltIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                <span className="font-medium">Public Marketplace</span>
-              </button>
-
-              {/* Submit Agent - Only for creators */}
-              {(userProfile?.role === 'creator' || userProfile?.role === 'super_admin') && (
-                <button
-                  onClick={() => navigate('/agent-submission')}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all duration-200 group border border-blue-200"
-                >
-                  <PlusIcon className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium">Submit Agent</span>
-                </button>
-              )}
-
-              {/* Become Creator - For non-creators */}
-              {!userProfile?.role || (userProfile?.role !== 'creator' && userProfile?.role !== 'super_admin') ? (
-                <button
-                  onClick={() => navigate('/creator-dashboard')}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-all duration-200 group border border-green-200"
-                >
-                  <SparklesIcon className="w-5 h-5 text-green-600" />
-                  <span className="font-medium">Become Creator</span>
-                </button>
-              ) : null}
-            </nav>
-
-            {/* Current Library Info */}
-            <div className="mt-8 pt-6 border-t border-gray-200">
-              <div className="text-sm text-gray-500 mb-2">Currently viewing:</div>
-              <div className="text-sm font-medium text-gray-900">
-                {currentLibrary.charAt(0).toUpperCase() + currentLibrary.slice(1)} Library
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Library Sidebar */}
+      <LibrarySidebar 
+        currentLibrary={currentLibrary === 'personal' ? 'personal' : currentLibrary === 'global' ? 'global' : 'company'}
+        companySlug={userProfile?.organizationId}
+        networkSlug={userProfile?.networkId}
+      />
 
       {/* Library Tabs */}
       {showTabs && (
@@ -902,31 +817,7 @@ export default function HierarchicalAgentLibrary({
                 })}
               </div>
               
-              {/* Submit Agent Tab */}
-              {(userProfile?.role === 'creator' || userProfile?.role === 'super_admin') && (
-                <div className="flex-shrink-0">
-                  <button
-                    onClick={() => navigate('/agent-submission')}
-                    className="flex items-center space-x-2 py-4 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm"
-                  >
-                    <PlusIcon className="w-4 h-4" />
-                    <span>Submit Agent</span>
-                  </button>
-                </div>
-              )}
-              
-              {/* Become Creator Tab for non-creators */}
-              {!userProfile?.role || (userProfile?.role !== 'creator' && userProfile?.role !== 'super_admin') ? (
-                <div className="flex-shrink-0">
-                  <button
-                    onClick={() => navigate('/creator-dashboard')}
-                    className="flex items-center space-x-2 py-4 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 font-medium text-sm"
-                  >
-                    <SparklesIcon className="w-4 h-4" />
-                    <span>Become Creator</span>
-                  </button>
-                </div>
-              ) : null}
+
             </div>
           </div>
         </div>
@@ -939,7 +830,7 @@ export default function HierarchicalAgentLibrary({
             {/* Stats */}
             <div className="flex items-center space-x-6 text-sm text-gray-600">
               <div className="flex items-center space-x-2">
-                <SparklesIcon className="w-4 h-4" />
+                <StarIcon className="w-4 h-4" />
                 <span>{filteredAndSortedAgents.length} agents</span>
               </div>
               {stats && (
@@ -1377,9 +1268,6 @@ export default function HierarchicalAgentLibrary({
                   <div className="mt-2 px-4">
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <span>Available in: {agent.availableIn.join(', ')}</span>
-                      {agent.grantedBy && (
-                        <span>Granted by: {agent.grantedBy.replace('_', ' ')}</span>
-                      )}
                     </div>
                   </div>
                 </motion.div>
@@ -1431,35 +1319,7 @@ export default function HierarchicalAgentLibrary({
         </div>
       )}
 
-      {/* Floating Action Button for Mobile */}
-      {(userProfile?.role === 'creator' || userProfile?.role === 'super_admin') && (
-        <div className="fixed bottom-6 right-6 z-40 lg:hidden">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => navigate('/agent-submission')}
-            className="w-14 h-14 bg-blue-600 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200"
-            aria-label="Submit new agent"
-          >
-            <PlusIcon className="w-6 h-6" />
-          </motion.button>
-        </div>
-      )}
-      
-      {/* Become Creator Floating Button for Mobile (non-creators) */}
-      {(!userProfile?.role || (userProfile?.role !== 'creator' && userProfile?.role !== 'super_admin')) && (
-        <div className="fixed bottom-6 right-6 z-40 lg:hidden">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => navigate('/creator-dashboard')}
-            className="w-14 h-14 bg-green-600 text-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-200"
-            aria-label="Become a creator"
-          >
-            <SparklesIcon className="w-6 h-6" />
-          </motion.button>
-        </div>
-      )}
+
     </div>
   );
 }

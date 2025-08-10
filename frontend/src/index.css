@@ -259,4 +259,29 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  
+  /* Sidebar scrollbar styling */
+  .sidebar-nav::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .sidebar-nav::-webkit-scrollbar-track {
+    background: #f3f4f6;
+    border-radius: 3px;
+  }
+  
+  .sidebar-nav::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 3px;
+  }
+  
+  .sidebar-nav::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+  
+  /* Firefox scrollbar styling */
+  .sidebar-nav {
+    scrollbar-width: thin;
+    scrollbar-color: #d1d5db #f3f4f6;
+  }
 }

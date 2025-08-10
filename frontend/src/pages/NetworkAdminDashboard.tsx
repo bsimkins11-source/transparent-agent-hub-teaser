@@ -13,7 +13,8 @@ import {
   ChartBarIcon,
   SwatchIcon,
   BuildingOfficeIcon,
-  MapIcon
+  MapIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import { useCompanyBrandingFromRoute } from '../contexts/CompanyBrandingContext';
@@ -21,6 +22,8 @@ import StatCard from '../components/StatCard';
 import toast from 'react-hot-toast';
 import { Network, NetworkUser } from '../types/organization';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import LibrarySidebar from '../components/LibrarySidebar';
+import { NewAgentRequest, getNetworkNewAgentRequests, updateNewAgentRequestStatus } from '../services/newAgentRequestService';
 
 export default function NetworkAdminDashboard() {
   const { companySlug, networkSlug } = useParams<{ companySlug: string; networkSlug: string }>();
@@ -32,7 +35,7 @@ export default function NetworkAdminDashboard() {
   const [users, setUsers] = useState<NetworkUser[]>([]);
   const [agents, setAgents] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<'users' | 'agents' | 'settings'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'agents' | 'new_agent_requests' | 'settings'>('users');
   const [loading, setLoading] = useState(true);
   
   // User management state
@@ -54,17 +57,25 @@ export default function NetworkAdminDashboard() {
   const [networkAvailableAgents, setNetworkAvailableAgents] = useState<string[]>([]);
   const [userAgentAssignments, setUserAgentAssignments] = useState<{[userId: string]: string[]}>({});
 
+  // New agent requests state
+  const [newAgentRequests, setNewAgentRequests] = useState<NewAgentRequest[]>([]);
+  const [isReviewRequestModalOpen, setIsReviewRequestModalOpen] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<NewAgentRequest | null>(null);
+  const [reviewNotes, setReviewNotes] = useState('');
+
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeAgents: 0,
     totalInteractions: 0,
-    pendingRequests: 0
+    pendingRequests: 0,
+    newAgentRequests: 0
   });
 
   useEffect(() => {
     loadNetworkData();
     loadUsers();
     loadAgents();
+    loadNewAgentRequests();
   }, [companySlug, networkSlug]);
 
   const loadNetworkData = async () => {
@@ -183,6 +194,95 @@ export default function NetworkAdminDashboard() {
     }));
   };
 
+  const loadNewAgentRequests = async () => {
+    if (!companySlug || !networkSlug) return;
+    
+    try {
+      const requests = await getNetworkNewAgentRequests(companySlug, networkSlug);
+      setNewAgentRequests(requests);
+      setStats(prev => ({ ...prev, newAgentRequests: requests.length }));
+    } catch (error) {
+      console.error('Error loading new agent requests:', error);
+      toast.error('Failed to load new agent requests');
+    }
+  };
+
+  const handleReviewRequest = (request: NewAgentRequest) => {
+    setSelectedRequest(request);
+    setReviewNotes('');
+    setIsReviewRequestModalOpen(true);
+  };
+
+  const handleApproveRequest = async () => {
+    if (!selectedRequest || !userProfile) return;
+    
+    try {
+      await updateNewAgentRequestStatus(
+        selectedRequest.id!,
+        'approved',
+        userProfile.uid || '',
+        userProfile.email || '',
+        userProfile.displayName || '',
+        reviewNotes
+      );
+      
+      // Update local state
+      setNewAgentRequests(prev => 
+        prev.map(req => 
+          req.id === selectedRequest.id 
+            ? { ...req, status: 'approved', reviewNotes, reviewedAt: new Date().toISOString() }
+            : req
+        )
+      );
+      
+      toast.success(`Approved new agent request: ${selectedRequest.agentName}`);
+      setIsReviewRequestModalOpen(false);
+      setSelectedRequest(null);
+      setReviewNotes('');
+      
+      // Reload stats
+      loadNewAgentRequests();
+    } catch (error) {
+      console.error('Error approving request:', error);
+      toast.error('Failed to approve request');
+    }
+  };
+
+  const handleDenyRequest = async () => {
+    if (!selectedRequest || !userProfile) return;
+    
+    try {
+      await updateNewAgentRequestStatus(
+        selectedRequest.id!,
+        'denied',
+        userProfile.uid || '',
+        userProfile.email || '',
+        userProfile.displayName || '',
+        reviewNotes
+      );
+      
+      // Update local state
+      setNewAgentRequests(prev => 
+        prev.map(req => 
+          req.id === selectedRequest.id 
+            ? { ...req, status: 'denied', reviewNotes, reviewedAt: new Date().toISOString() }
+            : req
+        )
+      );
+      
+      toast.success(`Denied new agent request: ${selectedRequest.agentName}`);
+      setIsReviewRequestModalOpen(false);
+      setSelectedRequest(null);
+      setReviewNotes('');
+      
+      // Reload stats
+      loadNewAgentRequests();
+    } catch (error) {
+      console.error('Error denying request:', error);
+      toast.error('Failed to deny request');
+    }
+  };
+
   const filteredUsers = users.filter(user =>
     user.displayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
@@ -278,7 +378,7 @@ export default function NetworkAdminDashboard() {
     // For now, we'll simulate checking network count from the company
     const companyNetworkCount = 3; // This would come from API in production
     
-    if (companyNetworkCount === 1) {
+    if (companyNetworkCount <= 1) {
       navigate(`/company/${companySlug}`);
     } else {
       navigate(`/company/${companySlug}/network/${networkSlug}`);
@@ -305,13 +405,21 @@ export default function NetworkAdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-7xl mx-auto"
-      >
+            <div className="min-h-screen bg-gray-50">
+      {/* Library Sidebar */}
+      <LibrarySidebar 
+        currentLibrary="network"
+        companySlug={companySlug}
+        networkSlug={networkSlug}
+      />
+      
+      <div className="p-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-7xl mx-auto"
+        >
         {/* Header */}
         <div className="mb-8">
           {/* Company and Network Breadcrumb */}
@@ -408,26 +516,30 @@ export default function NetworkAdminDashboard() {
           <StatCard 
             title="Network Users" 
             value={stats.totalUsers} 
-            icon={UsersIcon} 
-            iconColor="text-blue-500" 
+            icon={<UsersIcon className="w-6 h-6" />} 
+            color="text-blue-500" 
+            bgColor="bg-blue-50"
           />
           <StatCard 
             title="Active Agents" 
             value={stats.activeAgents} 
-            icon={CpuChipIcon} 
-            iconColor="text-purple-500" 
+            icon={<CpuChipIcon className="w-6 h-6" />} 
+            color="text-purple-500" 
+            bgColor="bg-purple-50"
           />
           <StatCard 
             title="Interactions" 
             value={stats.totalInteractions} 
-            icon={ChartBarIcon} 
-            iconColor="text-green-500" 
+            icon={<ChartBarIcon className="w-6 h-6" />} 
+            color="text-green-500" 
+            bgColor="bg-green-50"
           />
           <StatCard 
-            title="Pending Requests" 
-            value={stats.pendingRequests} 
-            icon={Cog6ToothIcon} 
-            iconColor="text-yellow-500" 
+            title="New Agent Requests" 
+            value={stats.newAgentRequests} 
+            icon={<ChatBubbleLeftRightIcon className="w-6 h-6" />} 
+            color="text-yellow-500" 
+            bgColor="bg-yellow-50"
           />
         </div>
 
@@ -456,6 +568,22 @@ export default function NetworkAdminDashboard() {
               >
                 <CpuChipIcon className="w-5 h-5 inline mr-2" />
                 Agent Access
+              </button>
+              <button
+                onClick={() => setActiveTab('new_agent_requests')}
+                className={`px-6 py-4 text-sm font-medium border-b-2 transition-colors ${
+                  activeTab === 'new_agent_requests'
+                    ? 'border-brand-500 text-brand-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <ChatBubbleLeftRightIcon className="w-5 h-5 inline mr-2" />
+                New Agent Requests
+                {stats.newAgentRequests > 0 && (
+                  <span className="ml-2 px-2 py-1 text-xs bg-red-100 text-red-800 rounded-full">
+                    {stats.newAgentRequests}
+                  </span>
+                )}
               </button>
               <button
                 onClick={() => setActiveTab('settings')}
@@ -606,6 +734,123 @@ export default function NetworkAdminDashboard() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* New Agent Requests Tab */}
+            {activeTab === 'new_agent_requests' && (
+              <div>
+                <div className="mb-6">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">New Agent Requests</h3>
+                  <p className="text-gray-600">Review and manage requests for new AI agents from network users.</p>
+                </div>
+
+                {newAgentRequests.length === 0 ? (
+                  <div className="text-center py-12">
+                    <ChatBubbleLeftRightIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">No New Agent Requests</h3>
+                    <p className="text-gray-600">Users haven't requested any new agents yet.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {newAgentRequests.map((request) => (
+                      <div key={request.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <h4 className="text-lg font-semibold text-gray-900">{request.agentName}</h4>
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                                request.status === 'approved' ? 'bg-green-100 text-green-800' :
+                                request.status === 'denied' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {request.status.replace('_', ' ')}
+                              </span>
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                request.priority === 'urgent' ? 'bg-red-100 text-red-800' :
+                                request.priority === 'high' ? 'bg-orange-100 text-orange-800' :
+                                request.priority === 'normal' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {request.priority}
+                              </span>
+                            </div>
+                            
+                            {/* Submitter and Date Info - More Prominent */}
+                            <div className="flex items-center space-x-4 mb-3 text-sm">
+                              <div className="flex items-center space-x-2">
+                                <UsersIcon className="w-4 h-4 text-gray-500" />
+                                <span className="text-gray-600">
+                                  <span className="font-medium">Submitted by:</span> {request.userName}
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span className="text-gray-600">
+                                  <span className="font-medium">Date:</span> {new Date(request.requestedAt).toLocaleDateString('en-US', { 
+                                    year: 'numeric', 
+                                    month: 'long', 
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                              <div>
+                                <span className="font-medium">Category:</span> {request.category || 'Not specified'}
+                              </div>
+                              <div>
+                                <span className="font-medium">Target Users:</span> {request.targetUsers || 'Not specified'}
+                              </div>
+                              <div>
+                                <span className="font-medium">Expected Usage:</span> {request.expectedUsage || 'Not specified'}
+                              </div>
+                              <div>
+                                <span className="font-medium">Email:</span> {request.userEmail}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {request.status === 'pending' && (
+                            <button
+                              onClick={() => handleReviewRequest(request)}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                              Review Request
+                            </button>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div>
+                            <h5 className="font-medium text-gray-900 mb-1">Description</h5>
+                            <p className="text-sm text-gray-600">{request.agentDescription}</p>
+                          </div>
+                          
+                          <div>
+                            <h5 className="font-medium text-gray-900 mb-1">Use Case</h5>
+                            <p className="text-sm text-gray-600">{request.useCase}</p>
+                          </div>
+                          
+                          {request.businessJustification && (
+                            <div>
+                              <h5 className="font-medium text-gray-900 mb-1">Business Justification</h5>
+                              <p className="text-sm text-gray-600">{request.businessJustification}</p>
+                            </div>
+                          )}
+                          
+
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
@@ -861,6 +1106,54 @@ export default function NetworkAdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* Review Request Modal */}
+      {isReviewRequestModalOpen && selectedRequest && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              Review Agent Request: {selectedRequest.agentName}
+            </h2>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Review Notes
+                </label>
+                <textarea
+                  value={reviewNotes}
+                  onChange={(e) => setReviewNotes(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Add your review notes, feedback, or reason for approval/denial..."
+                />
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setIsReviewRequestModalOpen(false)}
+                  className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDenyRequest}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  Deny Request
+                </button>
+                <button
+                  onClick={handleApproveRequest}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Approve Request
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
     </div>
   );
 }

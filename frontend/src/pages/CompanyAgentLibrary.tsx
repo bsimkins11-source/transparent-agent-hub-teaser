@@ -8,6 +8,7 @@ import { Agent, FilterState } from '../types/agent';
 import { AgentRequest } from '../types/agentRequest';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
+import LibrarySidebar from '../components/LibrarySidebar';
 
 interface CompanyBranding {
   name: string;
@@ -302,7 +303,13 @@ export default function CompanyAgentLibrary() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-gray-50">
+      {/* Library Sidebar */}
+      <LibrarySidebar 
+        currentLibrary="company"
+        companySlug={companySlug}
+      />
+      
       {/* Company Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -490,23 +497,7 @@ export default function CompanyAgentLibrary() {
           </motion.div>
         )}
 
-        {/* Company Footer */}
-        <div className="mt-16 text-center">
-          <div className="bg-white rounded-xl shadow-soft border border-gray-200 p-8">
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              Need a custom agent for {companyBranding.name}?
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Contact your administrator to request new agents or customize existing ones for your specific needs.
-            </p>
-            <button 
-              className="px-6 py-3 text-white font-medium rounded-lg transition-colors hover:opacity-90"
-              style={{ backgroundColor: companyBranding.primaryColor }}
-            >
-              Request Custom Agent
-            </button>
-          </div>
-        </div>
+
       </div>
 
       {/* Agent Request Modal */}
