@@ -21,6 +21,7 @@ interface AgentCardProps {
   isInUserLibrary: boolean;
   showAddToLibrary: boolean;
   showRequestAccess: boolean;
+  currentLibrary?: 'global' | 'personal' | 'company' | 'network';
   onAddToLibrary: () => void;
   onRequestAccess: () => void;
   onRemoveFromLibrary: () => void;
@@ -78,6 +79,7 @@ export default function AgentCard({
   isInUserLibrary,
   showAddToLibrary,
   showRequestAccess,
+  currentLibrary = 'global',
   onAddToLibrary,
   onRequestAccess,
   onRemoveFromLibrary
@@ -120,38 +122,62 @@ export default function AgentCard({
 
   const getActionButton = () => {
     if (isInUserLibrary) {
-      return (
-        <div className="space-y-2">
-          {/* Primary Open Button */}
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleOpenAgent}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
-          >
-            <SparklesIcon className="w-4 h-4" />
-            <span>Open Agent</span>
-          </motion.button>
-          
-          {/* Small Remove Button */}
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={(e) => handleAction(onRemoveFromLibrary, e)}
-            disabled={isLoading}
-            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 text-sm py-2 px-3 rounded-md transition-all duration-200 flex items-center justify-center space-x-2"
-          >
-            {isLoading ? (
-              <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                <MinusIcon className="w-3 h-3" />
-                <span>Remove</span>
-              </>
-            )}
-          </motion.button>
-        </div>
-      );
+      if (currentLibrary === 'personal') {
+        // In personal library - show Open and Remove buttons
+        return (
+          <div className="space-y-2">
+            {/* Primary Open Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleOpenAgent}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+            >
+              <SparklesIcon className="w-4 h-4" />
+              <span>Open Agent</span>
+            </motion.button>
+            
+            {/* Small Remove Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={(e) => handleAction(onRemoveFromLibrary, e)}
+              disabled={isLoading}
+              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 text-sm py-2 px-3 rounded-md transition-all duration-200 flex items-center justify-center space-x-2"
+            >
+              {isLoading ? (
+                <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <>
+                  <MinusIcon className="w-3 h-3" />
+                  <span>Remove</span>
+                </>
+              )}
+            </motion.button>
+          </div>
+        );
+      } else {
+        // In other libraries (global, company, network) - show "In My Library" status
+        return (
+          <div className="space-y-2">
+            {/* Primary Open Button */}
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleOpenAgent}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+            >
+              <SparklesIcon className="w-4 h-4" />
+              <span>Open Agent</span>
+            </motion.button>
+            
+            {/* Status indicator - no remove button */}
+            <div className="w-full bg-green-100 text-green-700 text-sm py-2 px-3 rounded-md text-center font-medium">
+              ✓ In My Library
+            </div>
+          </div>
+        );
+      }
     }
 
     if (showRequestAccess) {

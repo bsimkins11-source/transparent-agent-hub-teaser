@@ -1558,6 +1558,7 @@ export default function HierarchicalAgentLibrary({
                     isInUserLibrary={agent.inUserLibrary}
                     showAddToLibrary={agent.canAdd && !agent.inUserLibrary}
                     showRequestAccess={agent.canRequest && !agent.inUserLibrary}
+                    currentLibrary={currentLibrary}
                     onAddToLibrary={() => handleAddToLibrary(agent)}
                     onRequestAccess={() => handleRequestAccess(agent)}
                     onRemoveFromLibrary={() => handleRemoveFromLibrary(agent)}

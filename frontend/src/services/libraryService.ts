@@ -49,10 +49,9 @@ export const getLibraryAgents = async (
     switch (libraryType) {
       case 'global':
         // Global library shows all agents - the master catalog (both public and private)
-        // Temporarily disabled due to security rule issues
-        console.log('🌍 Global library temporarily disabled due to security rules');
+        console.log('🌍 Loading global library agents');
         try {
-          // For now, use local data to avoid security rule issues
+          // Use local data to avoid security rule issues
           console.log('⚠️ Using local data for global library (security rules blocking Firestore)');
           const { AgentDataService } = await import('./agentDataService');
           agents = await AgentDataService.loadLocalAgents();
