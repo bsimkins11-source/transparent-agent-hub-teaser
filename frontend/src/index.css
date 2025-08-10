@@ -67,6 +67,16 @@
     color: black !important;
   }
   
+  /* Admin dropdown specific styling */
+  .header-global .absolute[style*="background: #1f2937"] {
+    background: #1f2937 !important;
+    color: white !important;
+  }
+  
+  .header-global .absolute[style*="background: #1f2937"] * {
+    color: white !important;
+  }
+  
   /* Ensure logo and brand text are visible */
   .header-global .text-xl {
     color: white !important;
