@@ -167,6 +167,24 @@ export default function AgentPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      {/* Demo Mode Banner */}
+      <div className="bg-blue-50 border-b border-blue-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+          <div className="flex items-center justify-center text-blue-800">
+            <SparklesIcon className="w-5 h-5 mr-2" />
+            <span className="text-sm font-medium">
+              Demo Mode: Using mock responses. Backend not running.
+            </span>
+            <Link 
+              to="/" 
+              className="ml-2 text-blue-600 hover:text-blue-800 underline text-xs"
+            >
+              Setup Backend
+            </Link>
+          </div>
+        </div>
+      </div>
+      
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <motion.div 

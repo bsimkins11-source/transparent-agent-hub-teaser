@@ -25,7 +25,7 @@ import {
   canAccessLibrary,
   getLibraryInfo
 } from '../services/libraryService';
-import { addAgentToUserLibrary, removeAgentFromUserLibrary } from '../services/userLibraryService';
+import { addAgentToUserLibrary, removeAgentFromUserLibrary } from '../services/api';
 import toast from 'react-hot-toast';
 
 // Error boundary component for individual agent cards
@@ -370,7 +370,7 @@ export default function HierarchicalAgentLibrary({
     const { agent } = confirmRemove;
 
     try {
-      await removeAgentFromUserLibrary(userProfile.uid, agent.id);
+      await removeAgentFromUserLibrary(agent.id);
       
       // Refresh the library data with force refresh
       await loadLibraryData(true);
@@ -439,15 +439,7 @@ export default function HierarchicalAgentLibrary({
       
       // Adding agent to library
       await addAgentToUserLibrary(
-        userProfile.uid,
-        userProfile.email,
-        userProfile.displayName,
         agent.id,
-        agent.name,
-        userProfile.organizationId,
-        userProfile.organizationName,
-        userProfile.networkId || undefined,
-        userProfile.networkName || undefined,
         `Added from ${currentLibrary} library`
       );
       
@@ -572,7 +564,7 @@ export default function HierarchicalAgentLibrary({
           const agent = selectedAgentList[i];
           if (agent.inUserLibrary) {
             try {
-              await removeAgentFromUserLibrary(userProfile!.uid, agent.id);
+              await removeAgentFromUserLibrary(agent.id);
               setBulkOperationProgress(prev => prev ? { ...prev, current: i + 1 } : null);
             } catch (error) {
               console.error(`Failed to remove ${agent.name}:`, error);
@@ -761,10 +753,10 @@ export default function HierarchicalAgentLibrary({
   };
 
   return (
-            <div className="min-h-screen bg-gray-50">
+            <div className="min-h-screen bg-gray-50 pl-8">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pl-8">
           {/* Breadcrumb */}
           <nav className="flex mb-4" aria-label="Breadcrumb">
             <ol className="flex items-center space-x-2">
@@ -964,7 +956,7 @@ export default function HierarchicalAgentLibrary({
       {/* Library Tabs */}
       {showTabs && (
         <div className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pl-8">
             <div className="flex items-center justify-between">
               <div className="flex space-x-8 overflow-x-auto">
                 {availableLibraries.map((libraryType) => {
@@ -999,7 +991,7 @@ export default function HierarchicalAgentLibrary({
 
       {/* Enhanced Filters and Stats */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pl-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* Stats */}
             <div className="flex items-center space-x-6 text-sm text-gray-600">
@@ -1229,17 +1221,9 @@ export default function HierarchicalAgentLibrary({
                           
                           toast('🔄 Force adding Gemini agent to your library...', { icon: '⏳' });
                           
-                          // Force add the agent using the existing service
+                          // Force add the agent using the API
                           await addAgentToUserLibrary(
-                            userProfile.uid,
-                            userProfile.email,
-                            userProfile.displayName,
                             geminiAgent.id,
-                            geminiAgent.name,
-                            userProfile.organizationId,
-                            userProfile.organizationName,
-                            userProfile.networkId || undefined,
-                            userProfile.networkName || undefined,
                             'Force add for debugging'
                           );
                           

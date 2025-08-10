@@ -9,6 +9,7 @@ const authMiddleware = require('./middleware/auth');
 const agentRoutes = require('./routes/agents');
 const adminRoutes = require('./routes/admin');
 
+
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -46,6 +47,7 @@ app.get('/health', (req, res) => {
 // API routes
 app.use('/api/agents', agentRoutes);
 app.use('/api/admin', authMiddleware.requireAuth, authMiddleware.requireAdmin, adminRoutes);
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

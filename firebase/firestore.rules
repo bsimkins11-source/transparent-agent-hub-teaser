@@ -14,6 +14,12 @@ service cloud.firestore {
         request.auth.uid == userId;
     }
     
+    // User profiles collection - users can read/write their own data
+    match /userProfiles/{userId} {
+      allow read, write: if request.auth != null && 
+        request.auth.uid == userId;
+    }
+    
     // Agent usage logs - users can read their own, admins can read all
     match /agent_logs/{logId} {
       allow read: if request.auth != null && 

@@ -62,8 +62,8 @@ export const interactWithAgent = async (agentId: string, message: string, contex
     })
     return response.data.response
   } catch (error) {
-    // Fallback to mock response if backend is not available
-    console.log('⚠️ Backend not available, using mock response for agent interaction');
+           // Fallback to mock response if backend is not available
+       console.log('ℹ️ Backend not running - using demo mode with mock responses');
     
     // Mock responses for different agents
     if (agentId === 'gemini-chat-agent') {
@@ -132,3 +132,21 @@ export const fetchAdminStats = async () => {
   const response = await api.get('/api/admin/stats')
   return response.data
 }
+
+// User Library Management API calls
+export const addAgentToUserLibrary = async (agentId: string, assignmentReason?: string) => {
+  const response = await api.post(`/api/agents/${agentId}/add-to-library`, {
+    assignmentReason
+  });
+  return response.data;
+};
+
+export const removeAgentFromUserLibrary = async (agentId: string) => {
+  const response = await api.delete(`/api/agents/${agentId}/remove-from-library`);
+  return response.data;
+};
+
+export const fetchUserLibrary = async () => {
+  const response = await api.get('/api/agents/user-library');
+  return response.data;
+};

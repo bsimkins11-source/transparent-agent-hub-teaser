@@ -318,10 +318,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (user) {
           logger.info('User authenticated', { email: user.email }, 'Auth')
+          
+          // Get and store the ID token
+          const token = await user.getIdToken()
+          localStorage.setItem('authToken', token)
+          
           await createOrUpdateUserProfile(user)
           setCurrentUser(user)
         } else {
           logger.info('User not authenticated', undefined, 'Auth')
+          // Remove token on logout
+          localStorage.removeItem('authToken')
           setCurrentUser(null)
           setUserProfile(null)
         }
@@ -333,9 +340,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     })
 
+    // Set up token refresh listener
+    const tokenRefreshUnsubscribe = auth.onIdTokenChanged(async (user) => {
+      if (user) {
+        try {
+          const token = await user.getIdToken()
+          localStorage.setItem('authToken', token)
+        } catch (error) {
+          logger.error('Failed to refresh token', error, 'Auth')
+        }
+      }
+    })
+
     return () => {
       logger.componentUnmount('AuthProvider')
       unsubscribe()
+      tokenRefreshUnsubscribe()
     }
   }, [createOrUpdateUserProfile])
 
