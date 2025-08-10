@@ -10,6 +10,7 @@ import {
   getNetworkAgentPermissions
 } from './hierarchicalPermissionService';
 import { UserProfile } from '../contexts/AuthContext';
+import { AgentDataService } from './agentDataService';
 
 export type LibraryType = 'global' | 'company' | 'network' | 'personal';
 
@@ -47,8 +48,21 @@ export const getLibraryAgents = async (
     switch (libraryType) {
       case 'global':
         // Global library shows all agents - the master catalog (both public and private)
-        const globalData = await fetchAgentsFromFirestore();
-        agents = globalData.agents || [];
+        try {
+          const globalData = await fetchAgentsFromFirestore();
+          agents = globalData.agents || [];
+          
+          // If no agents in Firestore, fall back to local data for testing
+          if (agents.length === 0) {
+            logger.info('No agents in Firestore, falling back to local data', undefined, 'LibraryService');
+            const { AgentDataService } = await import('./agentDataService');
+            agents = await AgentDataService.loadLocalAgents();
+          }
+        } catch (error) {
+          logger.warn('Error fetching from Firestore, falling back to local data', error, 'LibraryService');
+          const { AgentDataService } = await import('./agentDataService');
+          agents = await AgentDataService.loadLocalAgents();
+        }
         break;
         
       case 'company':
@@ -66,7 +80,7 @@ export const getLibraryAgents = async (
         break;
         
       case 'personal':
-        // Personal library shows user's assigned agents
+        // Personal library shows user's assigned agents + available agents they can add
         if (userProfile?.uid) {
           try {
             const userDoc = await getDoc(doc(db, 'users', userProfile.uid));
@@ -74,45 +88,85 @@ export const getLibraryAgents = async (
               const userData = userDoc.data();
               const assignedAgentIds = userData.assignedAgents || [];
               
-              // If no assigned agents, return empty array (not an error)
-              if (assignedAgentIds.length === 0) {
-                agents = [];
-                break;
-              }
+              // Get all agents from global collection
+              const globalData = await fetchAgentsFromFirestore();
+              const allAgents = globalData.agents || [];
               
-                          // Get all agents from global collection and filter to assigned ones
-            const globalData = await fetchAgentsFromFirestore();
-            const allAgents = globalData.agents || [];
-            
-            // Filter to only assigned agents
-            agents = allAgents.filter(agent => assignedAgentIds.includes(agent.id));
-          } else {
-            // User document doesn't exist yet - return empty array
+              // Always show assigned agents first
+              const assignedAgents = allAgents.filter(agent => assignedAgentIds.includes(agent.id));
+              
+              // Show available agents that can be added (free agents not yet added)
+              const availableFreeAgents = allAgents.filter(agent => 
+                (agent.metadata?.tier === 'free' || !agent.metadata?.tier) && 
+                !assignedAgentIds.includes(agent.id)
+              );
+              
+              // Show premium agents that can be requested (not yet assigned)
+              const availablePremiumAgents = allAgents.filter(agent => 
+                agent.metadata?.tier === 'premium' && 
+                !assignedAgentIds.includes(agent.id)
+              );
+              
+              // Combine all agents: assigned first, then available free, then available premium
+              agents = [...assignedAgents, ...availableFreeAgents, ...availablePremiumAgents];
+            } else {
+              // User document doesn't exist yet - show available agents
+              const globalData = await fetchAgentsFromFirestore();
+              const allAgents = globalData.agents || [];
+              
+              // Show free agents and premium agents that can be requested
+              agents = allAgents.filter(agent => 
+                agent.metadata?.tier === 'free' || 
+                agent.metadata?.tier === 'premium' || 
+                !agent.metadata?.tier
+              );
+            }
+          } catch (error) {
+            logger.error('Error loading personal library', error, 'LibraryService');
+            // Return empty array instead of throwing error
             agents = [];
           }
-        } catch (error) {
-          logger.error('Error loading personal library', error, 'LibraryService');
-          // Return empty array instead of throwing error
+        } else {
+          // No user profile - return empty array
           agents = [];
         }
-      } else {
-        // No user profile - return empty array
-        agents = [];
-      }
-      break;
+        break;
     }
     
     // Get user's current library for context
     const userLibraryAgents = await getUserLibraryAgents(userProfile?.uid);
     
+    // Debug logging for development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('LibraryService Debug:', {
+        libraryType,
+        userId: userProfile?.uid,
+        userLibraryAgents,
+        totalAgents: agents.length,
+        agentIds: agents.map(a => a.id)
+      });
+    }
+    
     // Add context to each agent
     const agentsWithContext: AgentWithContext[] = await Promise.all(
       agents.map(async (agent) => {
         const context = await getAgentContext(agent, userProfile, libraryType);
+        const inUserLibrary = userLibraryAgents.includes(agent.id);
+        
+        // Debug logging for specific agents
+        if (process.env.NODE_ENV === 'development' && (agent.name.includes('Gemini') || agent.name.includes('Imagen'))) {
+          console.log(`Agent Debug - ${agent.name}:`, {
+            agentId: agent.id,
+            inUserLibrary,
+            userLibraryAgents,
+            includes: userLibraryAgents.includes(agent.id)
+          });
+        }
+        
         return {
           ...agent,
           ...context,
-          inUserLibrary: userLibraryAgents.includes(agent.id)
+          inUserLibrary
         };
       })
     );
@@ -144,6 +198,8 @@ const getAgentContext = async (
     canRequest: false,
     assignmentType: 'approval' // Default to approval
   };
+  
+
   
   // For global library, free agents are always available to add
   if (currentLibrary === 'global' && (agent.metadata?.tier === 'free' || !agent.metadata?.tier)) {
@@ -249,11 +305,37 @@ const getAgentContext = async (
         break;
     }
     
-    // Personal library is always direct access (already assigned)
+    // Personal library logic
     if (currentLibrary === 'personal') {
-      context.accessLevel = 'direct';
-      context.canAdd = false; // Already in library
-      context.canRequest = false;
+      // Check if this agent is already in the user's library
+      const userLibraryAgents = await getUserLibraryAgents(userProfile?.uid);
+      const isInUserLibrary = userLibraryAgents.includes(agent.id);
+      
+      if (isInUserLibrary) {
+        // Agent is already in user's library
+        context.accessLevel = 'direct';
+        context.canAdd = false; // Already added
+        context.canRequest = false; // No need to request
+        context.availableIn = ['personal'];
+      } else {
+        // Agent is available to be added/requested
+        if (agent.metadata?.tier === 'free' || !agent.metadata?.tier) {
+          // Free agents can be added directly
+          context.accessLevel = 'direct';
+          context.canAdd = true;
+          context.canRequest = false;
+          context.assignmentType = 'free';
+          context.grantedBy = 'super_admin';
+        } else if (agent.metadata?.tier === 'premium') {
+          // Premium agents require approval
+          context.accessLevel = 'request';
+          context.canAdd = false;
+          context.canRequest = true;
+          context.assignmentType = 'approval';
+          context.grantedBy = 'super_admin';
+        }
+        context.availableIn = ['personal'];
+      }
     }
     
   } catch (error) {
@@ -273,7 +355,20 @@ const getUserLibraryAgents = async (userId?: string): Promise<string[]> => {
     const userDoc = await getDoc(doc(db, 'users', userId));
     if (userDoc.exists()) {
       const userData = userDoc.data();
-      return userData.assignedAgents || [];
+      const assignedAgents = userData.assignedAgents || [];
+      
+      // Debug logging for development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('getUserLibraryAgents Debug:', {
+          userId,
+          userData: userData,
+          assignedAgents,
+          assignedAgentsType: typeof assignedAgents,
+          isArray: Array.isArray(assignedAgents)
+        });
+      }
+      
+      return assignedAgents;
     }
   } catch (error) {
     logger.warn('Error fetching user library agents', { userId, error }, 'LibraryService');

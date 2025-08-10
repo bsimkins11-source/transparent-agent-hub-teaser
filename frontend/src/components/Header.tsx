@@ -69,16 +69,23 @@ export default function Header() {
         }}>
           
           {/* Logo/Brand - Top Left */}
-          <Link to="/" style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            textDecoration: 'none',
-            color: 'white',
-            marginLeft: '0',
-            flexShrink: 0,
-            padding: '8px 0',
-            minHeight: '64px'
-          }}>
+          <div 
+            onClick={() => {
+              console.log('Logo clicked - navigating to home page');
+              // Force navigation to home page
+              window.location.href = '/';
+            }}
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              cursor: 'pointer',
+              padding: '8px 0',
+              minHeight: '64px',
+              zIndex: 10,
+              position: 'relative'
+            }}
+            title="Click to go to Home Page"
+          >
             <img 
               src="/transparent-partners-logo-white.png" 
               alt="Transparent Partners Logo" 
@@ -86,10 +93,11 @@ export default function Header() {
                 height: '60px',
                 maxWidth: '250px',
                 objectFit: 'contain',
-                display: 'block'
+                display: 'block',
+                pointerEvents: 'none' // Ensure clicks go to the Link, not the image
               }} 
             />
-          </Link>
+          </div>
 
           {/* Navigation */}
           <nav style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
