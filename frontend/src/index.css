@@ -23,72 +23,105 @@
     --transparent-orange-light: #f5954a;
     --transparent-orange-dark: #d65a1a;
   }
-}
-
-@layer components {
-  /* Header styling - ensure consistent appearance */
+  
+  /* Force header styling at the highest level */
+  header.header-global,
   .header-global {
-    background: linear-gradient(90deg, #043C46 0%, #043C46 66%, #0F5F6B 100%);
-    color: white;
-  }
-  
-  .header-global * {
-    color: inherit;
-  }
-  
-  /* Ensure navigation text has proper contrast */
-  .header-global nav a,
-  .header-global nav button,
-  .header-global nav span {
+    background: linear-gradient(90deg, #043C46 0%, #043C46 66%, #0F5F6B 100%) !important;
     color: white !important;
   }
   
-  .header-global .text-white\/80,
-  .header-global .text-white\/90 {
+  header.header-global *,
+  .header-global * {
+    color: white !important;
+  }
+}
+
+@layer components {
+  /* Header styling - ensure consistent appearance with high specificity */
+  header.header-global {
+    background: linear-gradient(90deg, #043C46 0%, #043C46 66%, #0F5F6B 100%) !important;
+    color: white !important;
+  }
+  
+  /* Force all header content to be white */
+  header.header-global * {
+    color: white !important;
+  }
+  
+  /* Ensure navigation text has proper contrast */
+  header.header-global nav a,
+  header.header-global nav button,
+  header.header-global nav span,
+  header.header-global nav div {
+    color: white !important;
+  }
+  
+  /* Force specific text colors */
+  header.header-global .text-white\/80,
+  header.header-global .text-white\/90 {
     color: rgba(255, 255, 255, 0.9) !important;
   }
   
-  .header-global .text-white\/80:hover,
-  .header-global .text-white\/90:hover {
+  header.header-global .text-white\/80:hover,
+  header.header-global .text-white\/90:hover {
+    color: white !important;
+  }
+  
+  /* Ensure all text in header is white */
+  header.header-global h1,
+  header.header-global h2,
+  header.header-global h3,
+  header.header-global h4,
+  header.header-global h5,
+  header.header-global h6,
+  header.header-global p,
+  header.header-global span,
+  header.header-global div {
     color: white !important;
   }
   
   /* Header dropdown styling - ensure proper contrast */
-  .header-global .absolute {
+  header.header-global .absolute {
     background: white !important;
     color: #374151 !important; /* text-gray-700 */
     border: 1px solid #e5e7eb !important; /* border-gray-200 */
   }
   
-  .header-global .absolute * {
+  header.header-global .absolute * {
     color: #374151 !important; /* text-gray-700 */
   }
   
-  .header-global .absolute a:hover {
+  header.header-global .absolute a:hover {
     background-color: #f9fafb !important; /* bg-gray-50 */
     color: #111827 !important; /* text-gray-900 */
   }
   
-  .header-global .absolute a:hover * {
+  header.header-global .absolute a:hover * {
     color: #111827 !important; /* text-gray-900 */
   }
   
   /* Ensure logo and brand text are visible */
-  .header-global .text-xl {
+  header.header-global .text-xl {
     color: white !important;
   }
   
   /* Ensure user menu text is visible */
-  .header-global .text-white\/90 {
+  header.header-global .text-white\/90 {
     color: rgba(255, 255, 255, 0.9) !important;
   }
   
-  .header-global .text-white\/80 {
+  header.header-global .text-white\/80 {
     color: rgba(255, 255, 255, 0.8) !important;
   }
   
-  .header-global .text-white\/80:hover {
+  header.header-global .text-white\/80:hover {
     color: white !important;
+  }
+  
+  /* Force background on header */
+  header.header-global {
+    background: linear-gradient(90deg, #043C46 0%, #043C46 66%, #0F5F6B 100%) !important;
   }
   
   /* Global button and form styling */

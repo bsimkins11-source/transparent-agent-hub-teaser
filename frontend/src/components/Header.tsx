@@ -97,14 +97,20 @@ export default function Header() {
           ? 'border-white/20' 
           : 'border-transparent'
       }`}
-      style={isCompanyEnvironment ? {
-        background: `linear-gradient(90deg, ${companyColors?.primary} 0%, ${companyColors?.primary} 66%, ${companyColors?.secondary} 100%)`,
-      } : {
-        background: 'linear-gradient(90deg, #043C46 0%, #043C46 66%, #0F5F6B 100%)',
+      style={{
+        background: isCompanyEnvironment 
+          ? `linear-gradient(90deg, ${companyColors?.primary} 0%, ${companyColors?.primary} 66%, ${companyColors?.secondary} 100%)`
+          : 'linear-gradient(90deg, #043C46 0%, #043C46 66%, #0F5F6B 100%)',
+        color: 'white'
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
+          {/* Test div to verify styling */}
+          <div className="text-white bg-red-500 px-2 py-1 rounded text-xs">
+            NAV TEST - Should be white text on red background
+          </div>
+          
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <img 
@@ -120,22 +126,22 @@ export default function Header() {
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-8 text-white">
             {currentUser && userProfile && (
               <>
                 {/* Libraries Dropdown */}
                 <div className="relative" ref={librariesDropdownRef}>
                   <button
                     onClick={() => setIsLibrariesDropdownOpen(!isLibrariesDropdownOpen)}
-                    className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                    className={`flex items-center space-x-1 text-sm font-medium transition-colors text-white ${
                       isCompanyEnvironment 
                         ? 'text-white/80 hover:text-white' 
                         : 'text-white/90 hover:text-white'
                     }`}
                   >
-                    <BookOpenIcon className="w-4 h-4" />
-                    <span>Libraries</span>
-                    <ChevronDownIcon className="w-4 h-4" />
+                    <BookOpenIcon className="w-4 h-4 text-white" />
+                    <span className="text-white">Libraries</span>
+                    <ChevronDownIcon className="w-4 h-4 text-white" />
                   </button>
                   
                   {isLibrariesDropdownOpen && (
@@ -210,15 +216,15 @@ export default function Header() {
                   <div className="relative" ref={adminDropdownRef}>
                     <button
                       onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
-                      className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
+                      className={`flex items-center space-x-1 text-sm font-medium transition-colors text-white ${
                         isCompanyEnvironment 
                           ? 'text-white/80 hover:text-white' 
                           : 'text-white/90 hover:text-white'
                       }`}
                     >
-                      <CogIcon className="w-4 h-4" />
-                      <span>Admin</span>
-                      <ChevronDownIcon className="w-4 h-4" />
+                      <CogIcon className="w-4 h-4 text-white" />
+                      <span className="text-white">Admin</span>
+                      <ChevronDownIcon className="w-4 h-4 text-white" />
                     </button>
                     
                     {isAdminDropdownOpen && (
@@ -321,37 +327,37 @@ export default function Header() {
             {currentUser && (
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-md text-white/70 hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/50"
+                className="p-2 rounded-md text-white hover:text-white hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/50"
               >
                 {isMobileMenuOpen ? (
-                  <XMarkIcon className="h-6 w-6" />
+                  <XMarkIcon className="h-6 w-6 text-white" />
                 ) : (
-                  <Bars3Icon className="h-6 w-6" />
+                  <Bars3Icon className="h-6 w-6 text-white" />
                 )}
               </button>
             )}
           </div>
 
           {/* User Menu */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-4 text-white">
             {currentUser ? (
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2 text-sm text-white/90">
-                  <UserIcon className="w-4 h-4" />
-                  <span>{currentUser.email}</span>
+              <div className="flex items-center space-x-3 text-white">
+                <div className="flex items-center space-x-2 text-sm text-white">
+                  <UserIcon className="w-4 h-4 text-white" />
+                  <span className="text-white">{currentUser.email}</span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center space-x-1 text-sm text-white/80 hover:text-white transition-colors"
+                  className="flex items-center space-x-1 text-sm text-white hover:text-white transition-colors"
                 >
-                  <ArrowRightOnRectangleIcon className="w-4 h-4" />
-                  <span>Logout</span>
+                  <ArrowRightOnRectangleIcon className="w-4 h-4 text-white" />
+                  <span className="text-white">Logout</span>
                 </button>
               </div>
             ) : (
               <Link 
                 to="/login"
-                className="btn-primary text-sm"
+                className="btn-primary text-sm text-white"
               >
                 Sign In
               </Link>
