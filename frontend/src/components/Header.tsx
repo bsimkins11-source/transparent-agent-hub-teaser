@@ -180,11 +180,27 @@ export default function Header() {
                       <div 
                         className="absolute top-full left-0 mt-2 w-52 rounded-md shadow-lg py-1 z-50"
                         style={{
-                          background: '#1f2937',
-                          border: '1px solid #4b5563',
-                          color: 'white'
+                          background: 'red',
+                          border: '5px solid yellow',
+                          color: 'white',
+                          fontSize: '20px',
+                          fontWeight: 'bold',
+                          padding: '20px',
+                          zIndex: '9999'
                         }}
                       >
+                        {/* DEBUG: This should be impossible to miss */}
+                        <div style={{ 
+                          background: 'lime', 
+                          color: 'black', 
+                          padding: '10px', 
+                          border: '3px solid blue',
+                          fontSize: '16px',
+                          fontWeight: 'bold'
+                        }}>
+                          🚨 DEBUG: DROPDOWN IS RENDERING! 🚨
+                        </div>
+                        
                         {/* Super Admin - Only for super_admin role */}
                         {userProfile.role === 'super_admin' && (
                           <Link
