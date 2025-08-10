@@ -203,7 +203,7 @@ export default function HierarchicalAgentLibrary({
 
 
 
-  const loadLibraryData = async () => {
+  const loadLibraryData = async (forceRefresh = false) => {
     if (!userProfile) return;
     
     try {
@@ -216,10 +216,44 @@ export default function HierarchicalAgentLibrary({
         return;
       }
       
+      // Force refresh by adding a timestamp to bypass cache
+      const timestamp = forceRefresh ? Date.now() : 0;
+      
       const [libraryAgents, libraryStats] = await Promise.all([
         getLibraryAgents(currentLibrary, userProfile),
         getLibraryStats(currentLibrary, userProfile)
       ]);
+      
+      // Debug logging for development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('loadLibraryData Debug:', {
+          libraryType: currentLibrary,
+          userId: userProfile.uid,
+          totalAgents: libraryAgents.length,
+          agentsInUserLibrary: libraryAgents.filter(a => a.inUserLibrary).length,
+          geminiAgent: libraryAgents.find(a => a.name.includes('Gemini')),
+          timestamp
+        });
+      }
+
+      // Special debugging for Gemini agent issue
+      if (process.env.NODE_ENV === 'development' && forceRefresh) {
+        console.log('🔍 Force refresh triggered - checking Gemini agent status...');
+        try {
+          const { doc, getDoc } = await import('firebase/firestore');
+          const { db } = await import('../lib/firebase');
+          const userDoc = await getDoc(doc(db, 'users', userProfile.uid));
+          if (userDoc.exists()) {
+            const userData = userDoc.data();
+            console.log('🔍 User document data:', {
+              assignedAgents: userData.assignedAgents,
+              hasGemini: userData.assignedAgents?.includes('gemini-agent-id') || 'No Gemini ID found'
+            });
+          }
+        } catch (error) {
+          console.error('🔍 Error checking user document:', error);
+        }
+      }
       
       setAgents(libraryAgents);
       setStats(libraryStats);
@@ -247,8 +281,17 @@ export default function HierarchicalAgentLibrary({
     try {
       await removeAgentFromUserLibrary(userProfile.uid, agent.id);
       
-      // Refresh the library data
-      await loadLibraryData();
+      // Refresh the library data with force refresh
+      await loadLibraryData(true);
+      
+      // Also refresh the current agent's state immediately for better UX
+      setAgents(prevAgents => 
+        prevAgents.map(a => 
+          a.id === agent.id 
+            ? { ...a, inUserLibrary: false, canAdd: true }
+            : a
+        )
+      );
       
       toast.success(`${agent.name} removed from your library`);
       setConfirmRemove(null);
@@ -302,8 +345,17 @@ export default function HierarchicalAgentLibrary({
       
       toast.success(`${agent.name} added to your library!`);
       
-      // Refresh library data to update UI
-      loadLibraryData();
+      // Refresh library data to update UI with force refresh
+      await loadLibraryData(true);
+      
+      // Also refresh the current agent's state immediately for better UX
+      setAgents(prevAgents => 
+        prevAgents.map(a => 
+          a.id === agent.id 
+            ? { ...a, inUserLibrary: true, canAdd: false }
+            : a
+        )
+      );
       
     } catch (error) {
       console.error('Failed to add agent to library:', error);
@@ -442,6 +494,8 @@ export default function HierarchicalAgentLibrary({
   const clearSelection = () => {
     setSelectedAgents(new Set());
   };
+
+
 
   const libraryInfo = getLibraryInfo(currentLibrary, userProfile);
   
@@ -635,6 +689,9 @@ export default function HierarchicalAgentLibrary({
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
               {libraryInfo.description}
             </p>
+            
+            {/* Temporary fix button for Gemini agent issue */}
+
             
 
             
@@ -975,6 +1032,116 @@ export default function HierarchicalAgentLibrary({
                   >
                     Save Default
                   </button>
+                  
+                  {/* Manual Refresh Button */}
+                  <button
+                    onClick={() => loadLibraryData(true)}
+                    className="px-3 py-2 text-sm text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-colors border border-purple-200 hover:border-purple-300"
+                    title="Force refresh library data"
+                  >
+                    🔄 Refresh
+                  </button>
+                  
+                  {/* Check Gemini Status Button */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          const { doc, getDoc } = await import('firebase/firestore');
+                          const { db } = await import('../lib/firebase');
+                          
+                          if (!userProfile?.uid) {
+                            toast.error('No user profile found');
+                            return;
+                          }
+                          
+                          const userDoc = await getDoc(doc(db, 'users', userProfile.uid));
+                          if (userDoc.exists()) {
+                            const userData = userDoc.data();
+                            const geminiAgent = agents.find(a => a.name.includes('Gemini'));
+                            
+                            if (geminiAgent) {
+                              const hasGemini = userData.assignedAgents?.includes(geminiAgent.id);
+                              console.log('🔍 Gemini Status Check:', {
+                                agentId: geminiAgent.id,
+                                agentName: geminiAgent.name,
+                                inUserLibrary: geminiAgent.inUserLibrary,
+                                userAssignedAgents: userData.assignedAgents,
+                                hasGeminiInUserDoc: hasGemini,
+                                mismatch: geminiAgent.inUserLibrary !== hasGemini
+                              });
+                              
+                              if (geminiAgent.inUserLibrary !== hasGemini) {
+                                toast.error(`🔍 MISMATCH DETECTED! UI shows ${geminiAgent.inUserLibrary}, but user doc has ${hasGemini}`);
+                              } else {
+                                toast.success(`🔍 Status match: UI and user doc both show ${geminiAgent.inUserLibrary}`);
+                              }
+                            } else {
+                              toast.error('No Gemini agent found in current agents list');
+                            }
+                          } else {
+                            toast.error('User document not found');
+                          }
+                        } catch (error) {
+                          console.error('Error checking Gemini status:', error);
+                          toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        }
+                      }}
+                      className="px-3 py-2 text-sm text-orange-600 hover:text-orange-800 hover:bg-orange-50 rounded-lg transition-colors border border-orange-200 hover:border-orange-300"
+                      title="Check Gemini agent status in real-time"
+                    >
+                      🔍 Check Gemini
+                    </button>
+                  )}
+                  
+                  {/* Force Add Gemini Button */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <button
+                      onClick={async () => {
+                        try {
+                          if (!userProfile?.uid) {
+                            toast.error('No user profile found');
+                            return;
+                          }
+                          
+                          const geminiAgent = agents.find(a => a.name.includes('Gemini'));
+                          if (!geminiAgent) {
+                            toast.error('No Gemini agent found in current agents list');
+                            return;
+                          }
+                          
+                          toast('🔄 Force adding Gemini agent to your library...', { icon: '⏳' });
+                          
+                          // Force add the agent using the existing service
+                          await addAgentToUserLibrary(
+                            userProfile.uid,
+                            userProfile.email,
+                            userProfile.displayName,
+                            geminiAgent.id,
+                            geminiAgent.name,
+                            userProfile.organizationId,
+                            userProfile.organizationName,
+                            userProfile.networkId || undefined,
+                            userProfile.networkName || undefined,
+                            'Force add for debugging'
+                          );
+                          
+                          toast.success('✅ Gemini agent force-added to your library!');
+                          
+                          // Force refresh the data
+                          await loadLibraryData(true);
+                          
+                        } catch (error) {
+                          console.error('Error force-adding Gemini agent:', error);
+                          toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+                        }
+                      }}
+                      className="px-3 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors border border-red-200 hover:border-red-300"
+                      title="Force add Gemini agent to library for debugging"
+                    >
+                      🚀 Force Add Gemini
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -1249,20 +1416,26 @@ export default function HierarchicalAgentLibrary({
                   <AgentCard
                     agent={agent}
                     isInUserLibrary={agent.inUserLibrary}
-                    showAddToLibrary={agent.canAdd && !agent.inUserLibrary || agent.inUserLibrary}
+                    showAddToLibrary={agent.canAdd && !agent.inUserLibrary}
                     showRequestAccess={agent.canRequest && !agent.inUserLibrary}
                     onAddToLibrary={() => handleAddToLibrary(agent)}
                     onRequestAccess={() => handleRequestAccess(agent)}
                     onRemoveFromLibrary={() => handleRemoveFromLibrary(agent)}
-                    libraryType={currentLibrary}
                   />
                   
                   {/* Debug info */}
                   {process.env.NODE_ENV === 'development' && (
                     <div className="mt-2 px-4 text-xs text-gray-400">
-                      Debug: libraryType={currentLibrary}, canRequest={agent.canRequest}, inUserLibrary={agent.inUserLibrary}
+                      Debug: libraryType={currentLibrary}, canAdd={agent.canAdd}, canRequest={agent.canRequest}, inUserLibrary={agent.inUserLibrary}, assignmentType={agent.assignmentType}
+                      {agent.name.includes('Gemini') && (
+                        <div className="mt-1 text-red-400">
+                          🔍 Gemini Debug: ID={agent.id}, inUserLibrary={agent.inUserLibrary}
+                        </div>
+                      )}
                     </div>
                   )}
+                  
+
                   
                   {/* Additional context info */}
                   <div className="mt-2 px-4">

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "gemini-chat-agent",
+    "name": "Gemini Chat Agent",
+    "description": "Advanced conversational AI powered by Google's Gemini model. Engage in natural conversations, get help with creative tasks, research, coding, and general questions with access to current information.",
+    "provider": "google",
+    "route": "/agents/gemini-chat-agent",
+    "metadata": {
+      "tags": ["conversation", "general-purpose", "research", "creative", "coding", "analysis", "ai-assistant"],
+      "category": "General AI",
+      "tier": "free",
+      "permissionType": "free",
+      "version": "1.0.0",
+      "executionTarget": "vertex",
+      "changelog": ["Initial release with Gemini Pro capabilities"]
+    },
+    "visibility": "global",
+    "allowedRoles": ["admin", "client", "user"],
+    "status": "approved",
+    "createdAt": "2024-01-15T00:00:00Z",
+    "updatedAt": "2024-01-15T00:00:00Z"
+  },
+  {
+    "id": "imagen-agent",
+    "name": "Google Imagen Agent",
+    "description": "AI-powered image generation using Google's Imagen model. Create high-quality images from text descriptions, get help crafting effective prompts, and explore various artistic styles.",
+    "provider": "google",
+    "route": "/agents/imagen-agent",
+    "metadata": {
+      "tags": ["image-generation", "creative", "art", "design", "visual", "prompting", "ai-art"],
+      "category": "Creative AI",
+      "tier": "premium",
+      "permissionType": "approval",
+      "version": "1.0.0",
+      "executionTarget": "vertex",
+      "changelog": ["Initial release with Imagen 2.0 capabilities"]
+    },
+    "visibility": "global",
+    "allowedRoles": ["admin", "client", "user"],
+    "status": "approved",
+    "createdAt": "2024-01-15T00:00:00Z",
+    "updatedAt": "2024-01-15T00:00:00Z"
+  }
+]

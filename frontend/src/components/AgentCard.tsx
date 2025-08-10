@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
   PlusIcon,
   MinusIcon,
@@ -9,10 +9,7 @@ import {
   ShieldCheckIcon,
   ExclamationTriangleIcon,
   CheckCircleIcon,
-  InformationCircleIcon,
-  ChatBubbleLeftRightIcon,
-  CogIcon,
-  ArrowTopRightOnSquareIcon
+  CogIcon
 } from '@heroicons/react/24/outline';
 import { Agent } from '../types/agent';
 import toast from 'react-hot-toast';
@@ -25,7 +22,6 @@ interface AgentCardProps {
   onAddToLibrary: () => void;
   onRequestAccess: () => void;
   onRemoveFromLibrary: () => void;
-  libraryType: string;
 }
 
 const getTierColor = (tier: string) => {
@@ -82,10 +78,8 @@ export default function AgentCard({
   showRequestAccess,
   onAddToLibrary,
   onRequestAccess,
-  onRemoveFromLibrary,
-  libraryType
+  onRemoveFromLibrary
 }: AgentCardProps) {
-  const [isHovered, setIsHovered] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -180,8 +174,6 @@ export default function AgentCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
       className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-full flex flex-col transition-all duration-300 hover:shadow-lg hover:border-gray-300 group"
     >
       {/* Header */}
@@ -307,51 +299,9 @@ export default function AgentCard({
         {getActionButton()}
       </div>
 
-      {/* Hover Actions */}
-      <AnimatePresence>
-        {isHovered && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="absolute inset-0 bg-black bg-opacity-75 rounded-xl flex items-center justify-center space-x-3"
-          >
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="p-3 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors"
-              title="View Details"
-            >
-              <InformationCircleIcon className="w-5 h-5 text-gray-700" />
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="p-3 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors"
-              title="Start Chat"
-            >
-              <ChatBubbleLeftRightIcon className="w-5 h-5 text-gray-700" />
-            </motion.button>
-            
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              className="p-3 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-colors"
-              title="Open in New Tab"
-            >
-              <ArrowTopRightOnSquareIcon className="w-5 h-5 text-gray-700" />
-            </motion.button>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* Library Type Indicator */}
-      <div className="absolute top-2 left-2">
-        <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded-full border border-gray-200">
-          {libraryType.charAt(0).toUpperCase() + libraryType.slice(1)}
-        </span>
-      </div>
+
+
 
       {/* Security Badge for Enterprise */}
       {agent.metadata?.tier === 'enterprise' && (
