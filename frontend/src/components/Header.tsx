@@ -135,80 +135,31 @@ export default function Header() {
                   
                   {isLibrariesDropdownOpen && (
                     <div 
-                      className="absolute top-full left-0 mt-2 w-56 rounded-md shadow-lg py-1 z-50"
+                      className="absolute top-full left-0 mt-2 w-56 py-1 z-50"
                       style={{
-                        background: '#1f2937',
-                        border: '1px solid #4b5563',
-                        color: 'white'
+                        background: 'black',
+                        border: '2px solid red',
+                        color: 'white',
+                        padding: '8px',
+                        borderRadius: '4px'
                       }}
                     >
-                      {/* All Agents - Always available */}
-                      <Link
-                        to="/agents"
-                        onClick={() => setIsLibrariesDropdownOpen(false)}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors ${
-                          location.pathname === '/agents' ? 'bg-blue-600' : ''
-                        }`}
-                        style={{
-                          color: 'white',
-                          backgroundColor: location.pathname === '/agents' ? '#2563eb' : 'transparent'
-                        }}
-                      >
-                        <BookOpenIcon className="w-4 h-4" style={{ color: '#d1d5db' }} />
-                        <span>All Agents</span>
-                      </Link>
+                      {/* Test dropdown - simple styling */}
+                      <div style={{ color: 'white', padding: '8px', backgroundColor: 'transparent' }}>
+                        <span style={{ color: 'white' }}>TEST DROPDOWN - Should be visible</span>
+                      </div>
                       
-                      {/* Company Library - Only if user has company access */}
-                      {userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
-                        <Link
-                          to={`/company/${userProfile.organizationId}`}
-                          onClick={() => setIsLibrariesDropdownOpen(false)}
-                          className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors ${
-                            location.pathname.startsWith('/company/') ? 'bg-blue-600' : ''
-                          }`}
-                          style={{
-                            color: 'white',
-                            backgroundColor: location.pathname.startsWith('/company/') ? '#2563eb' : 'transparent'
-                          }}
-                        >
-                          <BuildingOfficeIcon className="w-4 h-4" style={{ color: '#d1d5db' }} />
-                          <span>{userProfile.organizationName || 'Company'}</span>
-                        </Link>
-                      )}
+                      <div style={{ color: 'white', padding: '8px', backgroundColor: 'transparent' }}>
+                        <span style={{ color: 'white' }}>All Agents</span>
+                      </div>
                       
-                      {/* Network Library - Only if user is part of a network */}
-                      {userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
-                        <Link
-                          to={`/company/${userProfile.organizationId}/network/main`}
-                          onClick={() => setIsLibrariesDropdownOpen(false)}
-                          className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors ${
-                            location.pathname.includes('/network/') ? 'bg-blue-600' : ''
-                          }`}
-                          style={{
-                            color: 'white',
-                            backgroundColor: location.pathname.includes('/network/') ? '#2563eb' : 'transparent'
-                          }}
-                        >
-                          <UserGroupIcon className="w-4 h-4" style={{ color: '#d1d5db' }} />
-                          <span>Network</span>
-                        </Link>
-                      )}
+                      <div style={{ color: 'white', padding: '8px', backgroundColor: 'transparent' }}>
+                        <span style={{ color: 'white' }}>Company Library</span>
+                      </div>
                       
-                      {/* My Library - Always available for authenticated users */}
-                      <Link
-                        to="/my-agents"
-                        onClick={() => setIsLibrariesDropdownOpen(false)}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors ${
-                          location.pathname === '/my-agents' ? 'bg-blue-600' : ''
-                        }`}
-                        style={{
-                          color: 'white',
-                          backgroundColor: location.pathname === '/my-agents' ? '#2563eb' : 'transparent'
-                        }}
-                      >
-                        <UserIcon className="w-4 h-4" style={{ color: '#d1d5db' }} />
-                        <span>My Library</span>
-                      </Link>
+                      <div style={{ color: 'white', padding: '8px', backgroundColor: 'transparent' }}>
+                        <span style={{ color: 'white' }}>My Library</span>
+                      </div>
                     </div>
                   )}
                 </div>
