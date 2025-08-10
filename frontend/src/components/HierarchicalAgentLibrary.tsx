@@ -12,7 +12,11 @@ import {
   XMarkIcon,
   AdjustmentsHorizontalIcon,
   ArrowsUpDownIcon,
-  PlusIcon
+  PlusIcon,
+  HomeIcon,
+  BuildingOfficeIcon,
+  GlobeAltIcon,
+  UserGroupIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import AgentCard from './AgentCard';
@@ -462,7 +466,7 @@ export default function HierarchicalAgentLibrary({
       return (
         <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
           <CheckCircleIcon className="w-3 h-3 mr-1" />
-          In Library
+          In Your Library
         </span>
       );
     }
@@ -589,7 +593,7 @@ export default function HierarchicalAgentLibrary({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pl-0 hover:pl-72 transition-all duration-300 ease-in-out">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -635,37 +639,9 @@ export default function HierarchicalAgentLibrary({
               {libraryInfo.description}
             </p>
             
-            {/* Submit Agent Button */}
-            {(userProfile?.role === 'creator' || userProfile?.role === 'super_admin') && (
-              <div className="mb-6">
-                <button
-                  onClick={() => navigate('/agent-submission')}
-                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                >
-                  <PlusIcon className="w-5 h-5 mr-2" />
-                  Submit New Agent
-                </button>
-                <p className="text-sm text-gray-500 mt-2">
-                  Have a great AI agent? Submit it to our marketplace!
-                </p>
-              </div>
-            )}
+
             
-            {/* Become a Creator Button for non-creators */}
-            {!userProfile?.role || (userProfile?.role !== 'creator' && userProfile?.role !== 'super_admin') ? (
-              <div className="mb-6">
-                <button
-                  onClick={() => navigate('/creator-dashboard')}
-                  className="inline-flex items-center px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                >
-                  <SparklesIcon className="w-5 h-5 mr-2" />
-                  Become a Creator
-                </button>
-                <p className="text-sm text-gray-500 mt-2">
-                  Want to submit agents? Apply to become a creator!
-                </p>
-              </div>
-            ) : null}
+
             
             {/* Enhanced Search Bar */}
             <div className="max-w-2xl mx-auto">
@@ -807,6 +783,95 @@ export default function HierarchicalAgentLibrary({
         </div>
       </div>
 
+      {/* Left Navigation Sidebar */}
+      <div className="fixed left-0 top-0 h-full z-40">
+        {/* Hover Indicator */}
+        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-2 h-16 bg-blue-500 rounded-r-full opacity-0 hover:opacity-100 transition-opacity duration-300 z-50"></div>
+        
+        <div 
+          className="h-full bg-white border-r border-gray-200 shadow-lg transition-all duration-300 ease-in-out transform hover:translate-x-0 -translate-x-full hover:shadow-2xl"
+          style={{ width: '280px' }}
+        >
+          <div className="p-6">
+            {/* Navigation Header */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Navigation</h3>
+              <p className="text-sm text-gray-600">Quick access to key areas</p>
+            </div>
+
+            {/* Navigation Items */}
+            <nav className="space-y-2">
+              {/* Home */}
+              <button
+                onClick={() => navigate('/')}
+                className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 group"
+              >
+                <HomeIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                <span className="font-medium">Home</span>
+              </button>
+
+              {/* Company Library or Network Library */}
+              {userProfile?.organizationId ? (
+                <button
+                  onClick={() => navigate('/company-agent-library')}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 group"
+                >
+                  <BuildingOfficeIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  <span className="font-medium">Company Library</span>
+                </button>
+              ) : userProfile?.networkId ? (
+                <button
+                  onClick={() => navigate('/network-agent-library')}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 group"
+                >
+                  <UserGroupIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                  <span className="font-medium">Network Library</span>
+                </button>
+              ) : null}
+
+              {/* Public Agent Marketplace */}
+              <button
+                onClick={() => navigate('/agent-marketplace')}
+                className="w-full flex items-center space-x-3 px-4 py-3 text-left text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200 group"
+              >
+                <GlobeAltIcon className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                <span className="font-medium">Public Marketplace</span>
+              </button>
+
+              {/* Submit Agent - Only for creators */}
+              {(userProfile?.role === 'creator' || userProfile?.role === 'super_admin') && (
+                <button
+                  onClick={() => navigate('/agent-submission')}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all duration-200 group border border-blue-200"
+                >
+                  <PlusIcon className="w-5 h-5 text-blue-600" />
+                  <span className="font-medium">Submit Agent</span>
+                </button>
+              )}
+
+              {/* Become Creator - For non-creators */}
+              {!userProfile?.role || (userProfile?.role !== 'creator' && userProfile?.role !== 'super_admin') ? (
+                <button
+                  onClick={() => navigate('/creator-dashboard')}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-all duration-200 group border border-green-200"
+                >
+                  <SparklesIcon className="w-5 h-5 text-green-600" />
+                  <span className="font-medium">Become Creator</span>
+                </button>
+              ) : null}
+            </nav>
+
+            {/* Current Library Info */}
+            <div className="mt-8 pt-6 border-t border-gray-200">
+              <div className="text-sm text-gray-500 mb-2">Currently viewing:</div>
+              <div className="text-sm font-medium text-gray-900">
+                {currentLibrary.charAt(0).toUpperCase() + currentLibrary.slice(1)} Library
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Library Tabs */}
       {showTabs && (
         <div className="bg-white border-b border-gray-200">
@@ -885,7 +950,7 @@ export default function HierarchicalAgentLibrary({
                   </div>
                   <div className="flex items-center space-x-2">
                     <CheckCircleIcon className="w-4 h-4" />
-                    <span>{stats.inUserLibrary} in library</span>
+                    <span>{stats.inUserLibrary} in your library</span>
                   </div>
                 </>
               )}
@@ -934,7 +999,7 @@ export default function HierarchicalAgentLibrary({
                 >
                   <option value="">All Access</option>
                   <option value="available">Available</option>
-                  <option value="in-library">In My Library</option>
+                  <option value="in-library">In Your Library</option>
                   <option value="restricted">Restricted</option>
                 </select>
 
