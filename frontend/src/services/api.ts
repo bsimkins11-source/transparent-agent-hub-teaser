@@ -133,17 +133,98 @@ export const fetchAdminStats = async () => {
   return response.data
 }
 
+// Utility function to check and refresh authentication
+export const checkAndRefreshAuth = async () => {
+  const token = localStorage.getItem('authToken');
+  
+  if (!token) {
+    console.log('🔍 No auth token found - user needs to log in');
+    return false;
+  }
+  
+  // Check if token is expired (Firebase tokens expire after 1 hour)
+  try {
+    // Decode the JWT token to check expiration
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const now = Math.floor(Date.now() / 1000);
+    
+    if (payload.exp && payload.exp < now) {
+      console.log('🔍 Token expired, removing from localStorage');
+      localStorage.removeItem('authToken');
+      return false;
+    }
+    
+    console.log('✅ Token is valid, expires at:', new Date(payload.exp * 1000));
+    return true;
+  } catch (error) {
+    console.error('❌ Error checking token validity:', error);
+    localStorage.removeItem('authToken');
+    return false;
+  }
+};
+
 // User Library Management API calls
 export const addAgentToUserLibrary = async (agentId: string, assignmentReason?: string) => {
-  const response = await api.post(`/api/agents/${agentId}/add-to-library`, {
-    assignmentReason
+  // Debug authentication state
+  const token = localStorage.getItem('authToken');
+  console.log('🔍 Debug: addAgentToUserLibrary called with:', {
+    agentId,
+    assignmentReason,
+    hasToken: !!token,
+    tokenLength: token?.length || 0,
+    tokenPreview: token ? `${token.substring(0, 20)}...` : 'none'
   });
-  return response.data;
+  
+  if (!token) {
+    console.error('❌ No auth token found in localStorage');
+    throw new Error('Authentication required. Please log in again.');
+  }
+  
+  try {
+    const response = await api.post(`/api/agents/${agentId}/add-to-library`, {
+      assignmentReason
+    });
+    console.log('✅ addAgentToUserLibrary success:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ addAgentToUserLibrary failed:', {
+      error,
+      status: error.response?.status,
+      data: error.response?.data,
+      headers: error.response?.headers
+    });
+    throw error;
+  }
 };
 
 export const removeAgentFromUserLibrary = async (agentId: string) => {
-  const response = await api.delete(`/api/agents/${agentId}/remove-from-library`);
-  return response.data;
+  // Debug authentication state
+  const token = localStorage.getItem('authToken');
+  console.log('🔍 Debug: removeAgentFromUserLibrary called with:', {
+    agentId,
+    hasToken: !!token,
+    tokenLength: token?.length || 0,
+    tokenPreview: token ? `${token.substring(0, 20)}...` : 'none'
+  });
+  
+  if (!token) {
+    console.error('❌ No auth token found in localStorage');
+    throw new Error('Authentication required. Please log in again.');
+  }
+  
+  try {
+    const response = await api.delete(`/api/agents/${agentId}/remove-from-library`);
+    console.log('✅ removeAgentFromUserLibrary success:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('❌ removeAgentFromUserLibrary failed:', {
+      error,
+      status: error.response?.status,
+      data: error.response?.data,
+      headers: error.response?.headers
+    });
+    throw error;
+  }
 };
 
 export const fetchUserLibrary = async () => {

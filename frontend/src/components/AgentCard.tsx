@@ -11,7 +11,9 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
   CogIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  PlayIcon,
+  TrashIcon
 } from '@heroicons/react/24/outline';
 import { Agent } from '../types/agent';
 import toast from 'react-hot-toast';
@@ -102,9 +104,20 @@ export default function AgentCard({
     }
   };
 
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(agent.name);
+      // You could add a toast notification here if you want
+      console.log('Agent name copied to clipboard');
+    } catch (error) {
+      console.error('Failed to copy:', error);
+    }
+  };
+
   const handleAction = async (action: () => void, event: React.MouseEvent) => {
     // Prevent the card click from firing when clicking action buttons
     event.stopPropagation();
+    event.preventDefault();
     
     setIsLoading(true);
     try {
@@ -122,82 +135,68 @@ export default function AgentCard({
 
   const getActionButton = () => {
     if (isInUserLibrary) {
-      if (currentLibrary === 'personal') {
-        // In personal library - show Open and Remove buttons
-        return (
-          <div className="space-y-2">
-            {/* Primary Open Button */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleOpenAgent}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
-            >
-              <SparklesIcon className="w-4 h-4" />
-              <span>Open Agent</span>
-            </motion.button>
-            
-            {/* Small Remove Button */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={(e) => handleAction(onRemoveFromLibrary, e)}
-              disabled={isLoading}
-              className="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 text-sm py-2 px-3 rounded-md transition-all duration-200 flex items-center justify-center space-x-2"
-            >
-              {isLoading ? (
-                <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <MinusIcon className="w-3 h-3" />
-                  <span>Remove</span>
-                </>
-              )}
-            </motion.button>
-          </div>
-        );
-      } else {
-        // In other libraries (global, company, network) - show "In My Library" status
-        return (
-          <div className="space-y-2">
-            {/* Primary Open Button */}
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleOpenAgent}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
-            >
-              <SparklesIcon className="w-4 h-4" />
-              <span>Open Agent</span>
-            </motion.button>
-            
-            {/* Status indicator - no remove button */}
-            <div className="w-full bg-green-100 text-green-700 text-sm py-2 px-3 rounded-md text-center font-medium">
-              ✓ In My Library
-            </div>
-          </div>
-        );
-      }
+      return (
+        <div className="flex space-x-2">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleOpenAgent}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+          >
+            <PlayIcon className="w-4 h-4" />
+            <span>Open Agent</span>
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={(e) => handleAction(onRemoveFromLibrary, e)}
+            disabled={isLoading}
+            className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+          >
+            {isLoading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <TrashIcon className="w-4 h-4" />
+                <span>Remove</span>
+              </>
+            )}
+          </motion.button>
+        </div>
+      );
     }
 
     if (showRequestAccess) {
       return (
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={(e) => handleAction(onRequestAccess, e)}
-          disabled={isLoading}
-          className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
-        >
-          {isLoading ? (
-            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <>
-              <ClockIcon className="w-4 h-4" />
-              <span>Request Access</span>
-            </>
-          )}
-        </motion.button>
+        <div className="space-y-2">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleOpenAgent}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md cursor-pointer"
+          >
+            <PlayIcon className="w-4 h-4" />
+            <span>Open Agent</span>
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={(e) => handleAction(onRequestAccess, e)}
+            disabled={isLoading}
+            className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:bg-yellow-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md cursor-pointer"
+          >
+            {isLoading ? (
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <>
+                <ClockIcon className="w-4 h-4" />
+                <span>Request Access</span>
+              </>
+            )}
+          </motion.button>
+        </div>
       );
     }
 
@@ -208,7 +207,7 @@ export default function AgentCard({
           whileTap={{ scale: 0.98 }}
           onClick={(e) => handleAction(onAddToLibrary, e)}
           disabled={isLoading}
-          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md"
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md cursor-pointer"
         >
           {isLoading ? (
             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -223,8 +222,20 @@ export default function AgentCard({
     }
 
     return (
-      <div className="w-full bg-gray-100 text-gray-500 font-medium py-3 px-4 rounded-lg text-center">
-        Not Available
+      <div className="space-y-2">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleOpenAgent}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm hover:shadow-md cursor-pointer"
+        >
+          <PlayIcon className="w-4 h-4" />
+          <span>Open Agent</span>
+        </motion.button>
+        
+        <div className="w-full bg-gray-100 text-gray-500 font-medium py-3 px-4 rounded-lg text-center">
+          Not Available
+        </div>
       </div>
     );
   };
@@ -263,7 +274,18 @@ export default function AgentCard({
         </div>
 
         {/* Status Indicator */}
-        <div className="flex-shrink-0 ml-2">
+        <div className="flex-shrink-0 ml-2 flex items-center space-x-2">
+          {/* Copy Button */}
+          <button
+            onClick={handleCopy}
+            className="p-1 text-gray-400 hover:text-gray-600 transition-colors duration-200 rounded-md hover:bg-gray-100"
+            title="Copy agent name"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
+          
           {isInUserLibrary ? (
             <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
               <CheckCircleIcon className="w-5 h-5 text-green-600" />
@@ -288,7 +310,10 @@ export default function AgentCard({
         
         {hasLongDescription && (
           <button
-            onClick={() => setShowFullDescription(!showFullDescription)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowFullDescription(!showFullDescription);
+            }}
             className="text-blue-600 hover:text-blue-800 text-sm font-medium mt-2 transition-colors"
           >
             {showFullDescription ? 'Show less' : 'Read more'}
