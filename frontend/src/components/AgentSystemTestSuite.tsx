@@ -1,67 +1,49 @@
 import React, { useState, useEffect } from 'react';
 
 // Import services with error handling
-let createAgent: any, updateAgent: any, deleteAgent: any, getAllAgentsForManagement: any, getAgentStats: any, submitAgentForReview: any, reviewAgent: any, getPendingAgents: any, getApprovedAgents: any, updateAgentStatus: any;
-let getCompanyAvailableAgents: any, getNetworkAvailableAgents: any, grantAgentsToCompany: any, grantAgentsToNetwork: any, getCompanyAgentPermissions: any, getNetworkAgentPermissions: any, getCompanyPermissionStats: any, getNetworkPermissionStats: any, saveGlobalAgentSettings: any, getGlobalAgentSettings: any;
-let createNewAgentRequest: any, getOrganizationNewAgentRequests: any, getNetworkNewAgentRequests: any, getGlobalNewAgentRequests: any, updateNewAgentRequestStatus: any, getNewAgentRequestsByStatus: any, getUserNewAgentRequests: any;
-let addAgentToUserLibrary: any, removeAgentFromUserLibrary: any, getUserAssignedAgents: any, userHasAgentAccess: any, createOrUpdateUserProfile: any;
+import {
+  createAgent,
+  updateAgent,
+  deleteAgent,
+  getAllAgentsForManagement,
+  getAgentStats,
+  submitAgentForReview,
+  reviewAgent,
+  getPendingAgents,
+  getApprovedAgents,
+  updateAgentStatus
+} from '../services/agentManagementService';
 
-// Try to import services, but handle gracefully if they fail
-try {
-  const agentManagementModule = require('../services/agentManagementService');
-  createAgent = agentManagementModule.createAgent;
-  updateAgent = agentManagementModule.updateAgent;
-  deleteAgent = agentManagementModule.deleteAgent;
-  getAllAgentsForManagement = agentManagementModule.getAllAgentsForManagement;
-  getAgentStats = agentManagementModule.getAgentStats;
-  submitAgentForReview = agentManagementModule.submitAgentForReview;
-  reviewAgent = agentManagementModule.reviewAgent;
-  getPendingAgents = agentManagementModule.getPendingAgents;
-  getApprovedAgents = agentManagementModule.getApprovedAgents;
-  updateAgentStatus = agentManagementModule.updateAgentStatus;
-} catch (error) {
-  console.warn('Agent management services not available:', error);
-}
+import {
+  getCompanyAvailableAgents,
+  getNetworkAvailableAgents,
+  grantAgentsToCompany,
+  grantAgentsToNetwork,
+  getCompanyAgentPermissions,
+  getNetworkAgentPermissions,
+  getCompanyPermissionStats,
+  getNetworkPermissionStats,
+  saveGlobalAgentSettings,
+  getGlobalAgentSettings
+} from '../services/hierarchicalPermissionService';
 
-try {
-  const hierarchicalModule = require('../services/hierarchicalPermissionService');
-  getCompanyAvailableAgents = hierarchicalModule.getCompanyAvailableAgents;
-  getNetworkAvailableAgents = hierarchicalModule.getNetworkAvailableAgents;
-  grantAgentsToCompany = hierarchicalModule.grantAgentsToCompany;
-  grantAgentsToNetwork = hierarchicalModule.grantAgentsToNetwork;
-  getCompanyAgentPermissions = hierarchicalModule.getCompanyAgentPermissions;
-  getNetworkAgentPermissions = hierarchicalModule.getNetworkAgentPermissions;
-  getCompanyPermissionStats = hierarchicalModule.getCompanyPermissionStats;
-  getNetworkPermissionStats = hierarchicalModule.getNetworkPermissionStats;
-  saveGlobalAgentSettings = hierarchicalModule.saveGlobalAgentSettings;
-  getGlobalAgentSettings = hierarchicalModule.getGlobalAgentSettings;
-} catch (error) {
-  console.warn('Hierarchical permission services not available:', error);
-}
+import {
+  createNewAgentRequest,
+  getOrganizationNewAgentRequests,
+  getNetworkNewAgentRequests,
+  getGlobalNewAgentRequests,
+  updateNewAgentRequestStatus,
+  getNewAgentRequestsByStatus,
+  getUserNewAgentRequests
+} from '../services/newAgentRequestService';
 
-try {
-  const newAgentRequestModule = require('../services/newAgentRequestService');
-  createNewAgentRequest = newAgentRequestModule.createNewAgentRequest;
-  getOrganizationNewAgentRequests = newAgentRequestModule.getOrganizationNewAgentRequests;
-  getNetworkNewAgentRequests = newAgentRequestModule.getNetworkNewAgentRequests;
-  getGlobalNewAgentRequests = newAgentRequestModule.getGlobalNewAgentRequests;
-  updateNewAgentRequestStatus = newAgentRequestModule.updateNewAgentRequestStatus;
-  getNewAgentRequestsByStatus = newAgentRequestModule.getNewAgentRequestsByStatus;
-  getUserNewAgentRequests = newAgentRequestModule.getUserNewAgentRequests;
-} catch (error) {
-  console.warn('New agent request services not available:', error);
-}
-
-try {
-  const userLibraryModule = require('../services/userLibraryService');
-  addAgentToUserLibrary = userLibraryModule.addAgentToUserLibrary;
-  removeAgentFromUserLibrary = userLibraryModule.removeAgentFromUserLibrary;
-  getUserAssignedAgents = userLibraryModule.getUserAssignedAgents;
-  userHasAgentAccess = userLibraryModule.userHasAgentAccess;
-  createOrUpdateUserProfile = userLibraryModule.createOrUpdateUserProfile;
-} catch (error) {
-  console.warn('User library services not available:', error);
-}
+import {
+  addAgentToUserLibrary,
+  removeAgentFromUserLibrary,
+  getUserAssignedAgents,
+  userHasAgentAccess,
+  createOrUpdateUserProfile
+} from '../services/userLibraryService';
 
 interface TestResult {
   name: string;
