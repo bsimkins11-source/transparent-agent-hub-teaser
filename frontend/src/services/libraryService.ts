@@ -375,7 +375,7 @@ export const getLibraryInfo = (
     case 'company':
       return {
         name: `${userProfile?.organizationName || 'Company'} Library`,
-        description: 'Agents granted to your organization by Super Admin',
+        description: 'AI agents available to your organization',
         icon: '🏢',
         breadcrumb: [userProfile?.organizationName || 'Company', 'Library']
       };
@@ -383,7 +383,7 @@ export const getLibraryInfo = (
     case 'network':
       return {
         name: `${userProfile?.networkName || 'Network'} Library`,
-        description: 'Agents granted to your network by Company Admin',
+        description: 'AI agents available to your network',
         icon: '🌐',
         breadcrumb: [
           userProfile?.organizationName || 'Company',
@@ -395,7 +395,7 @@ export const getLibraryInfo = (
     case 'personal':
       return {
         name: 'My Agent Library',
-        description: 'AI agents assigned to you by administrators',
+        description: 'Your personal collection of AI agents',
         icon: '👤',
         breadcrumb: ['My Library']
       };
