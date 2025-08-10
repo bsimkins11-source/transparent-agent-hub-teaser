@@ -134,16 +134,27 @@ export default function Header() {
                   </button>
                   
                   {isLibrariesDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-2 w-56 bg-gray-800 rounded-md shadow-lg border border-gray-600 py-1 z-50">
+                    <div 
+                      className="absolute top-full left-0 mt-2 w-56 rounded-md shadow-lg py-1 z-50"
+                      style={{
+                        background: '#1f2937',
+                        border: '1px solid #4b5563',
+                        color: 'white'
+                      }}
+                    >
                       {/* All Agents - Always available */}
                       <Link
                         to="/agents"
                         onClick={() => setIsLibrariesDropdownOpen(false)}
-                        className={`flex items-center space-x-2 px-4 py-2 text-sm text-white hover:bg-gray-700 hover:text-white transition-colors ${
-                          location.pathname === '/agents' ? 'bg-blue-600 text-white' : ''
+                        className={`flex items-center space-x-2 px-4 py-2 text-sm transition-colors ${
+                          location.pathname === '/agents' ? 'bg-blue-600' : ''
                         }`}
+                        style={{
+                          color: 'white',
+                          backgroundColor: location.pathname === '/agents' ? '#2563eb' : 'transparent'
+                        }}
                       >
-                        <BookOpenIcon className="w-4 h-4 text-gray-300" />
+                        <BookOpenIcon className="w-4 h-4" style={{ color: '#d1d5db' }} />
                         <span>All Agents</span>
                       </Link>
                       
@@ -203,7 +214,14 @@ export default function Header() {
                     </button>
                     
                     {isAdminDropdownOpen && (
-                      <div className="absolute top-full left-0 mt-2 w-52 bg-gray-800 rounded-md shadow-lg border border-gray-600 py-1 z-50">
+                      <div 
+                        className="absolute top-full left-0 mt-2 w-52 rounded-md shadow-lg py-1 z-50"
+                        style={{
+                          background: '#1f2937',
+                          border: '1px solid #4b5563',
+                          color: 'white'
+                        }}
+                      >
                         {/* Super Admin - Only for super_admin role */}
                         {userProfile.role === 'super_admin' && (
                           <Link
