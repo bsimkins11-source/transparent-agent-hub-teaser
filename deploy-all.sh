@@ -1,6 +1,8 @@
 #!/bin/bash
 
 echo "🚀 Deploying to ALL environments..."
+echo "🎯 Primary focus: PRODUCTION"
+echo "🔄 Staging: Background mirror (keeps updated)"
 echo ""
 
 # Check if we have uncommitted changes
@@ -43,23 +45,9 @@ if [ $? -ne 0 ]; then
 fi
 cd ..
 
-# Deploy to Staging
+# Deploy to Production (Primary Focus)
 echo ""
-echo "🚀 Deploying to STAGING..."
-firebase use transparent-ai-staging
-firebase deploy --config firebase.staging.json --only hosting
-
-if [ $? -eq 0 ]; then
-    echo "✅ Staging deployment successful!"
-    echo "🌐 Staging URL: https://transparent-ai-staging.web.app"
-else
-    echo "❌ Staging deployment failed!"
-    exit 1
-fi
-
-# Deploy to Production
-echo ""
-echo "🚀 Deploying to PRODUCTION..."
+echo "🎯 Deploying to PRODUCTION (Primary Environment)..."
 firebase use ai-agent-hub-web-portal-79fb0
 firebase deploy --only hosting
 
@@ -71,14 +59,29 @@ else
     exit 1
 fi
 
+# Deploy to Staging (Background Mirror)
 echo ""
-echo "🎉 All deployments completed successfully!"
+echo "🔄 Deploying to STAGING (Background Mirror)..."
+firebase use transparent-ai-staging
+firebase deploy --config firebase.staging.json --only hosting
+
+if [ $? -eq 0 ]; then
+    echo "✅ Staging deployment successful!"
+    echo "🌐 Staging URL: https://transparent-ai-staging.web.app"
+else
+    echo "⚠️  Staging deployment failed (non-critical)"
+    echo "   Production is working - staging can be fixed later"
+fi
+
 echo ""
-echo "📋 Deployment Summary:"
+echo "🎉 Deployment Summary:"
 echo "   ✅ GitHub: Updated"
-echo "   ✅ Staging: https://transparent-ai-staging.web.app"
-echo "   ✅ Production: https://ai-agent-hub-web-portal-79fb0.web.app"
+echo "   🎯 Production: https://ai-agent-hub-web-portal-79fb0.web.app (Primary)"
+echo "   🔄 Staging: https://transparent-ai-staging.web.app (Background Mirror)"
 echo ""
 echo "🔍 To view deployments:"
-echo "   - Staging: firebase open --project transparent-ai-staging"
 echo "   - Production: firebase open --project ai-agent-hub-web-portal-79fb0"
+echo "   - Staging: firebase open --project transparent-ai-staging"
+echo ""
+echo "💡 Staging is now a background mirror that stays updated automatically."
+echo "   Focus on production - staging will be ready when you need it."

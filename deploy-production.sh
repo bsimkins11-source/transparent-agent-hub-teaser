@@ -1,14 +1,39 @@
 #!/bin/bash
 
-echo "🚀 Deploying to PRODUCTION environment..."
-echo "Project: ai-agent-hub-web-portal-79fb0"
+echo "🎯 Deploying to PRODUCTION (Primary Environment)..."
 echo ""
 
-# Switch to production project
-echo "🔄 Switching to production project..."
-firebase use ai-agent-hub-web-portal-79fb0
+# Check if we have uncommitted changes
+if [ -n "$(git status --porcelain)" ]; then
+    echo "📝 Staging all changes..."
+    git add .
+    
+    echo "💬 Enter commit message:"
+    read commit_message
+    
+    if [ -z "$commit_message" ]; then
+        commit_message="Production Update: $(date '+%Y-%m-%d %H:%M:%S')"
+    fi
+    
+    git commit -m "$commit_message"
+    echo "✅ Changes committed"
+else
+    echo "✅ No changes to commit"
+fi
+
+# Push to GitHub
+echo ""
+echo "📤 Pushing to GitHub..."
+git push origin main
+if [ $? -eq 0 ]; then
+    echo "✅ GitHub push successful"
+else
+    echo "❌ GitHub push failed"
+    exit 1
+fi
 
 # Build the frontend
+echo ""
 echo "📦 Building frontend..."
 cd frontend
 npm run build
@@ -18,8 +43,10 @@ if [ $? -ne 0 ]; then
 fi
 cd ..
 
-# Deploy to production
+# Deploy to Production
+echo ""
 echo "🚀 Deploying to Firebase production..."
+firebase use ai-agent-hub-web-portal-79fb0
 firebase deploy --only hosting
 
 if [ $? -eq 0 ]; then
