@@ -2,7 +2,7 @@ import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firesto
 import { db } from '../lib/firebase';
 import { logger } from '../utils/logger';
 import { Agent } from '../types/agent';
-import { fetchAgentsFromFirestore } from './firestore';
+// Removed fetchAgentsFromFirestore import to avoid security rule issues
 import { 
   getCompanyAvailableAgents, 
   getNetworkAvailableAgents,
@@ -49,24 +49,18 @@ export const getLibraryAgents = async (
     switch (libraryType) {
       case 'global':
         // Global library shows all agents - the master catalog (both public and private)
+        // Temporarily disabled due to security rule issues
+        console.log('🌍 Global library temporarily disabled due to security rules');
         try {
-          console.log('🌍 Fetching global agents from Firestore...');
-          const globalData = await fetchAgentsFromFirestore();
-          agents = globalData.agents || [];
-          console.log('🌍 Global agents fetched:', agents.length, 'agents');
-          
-          // If no agents in Firestore, fall back to local data for testing
-          if (agents.length === 0) {
-            console.log('⚠️ No agents in Firestore, falling back to local data');
-            logger.info('No agents in Firestore, falling back to local data', undefined, 'LibraryService');
-            const { AgentDataService } = await import('./agentDataService');
-            agents = await AgentDataService.loadLocalAgents();
-          }
-        } catch (error) {
-          console.error('❌ Error fetching from Firestore:', error);
-          logger.warn('Error fetching from Firestore, falling back to local data', error, 'LibraryService');
+          // For now, use local data to avoid security rule issues
+          console.log('⚠️ Using local data for global library (security rules blocking Firestore)');
           const { AgentDataService } = await import('./agentDataService');
           agents = await AgentDataService.loadLocalAgents();
+          console.log('🌍 Local agents loaded:', agents.length, 'agents');
+        } catch (error) {
+          console.error('❌ Error loading local agents:', error);
+          logger.warn('Error loading local agents', error, 'LibraryService');
+          agents = [];
         }
         break;
         
