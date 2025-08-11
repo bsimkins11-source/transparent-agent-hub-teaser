@@ -3,11 +3,6 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { 
   UserIcon, 
-  Cog6ToothIcon, 
-  BuildingLibraryIcon, 
-  GlobeAltIcon, 
-  SparklesIcon, 
-  ChartBarIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   XMarkIcon
@@ -48,76 +43,6 @@ export default function Header() {
     }
   };
 
-  // Navigation items based on user role and permissions
-  const getNavigationItems = () => {
-    if (!currentUser || !userProfile) return [];
-
-    const baseItems = [
-      { name: 'Global Library', href: '/agents', icon: GlobeAltIcon, current: location.pathname === '/agents' }
-    ];
-
-    const authenticatedItems = [
-      { name: 'Dashboard', href: '/my-agents', icon: UserIcon, current: location.pathname === '/my-agents' }
-    ];
-
-    const roleBasedItems = [
-      {
-        name: 'Company Management',
-        href: '/company-admin',
-        icon: BuildingLibraryIcon,
-        current: location.pathname === '/company-admin',
-        requiresRole: ['company_admin', 'super_admin'],
-        requiresPermission: 'canManageCompany'
-      },
-      {
-        name: 'Network Management',
-        href: '/network-admin',
-        icon: GlobeAltIcon,
-        current: location.pathname === '/network-admin',
-        requiresRole: ['network_admin', 'super_admin'],
-        requiresPermission: 'canManageNetwork'
-      },
-      {
-        name: 'System Administration',
-        href: '/super-admin',
-        icon: Cog6ToothIcon,
-        current: location.pathname === '/super-admin',
-        requiresRole: ['super_admin']
-      },
-      {
-        name: 'Creator Portal',
-        href: '/creator-portal',
-        icon: SparklesIcon,
-        current: location.pathname === '/creator-portal',
-        requiresRole: ['creator', 'super_admin'],
-        requiresPermission: 'canSubmitAgents'
-      },
-      {
-        name: 'Analytics',
-        href: '/analytics',
-        icon: ChartBarIcon,
-        current: location.pathname === '/analytics',
-        requiresRole: ['company_admin', 'network_admin', 'super_admin'],
-        requiresPermission: 'canViewAnalytics'
-      }
-    ];
-
-    let items = [...baseItems, ...authenticatedItems];
-    
-    roleBasedItems.forEach(item => {
-      const hasRole = !item.requiresRole || item.requiresRole.includes(userProfile.role);
-      const hasPermission = !item.requiresPermission || (item.requiresPermission && userProfile.permissions[item.requiresPermission as keyof typeof userProfile.permissions]);
-      
-      if (hasRole && hasPermission) {
-        items.push(item);
-      }
-    });
-
-    return items;
-  };
-
-  const navigationItems = getNavigationItems();
-
   return (
     <div style={{
       position: 'fixed',
@@ -152,7 +77,7 @@ export default function Header() {
           overflow: 'hidden'
         }}>
           <img 
-            src="/transparent-partners-logo.png" 
+            src={`/transparent-partners-logo.png?v=${Date.now()}`}
             alt="Transparent Partners Logo" 
             style={{ 
               height: '100%',
@@ -163,7 +88,7 @@ export default function Header() {
             onError={(e) => {
               console.error('Logo failed to load, trying fallback:', e);
               // Try the white logo as fallback
-              e.currentTarget.src = '/transparent-partners-logo-white.png';
+              e.currentTarget.src = `/transparent-partners-logo-white.png?v=${Date.now()}`;
               e.currentTarget.onerror = () => {
                 console.error('Fallback logo also failed to load');
                 e.currentTarget.style.display = 'none';
@@ -222,64 +147,37 @@ export default function Header() {
               className="flex items-center text-white hover:text-blue-200 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
             >
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-2">
-                <UserIcon className="h-5 w-5 text-white" />
+                <UserIcon className="h-5 w-5" />
               </div>
               <span>{userProfile.displayName || currentUser.email?.split('@')[0] || 'User'}</span>
             </button>
 
             {showUserDropdown && (
-              <div 
-                className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[999999]"
-                style={{ position: 'absolute', zIndex: 999999 }}
-              >
-                <div className="px-4 py-3 border-b border-gray-200">
-                  <p className="text-sm font-medium text-gray-900">{userProfile.displayName || 'User'}</p>
-                  <p className="text-sm text-gray-500">{currentUser.email}</p>
-                  <p className="text-xs text-blue-600 font-medium capitalize mt-1">{userProfile.role.replace('_', ' ')}</p>
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[999999]">
+                <div className="px-4 py-2 text-sm text-gray-500 border-b border-gray-100">
+                  Signed in as <span className="font-medium text-gray-900">{currentUser.email}</span>
                 </div>
-                
-                <Link
-                  to="/my-agents"
-                  onClick={() => setShowUserDropdown(false)}
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200"
-                >
-                  <UserIcon className="mr-3 h-4 w-4" />
-                  Dashboard
-                </Link>
-                
-                <Link
-                  to="/settings"
-                  onClick={() => setShowUserDropdown(false)}
-                  className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200"
-                >
-                  <Cog6ToothIcon className="mr-3 h-4 w-4" />
-                  Settings
-                </Link>
-                
-                <div className="border-t border-gray-200 my-1"></div>
-                
                 <button
                   onClick={handleLogout}
-                  className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200"
+                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 flex items-center"
                 >
                   <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4" />
-                  Sign Out
+                  Sign out
                 </button>
               </div>
             )}
           </div>
         ) : (
-          <Link to="/login" className="inline-block">
-            <button 
-              className="bg-white text-[#043C46] px-4 py-2 rounded-md font-medium hover:bg-gray-100 transition-colors duration-200 border-none cursor-pointer"
-            >
-              Sign In
-            </button>
+          <Link
+            to="/login"
+            className="text-white hover:text-blue-200 transition-colors duration-200 px-4 py-2 rounded-md text-sm font-medium border border-white/20 hover:border-white/40"
+          >
+            Sign In
           </Link>
         )}
       </div>
 
-      {/* Mobile Menu Button */}
+      {/* Mobile menu button */}
       <div className="lg:hidden">
         <button
           onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -293,67 +191,48 @@ export default function Header() {
         </button>
       </div>
 
-      {/* Mobile Menu Overlay */}
+      {/* Mobile Navigation Menu */}
       {showMobileMenu && (
-        <div className="lg:hidden fixed inset-0 top-16 bg-black bg-opacity-50 z-[999999]">
-          <div className="bg-white shadow-xl">
-            <div className="px-4 py-6 space-y-4">
-              {currentUser && userProfile ? (
-                <>
-                  {/* User Info */}
-                  <div className="border-b border-gray-200 pb-4">
-                    <p className="text-lg font-medium text-gray-900">{userProfile.displayName || 'User'}</p>
-                    <p className="text-sm text-gray-500">{currentUser.email}</p>
-                    <p className="text-xs text-blue-600 font-medium capitalize mt-1">{userProfile.role.replace('_', ' ')}</p>
-                  </div>
+        <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 py-4 z-[999999]">
+          <div className="px-4 space-y-2">
+            <Link
+              to="/agents"
+              onClick={() => setShowMobileMenu(false)}
+              className="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 rounded-md"
+            >
+              Global Library
+            </Link>
+            
+            {currentUser && userProfile && (
+              <Link
+                to="/my-agents"
+                onClick={() => setShowMobileMenu(false)}
+                className="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 rounded-md"
+              >
+                Dashboard
+              </Link>
+            )}
 
-                  {/* Navigation Items */}
-                  <div className="space-y-2">
-                    {navigationItems.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <Link
-                          key={item.name}
-                          to={item.href}
-                          onClick={() => setShowMobileMenu(false)}
-                          className={`flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-                            item.current
-                              ? 'bg-blue-50 text-blue-700'
-                              : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                          }`}
-                        >
-                          <Icon className="mr-3 h-5 w-5" />
-                          {item.name}
-                        </Link>
-                      );
-                    })}
-                  </div>
-
-                  {/* Logout */}
-                  <div className="border-t border-gray-200 pt-4">
-                    <button
-                      onClick={() => {
-                        handleLogout();
-                        setShowMobileMenu(false);
-                      }}
-                      className="flex items-center w-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 rounded-md"
-                    >
-                      <ArrowRightOnRectangleIcon className="mr-3 h-5 w-5" />
-                      Sign Out
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="text-center">
-                  <p className="text-gray-600 mb-4">Sign in to access your dashboard</p>
-                  <Link to="/login">
-                    <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors duration-200">
-                      Sign In
-                    </button>
-                  </Link>
-                </div>
-              )}
-            </div>
+            {currentUser && userProfile ? (
+              <button
+                onClick={() => {
+                  handleLogout();
+                  setShowMobileMenu(false);
+                }}
+                className="w-full text-left px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 rounded-md flex items-center"
+              >
+                <ArrowRightOnRectangleIcon className="mr-3 h-4 w-4" />
+                Sign out
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                onClick={() => setShowMobileMenu(false)}
+                className="block px-3 py-2 text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 rounded-md"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       )}

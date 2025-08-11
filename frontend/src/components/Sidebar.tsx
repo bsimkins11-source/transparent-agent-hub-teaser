@@ -141,7 +141,7 @@ export default function Sidebar() {
       category: 'admin'
     },
     {
-      name: 'Analytics',
+      name: 'Analytics Dashboard',
       href: '/analytics',
       icon: ChartBarIcon,
       current: location.pathname === '/analytics',
@@ -191,7 +191,7 @@ export default function Sidebar() {
   // Get visible admin items
   const getVisibleAdminItems = () => {
     if (!currentUser || !userProfile) return [];
-    
+
     return adminNavigationItems.filter(item => {
       const hasRole = !item.requiresRole || item.requiresRole.includes(userProfile.role);
       const hasPermission = !item.requiresPermission || userProfile.permissions[item.requiresPermission];
