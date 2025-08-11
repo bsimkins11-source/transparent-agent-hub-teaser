@@ -4,14 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   BookOpenIcon,
   BuildingOfficeIcon,
-  UserGroupIcon,
   UserIcon,
   CogIcon,
   ChevronDownIcon,
-  ArrowRightOnRectangleIcon,
-  Bars3Icon,
-  XMarkIcon,
-  GlobeAltIcon,
   SparklesIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
@@ -23,10 +18,17 @@ export default function Header() {
   
   const [isLibrariesDropdownOpen, setIsLibrariesDropdownOpen] = useState(false);
   const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const librariesDropdownRef = useRef<HTMLDivElement>(null);
   const adminDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Header: currentUser:', currentUser);
+    console.log('Header: userProfile:', userProfile);
+    console.log('Header: Libraries dropdown state:', isLibrariesDropdownOpen);
+    console.log('Header: Admin dropdown state:', isAdminDropdownOpen);
+  }, [currentUser, userProfile, isLibrariesDropdownOpen, isAdminDropdownOpen]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -74,14 +76,18 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-6 flex-shrink-0">
             {currentUser && userProfile && (
               <>
+                {/* Debug Info */}
+                <div className="text-white text-xs">
+                  Role: {userProfile.role} | Org: {userProfile.organizationId}
+                </div>
+                
                 {/* Libraries Dropdown */}
                 <div 
                   className="relative" 
                   ref={librariesDropdownRef}
-                  onMouseEnter={() => setIsLibrariesDropdownOpen(true)}
-                  onMouseLeave={() => setIsLibrariesDropdownOpen(false)}
                 >
                   <button
+                    onClick={() => setIsLibrariesDropdownOpen(!isLibrariesDropdownOpen)}
                     className="flex items-center gap-2 text-teal-100 hover:text-white font-medium transition-colors whitespace-nowrap group px-3 py-2 rounded-md"
                   >
                     <BookOpenIcon className="w-4 h-4" />
@@ -89,50 +95,44 @@ export default function Header() {
                     <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isLibrariesDropdownOpen ? 'rotate-180' : ''}`} />
                   </button>
                   
-                  <AnimatePresence>
-                    {isLibrariesDropdownOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[999999]"
-                        style={{ pointerEvents: 'auto' }}
+                  {isLibrariesDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[999999]">
+                      <Link
+                        to="/agents"
+                        className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
+                          location.pathname === '/agents' ? 'bg-teal-50 text-teal-700' : ''
+                        }`}
+                        onClick={() => setIsLibrariesDropdownOpen(false)}
                       >
+                        <BookOpenIcon className="w-4 h-4" />
+                        <span>Global Agent Library</span>
+                      </Link>
+                      
+                      {userProfile.organizationId && userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
                         <Link
-                          to="/agents"
+                          to={`/company/${userProfile.organizationId}`}
                           className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
-                            location.pathname === '/agents' ? 'bg-teal-50 text-teal-700' : ''
+                            location.pathname.startsWith('/company/') ? 'bg-teal-50 text-teal-700' : ''
                           }`}
+                          onClick={() => setIsLibrariesDropdownOpen(false)}
                         >
-                          <BookOpenIcon className="w-4 h-4" />
-                          <span>Global Agent Library</span>
+                          <BuildingOfficeIcon className="w-4 h-4" />
+                          <span>{userProfile.organizationName || 'Company Library'}</span>
                         </Link>
-                        
-                        {userProfile.organizationId && userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
-                          <Link
-                            to={`/company/${userProfile.organizationId}`}
-                            className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
-                              location.pathname.startsWith('/company/') ? 'bg-teal-50 text-teal-700' : ''
-                            }`}
-                          >
-                            <BuildingOfficeIcon className="w-4 h-4" />
-                            <span>{userProfile.organizationName || 'Company Library'}</span>
-                          </Link>
-                        )}
-                        
-                        <Link
-                          to="/my-agents"
-                          className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
-                            location.pathname === '/my-agents' ? 'bg-teal-50 text-teal-700' : ''
-                          }`}
-                        >
-                          <UserIcon className="w-4 h-4" />
-                          <span>My Library</span>
-                        </Link>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                      )}
+                      
+                      <Link
+                        to="/my-agents"
+                        className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
+                          location.pathname === '/my-agents' ? 'bg-teal-50 text-teal-700' : ''
+                        }`}
+                        onClick={() => setIsLibrariesDropdownOpen(false)}
+                      >
+                        <UserIcon className="w-4 h-4" />
+                        <span>My Library</span>
+                      </Link>
+                    </div>
+                  )}
                 </div>
 
                 {/* Admin Dropdown */}
@@ -140,10 +140,9 @@ export default function Header() {
                   <div 
                     className="relative" 
                     ref={adminDropdownRef}
-                    onMouseEnter={() => setIsAdminDropdownOpen(true)}
-                    onMouseLeave={() => setIsAdminDropdownOpen(false)}
                   >
                     <button
+                      onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
                       className="flex items-center gap-2 text-teal-100 hover:text-white font-medium transition-colors whitespace-nowrap group px-3 py-2 rounded-md"
                     >
                       <CogIcon className="w-4 h-4" />
@@ -151,63 +150,57 @@ export default function Header() {
                       <ChevronDownIcon className={`w-4 h-4 transition-transform duration-200 ${isAdminDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
                     
-                    <AnimatePresence>
-                      {isAdminDropdownOpen && (
-                        <motion.div
-                          initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                          transition={{ duration: 0.15 }}
-                          className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[999999]"
-                          style={{ pointerEvents: 'auto' }}
-                        >
-                          {userProfile.role === 'super_admin' && (
-                            <Link
-                              to="/super-admin"
-                              className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
-                                location.pathname === '/super-admin' ? 'bg-teal-50 text-teal-700' : ''
-                              }`}
-                            >
-                              <span className="text-lg">👑</span>
-                              <div>
-                                <div className="font-medium">Super Admin</div>
-                                <div className="text-xs text-gray-500">Global management</div>
-                              </div>
-                            </Link>
-                          )}
-                          
-                          {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin') && (
-                            <Link
-                              to="/company-admin"
-                              className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
-                                location.pathname === '/company-admin' ? 'bg-teal-50 text-teal-700' : ''
-                              }`}
-                            >
-                              <BuildingOfficeIcon className="w-4 h-4" />
-                              <div>
-                                <div className="font-medium">Company Admin</div>
-                                <div className="text-xs text-gray-500">{userProfile.organizationName || 'Company management'}</div>
-                              </div>
-                            </Link>
-                          )}
-                          
-                          {(userProfile.role === 'creator' || userProfile.role === 'super_admin') && (
-                            <Link
-                              to="/creator-portal"
-                              className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
-                                location.pathname === '/creator-portal' ? 'bg-teal-50 text-teal-700' : ''
-                              }`}
-                            >
-                              <SparklesIcon className="w-4 h-4" />
-                              <div>
-                                <div className="font-medium">Agent Admin</div>
-                                <div className="text-xs text-gray-500">Agent submission portal</div>
-                              </div>
-                            </Link>
-                          )}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                    {isAdminDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[999999]">
+                        {userProfile.role === 'super_admin' && (
+                          <Link
+                            to="/super-admin"
+                            className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
+                              location.pathname === '/super-admin' ? 'bg-teal-50 text-teal-700' : ''
+                            }`}
+                            onClick={() => setIsAdminDropdownOpen(false)}
+                          >
+                            <span className="text-lg">👑</span>
+                            <div>
+                              <div className="font-medium">Super Admin</div>
+                              <div className="text-xs text-gray-500">Global management</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin') && (
+                          <Link
+                            to="/company-admin"
+                            className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
+                              location.pathname === '/company-admin' ? 'bg-teal-50 text-teal-700' : ''
+                            }`}
+                            onClick={() => setIsAdminDropdownOpen(false)}
+                          >
+                            <BuildingOfficeIcon className="w-4 h-4" />
+                            <div>
+                              <div className="font-medium">Company Admin</div>
+                              <div className="text-xs text-gray-500">{userProfile.organizationName || 'Company management'}</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {(userProfile.role === 'creator' || userProfile.role === 'super_admin') && (
+                          <Link
+                            to="/creator-portal"
+                            className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
+                              location.pathname === '/creator-portal' ? 'bg-teal-50 text-teal-700' : ''
+                            }`}
+                            onClick={() => setIsAdminDropdownOpen(false)}
+                          >
+                            <SparklesIcon className="w-4 h-4" />
+                            <div>
+                              <div className="font-medium">Agent Admin</div>
+                              <div className="text-xs text-gray-500">Agent submission portal</div>
+                            </div>
+                          </Link>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </>

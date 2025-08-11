@@ -6,9 +6,10 @@ service cloud.firestore {
       return request.auth != null;
     }
     
-    // Helper function to get user role
+    // Helper function to get user role - safe for new users
     function getUserRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userDoc != null ? userDoc.data.role : null;
     }
     
     // Helper function to check if user is admin
@@ -19,14 +20,16 @@ service cloud.firestore {
     
     // Helper function to check if user belongs to organization
     function belongsToOrganization(orgId) {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
       return isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId == orgId;
+        userDoc != null && userDoc.data.organizationId == orgId;
     }
     
     // Helper function to check if user belongs to network
     function belongsToNetwork(networkId) {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
       return isAuthenticated() && 
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.networkId == networkId;
+        userDoc != null && userDoc.data.networkId == networkId;
     }
 
     // Agents collection - Multi-tenant with strict isolation
