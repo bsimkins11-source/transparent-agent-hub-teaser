@@ -18,8 +18,12 @@ export default function Header() {
   const { currentUser, userProfile, logout } = useAuth();
   const location = useLocation();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showAdminDropdown, setShowAdminDropdown] = useState(false);
   const [showNavDropdown, setShowNavDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+
+  // Debug logging
+  console.log('Header render - currentUser:', currentUser?.email, 'userProfile:', userProfile?.role, 'permissions:', userProfile?.permissions);
 
   const handleLogout = async () => {
     try {
@@ -151,41 +155,105 @@ export default function Header() {
 
       {/* Desktop Navigation */}
       <div className="hidden lg:flex items-center space-x-6">
-        {/* Navigation Dropdown */}
-        {currentUser && userProfile && (
+        {/* Libraries Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setShowNavDropdown(!showNavDropdown)}
+            className="flex items-center text-white hover:text-blue-200 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
+          >
+            <span>Libraries</span>
+            <ChevronDownIcon className={`ml-1 h-4 w-4 transition-transform duration-200 ${showNavDropdown ? 'rotate-180' : ''}`} />
+          </button>
+
+          {showNavDropdown && (
+            <div className="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[999999]">
+              <Link
+                to="/agents"
+                onClick={() => setShowNavDropdown(false)}
+                className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
+                  location.pathname === '/agents' ? 'bg-blue-50 text-blue-700' : ''
+                }`}
+              >
+                <GlobeAltIcon className="mr-3 h-4 w-4" />
+                Global Library
+              </Link>
+              {currentUser && userProfile && (
+                <>
+                  <Link
+                    to="/company-admin"
+                    onClick={() => setShowNavDropdown(false)}
+                    className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
+                      location.pathname === '/company-admin' ? 'bg-blue-50 text-blue-700' : ''
+                    }`}
+                  >
+                    <BuildingLibraryIcon className="mr-3 h-4 w-4" />
+                    Company Library
+                  </Link>
+                  <Link
+                    to="/my-agents"
+                    onClick={() => setShowNavDropdown(false)}
+                    className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
+                      location.pathname === '/my-agents' ? 'bg-blue-50 text-blue-700' : ''
+                    }`}
+                  >
+                    <UserIcon className="mr-3 h-4 w-4" />
+                    My Library
+                  </Link>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Admin Menu - Only show for admin users */}
+        {currentUser && userProfile && (userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'network_admin') && (
           <div className="relative">
             <button
-              onClick={() => setShowNavDropdown(!showNavDropdown)}
+              onClick={() => setShowAdminDropdown(!showAdminDropdown)}
               className="flex items-center text-white hover:text-blue-200 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
             >
-              <span>Navigation</span>
-              <ChevronDownIcon className={`ml-1 h-4 w-4 transition-transform duration-200 ${showNavDropdown ? 'rotate-180' : ''}`} />
+              <span>Admin</span>
+              <ChevronDownIcon className={`ml-1 h-4 w-4 transition-transform duration-200 ${showAdminDropdown ? 'rotate-180' : ''}`} />
             </button>
 
-            {showNavDropdown && (
+            {showAdminDropdown && (
               <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[999999]">
-                {navigationItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.name}
-                      to={item.href}
-                      onClick={() => setShowNavDropdown(false)}
-                      className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
-                        item.current ? 'bg-blue-50 text-blue-700' : ''
-                      }`}
-                    >
-                      <Icon className="mr-3 h-4 w-4" />
-                      {item.name}
-                    </Link>
-                  );
-                })}
+                <Link
+                  to="/super-admin"
+                  onClick={() => setShowAdminDropdown(false)}
+                  className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
+                    location.pathname === '/super-admin' ? 'bg-blue-50 text-blue-700' : ''
+                  }`}
+                >
+                  <Cog6ToothIcon className="mr-3 h-4 w-4" />
+                  Super Admin Page
+                </Link>
+                <Link
+                  to="/company-admin"
+                  onClick={() => setShowAdminDropdown(false)}
+                  className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
+                    location.pathname === '/company-admin' ? 'bg-blue-50 text-blue-700' : ''
+                  }`}
+                >
+                  <BuildingLibraryIcon className="mr-3 h-4 w-4" />
+                  Company Super Admin Page
+                </Link>
+                <Link
+                  to="/creator-portal"
+                  onClick={() => setShowAdminDropdown(false)}
+                  className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
+                    location.pathname === '/creator-portal' ? 'bg-blue-50 text-blue-700' : ''
+                  }`}
+                >
+                  <SparklesIcon className="mr-3 h-4 w-4" />
+                  Agent Submission Page
+                </Link>
               </div>
             )}
           </div>
         )}
 
-        {/* User Profile Dropdown or Sign In */}
+        {/* User Profile Section */}
         {currentUser && userProfile ? (
           <div className="relative">
             <button
@@ -344,11 +412,12 @@ export default function Header() {
       )}
 
       {/* Click outside to close dropdowns */}
-      {(showUserDropdown || showNavDropdown) && (
+      {(showUserDropdown || showAdminDropdown || showNavDropdown) && (
         <div
           className="fixed inset-0 z-[999998]"
           onClick={() => {
             setShowUserDropdown(false);
+            setShowAdminDropdown(false);
             setShowNavDropdown(false);
           }}
         />
