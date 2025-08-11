@@ -52,14 +52,10 @@ export default function Header() {
         <div className="flex justify-between items-center h-16 gap-4">
           
           {/* Logo/Brand - Always visible */}
-          <div className="flex items-center cursor-pointer p-2 flex-shrink-0">
+          <div className="flex items-center cursor-pointer p-2 flex-shrink-0 bg-yellow-300 p-1">
             <Link to="/" className="flex items-center space-x-3">
-              <img 
-                src="/transparent-partners-logo.png" 
-                alt="Transparent Partners" 
-                className="h-8 w-auto border border-red-500"
-              />
-              <span className="text-white font-bold text-lg truncate max-w-[200px] sm:max-w-none">
+              <div className="bg-blue-500 p-2 text-white font-bold">LOGO</div>
+              <span className="text-black font-bold text-lg truncate max-w-[200px] sm:max-w-none">
                 Transparent Partners
               </span>
             </Link>
