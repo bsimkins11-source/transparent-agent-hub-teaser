@@ -72,27 +72,26 @@ export default function Header() {
       justifyContent: 'space-between',
       padding: '0 16px'
     }}>
-      {/* Logo - FLOATING ON TOP OF EVERYTHING */}
-      <img 
-        src="/transparent-partners-logo-white.png" 
-        alt="Logo" 
+      {/* Logo - CSS BACKGROUND IMAGE (IMPOSSIBLE TO OVERRIDE) */}
+      <div 
         style={{ 
           height: '40px',
           width: '40px',
-          objectFit: 'contain',
           position: 'absolute',
           left: '16px',
           top: '12px',
           zIndex: 99999999,
-          // Force it to stay on top
-          pointerEvents: 'none',
+          backgroundImage: 'url("/transparent-partners-logo-white.png")',
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          // Force override everything
+          background: 'url("/transparent-partners-logo-white.png") no-repeat center / contain !important',
+          backgroundColor: 'transparent !important',
+          border: 'none !important',
+          outline: 'none !important',
+          boxShadow: 'none !important',
         }} 
-        onError={(e) => {
-          console.error('Logo failed to load:', e);
-        }}
-        onLoad={(e) => {
-          console.log('Logo loaded successfully');
-        }}
       />
       
       {/* Brand Text */}

@@ -109,6 +109,19 @@
     background-color: transparent !important;
   }
   
+  /* Force background image logo to stay visible */
+  header div[style*="background-image"] {
+    background-image: url("/transparent-partners-logo-white.png") !important;
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    z-index: 99999999 !important;
+  }
+  
   /* Ensure navigation text has proper contrast */
   .header-global nav {
     display: flex !important;
