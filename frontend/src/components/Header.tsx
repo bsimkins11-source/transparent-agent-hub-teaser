@@ -55,9 +55,9 @@ export default function Header() {
           <div className="flex items-center cursor-pointer p-2 flex-shrink-0">
             <Link to="/" className="flex items-center space-x-3">
               <img 
-                src="/transparent-partners-logo-white.png" 
+                src="/transparent-partners-logo.png" 
                 alt="Transparent Partners" 
-                className="h-8 w-auto"
+                className="h-8 w-auto border border-red-500"
               />
               <span className="text-white font-bold text-lg truncate max-w-[200px] sm:max-w-none">
                 Transparent Partners
