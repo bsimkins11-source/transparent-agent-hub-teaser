@@ -45,12 +45,12 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
     projectId: 'ai-agent-hub-web-portal-79fb0',
     environment: 'production',
     firebaseConfig: {
-      apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
+      apiKey: 'AIzaSyAf2KwetCFEARZiaBP_QW07JVT1_tfZ_IY',
       authDomain: 'ai-agent-hub-web-portal-79fb0.firebaseapp.com',
       projectId: 'ai-agent-hub-web-portal-79fb0',
-      storageBucket: 'ai-agent-hub-web-portal-79fb0.appspot.com',
-              messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-      appId: import.meta.env.VITE_FIREBASE_APP_ID || ''
+      storageBucket: 'ai-agent-hub-web-portal-79fb0.firebasestorage.app',
+      messagingSenderId: '72861076114',
+      appId: '1:72861076114:web:1ea856ad05ef5f0eeef44b'
     },
     features: {
       enableAnalytics: true,

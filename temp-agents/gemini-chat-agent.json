@@ -1,0 +1,42 @@
+{
+  "id": "gemini-chat-agent",
+  "name": "Gemini Chat Agent",
+  "description": "Advanced conversational AI powered by Google's Gemini model. Engage in natural conversations, get help with creative tasks, research, coding, and general questions with access to current information.",
+  "provider": "google",
+  "route": "/agents/gemini-chat-agent",
+  "metadata": {
+    "tags": [
+      "conversation",
+      "general-purpose",
+      "research",
+      "creative",
+      "coding",
+      "analysis"
+    ],
+    "category": "General AI"
+  },
+  "visibility": "public",
+  "allowedRoles": [
+    "admin",
+    "client",
+    "user"
+  ],
+  "capabilities": [
+    "Natural conversation",
+    "Current information access",
+    "Creative writing assistance",
+    "Code help and debugging",
+    "Research and analysis",
+    "Problem solving",
+    "Question answering"
+  ],
+  "pricing": {
+    "tier": "free",
+    "limits": {
+      "daily": 100,
+      "monthly": 2000
+    }
+  },
+  "createdAt": "2025-08-11T01:07:31.874Z",
+  "updatedAt": "2025-08-11T01:07:31.874Z"
+}

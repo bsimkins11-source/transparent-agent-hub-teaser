@@ -188,22 +188,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         assignedAgents: ['gemini-chat-agent'] // Temporarily hardcode Gemini agent for testing
       }
       
-      // Temporarily bypass Firestore user profile creation due to security rules
-      console.log('⚠️ Bypassing Firestore user profile creation due to security rules');
-      console.log('📋 Creating local user profile:', profile);
-      
-      // TODO: Re-enable Firestore user profile creation once security rules are fixed
-      // await createUserProfileInFirestore(
-      //   user.uid,
-      //   user.email || '',
-      //   user.displayName || '',
-      //   organizationId,
-      //   organizationName,
-      //   role
-      // )
+      // Create user profile in Firestore
+      console.log('📋 Creating user profile in Firestore:', profile);
+      try {
+        await createUserProfileInFirestore(
+          user.uid,
+          user.email || '',
+          user.displayName || '',
+          organizationId,
+          organizationName,
+          role
+        );
+        console.log('✅ User profile created in Firestore successfully');
+        logger.info('User profile created in Firestore', { role, email: user.email }, 'Auth');
+      } catch (error) {
+        console.error('❌ Failed to create user profile in Firestore:', error);
+        logger.warn('Failed to create user profile in Firestore, using local profile', error, 'Auth');
+      }
       
       setUserProfile(profile)
-      logger.info('User profile updated (local only)', { role, email: user.email }, 'Auth')
+      logger.info('User profile updated', { role, email: user.email }, 'Auth')
     } catch (error) {
       logger.error('Failed to create user profile', error, 'Auth')
       // Don't throw error - just create local profile

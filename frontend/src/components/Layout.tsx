@@ -1,23 +1,17 @@
-import { Outlet } from 'react-router-dom'
+import React from 'react'
 import Header from './Header'
-import { motion } from 'framer-motion'
 
-export default function Layout() {
+interface LayoutProps {
+  children: React.ReactNode
+}
+
+export default function Layout({ children }: LayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       <Header />
-      <motion.main 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="pt-20 min-h-screen"
-        style={{ 
-          minHeight: 'calc(100vh - 80px)',
-          paddingTop: '80px' // Ensure content starts below header
-        }}
-      >
-        <Outlet />
-      </motion.main>
+      <main className="pt-16">
+        {children}
+      </main>
     </div>
   )
 }

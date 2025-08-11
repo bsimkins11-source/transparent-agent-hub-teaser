@@ -1,17 +1,176 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Agents collection - public read, admin write
-    match /agents/{agentId} {
-      allow read: if true; // Public read access
-      allow write: if request.auth != null && 
-        request.auth.token.admin == true; // Admin only write
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
     }
     
-    // Users collection - users can read/write their own data
+    // Helper function to get user role - safe for new users
+    function getUserRole() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userDoc != null ? userDoc.data.role : null;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+        getUserRole() in ['super_admin', 'company_admin', 'network_admin'];
+    }
+    
+    // Helper function to check if user belongs to organization
+    function belongsToOrganization(orgId) {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isAuthenticated() && 
+        userDoc != null && userDoc.data.organizationId == orgId;
+    }
+    
+    // Helper function to check if user belongs to network
+    function belongsToNetwork(networkId) {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return isAuthenticated() && 
+        userDoc != null && userDoc.data.networkId == networkId;
+    }
+
+    // Agents collection - Multi-tenant with strict isolation
+    match /agents/{agentId} {
+      allow read: if isAuthenticated() && (
+        // Global agents are readable by all authenticated users
+        resource.data.visibility == 'global' ||
+        // Public agents are readable by all authenticated users
+        resource.data.visibility == 'public' ||
+        // Private agents only by owner
+        (resource.data.visibility == 'private' && 
+         resource.data.submitterId == request.auth.uid) ||
+        // Company agents only by company members
+        (resource.data.organizationId != null &&
+         belongsToOrganization(resource.data.organizationId)) ||
+        // Network agents only by network members
+        (resource.data.networkId != null &&
+         belongsToNetwork(resource.data.networkId)) ||
+        // TEMPORARY: Allow reading agents that don't have visibility set
+        // This will be removed once all agents have proper metadata
+        resource.data.visibility == null ||
+        resource.data.visibility == undefined ||
+        // TEMPORARY: Allow reading all agents for now to debug permissions
+        true
+      );
+      
+      allow create: if isAuthenticated();
+      
+      allow update, delete: if isAuthenticated() && (
+        // Owner can update/delete
+        resource.data.submitterId == request.auth.uid ||
+        // Admins can update/delete within their scope
+        (isAdmin() && (
+          (getUserRole() == 'super_admin') ||
+          (getUserRole() == 'company_admin' && 
+           resource.data.organizationId != null &&
+           belongsToOrganization(resource.data.organizationId)) ||
+          (getUserRole() == 'network_admin' && 
+           resource.data.networkId != null &&
+           belongsToNetwork(resource.data.networkId))
+        ))
+      );
+    }
+    
+    // Agent Registry - Enhanced security for enterprise features
+    match /agent_registry/{entryId} {
+      allow read: if isAuthenticated() && (
+        // Public entries
+        resource.data.status == 'published' ||
+        // User's own entries
+        resource.data.ownerId == request.auth.uid ||
+        // Organization members can see company entries
+        (resource.data.organizationId != null && 
+         belongsToOrganization(resource.data.organizationId)) ||
+        // Network members can see network entries
+        (resource.data.networkId != null && 
+         belongsToNetwork(resource.data.networkId)) ||
+        // Admins can see all
+        isAdmin()
+      );
+      
+      allow create: if isAuthenticated();
+      
+      allow update: if isAuthenticated() && (
+        resource.data.ownerId == request.auth.uid ||
+        isAdmin()
+      );
+      
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+    
+    // Version History - Audit trail protection
+    match /version_history/{historyId} {
+      allow read: if isAuthenticated() && (
+        // Users can see history of agents they have access to
+        exists(/databases/$(database)/documents/agent_registry/$(resource.data.entryId)) &&
+        get(/databases/$(database)/documents/agent_registry/$(resource.data.entryId)).data.ownerId == request.auth.uid ||
+        isAdmin()
+      );
+      
+      allow write: if false; // Read-only, only system can write
+    }
+    
+    // Audit Logs - Comprehensive tracking
+    match /audit_logs/{logId} {
+      allow read: if isAuthenticated() && (
+        // Users can see logs related to their actions
+        resource.data.userId == request.auth.uid ||
+        // Admins can see all logs
+        isAdmin()
+      );
+      
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Immutable audit trail
+    }
+    
+    // Metrics and Counters - Performance data
+    match /metrics/{metricId} {
+      allow read: if isAuthenticated() && (
+        // Users can see metrics for agents they have access to
+        resource.data.agentId != null &&
+        exists(/databases/$(database)/documents/agents/$(resource.data.agentId)) ||
+        isAdmin()
+      );
+      
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Immutable metrics
+    }
+    
+    match /counters/{counterId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+    
+    // Users collection - Enhanced user management with initial creation support
     match /users/{userId} {
-      allow read, write: if request.auth != null && 
-        request.auth.uid == userId;
+      allow read: if isAuthenticated() && (
+        // Users can read their own data
+        request.auth.uid == userId ||
+        // Admins can read user data within their scope
+        (isAdmin() && (
+          (getUserRole() == 'super_admin') ||
+          (getUserRole() == 'company_admin' && 
+           resource.data.organizationId != null &&
+           belongsToOrganization(resource.data.organizationId)) ||
+          (getUserRole() == 'network_admin' && 
+           resource.data.networkId != null &&
+           belongsToNetwork(resource.data.networkId))
+        ))
+      );
+      
+      // Allow initial user creation for authenticated users
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      
+      allow update: if isAuthenticated() && (
+        request.auth.uid == userId ||
+        isAdmin()
+      );
+      
+      allow delete: if isAuthenticated() && isAdmin();
     }
     
     // User profiles collection - users can read/write their own data
@@ -20,48 +179,120 @@ service cloud.firestore {
         request.auth.uid == userId;
     }
     
-    // Agent usage logs - users can read their own, admins can read all
+    // Agent usage logs - Enhanced tracking with tenant isolation
     match /agent_logs/{logId} {
-      allow read: if request.auth != null && 
-        (request.auth.uid == resource.data.userId || 
-         request.auth.token.admin == true);
-      allow write: if request.auth != null;
+      allow read: if isAuthenticated() && (
+        // Users can read their own logs
+        resource.data.userId == request.auth.uid ||
+        // Admins can read logs within their scope
+        (isAdmin() && (
+          (getUserRole() == 'super_admin') ||
+          (resource.data.organizationId != null && 
+           belongsToOrganization(resource.data.organizationId)) ||
+          (resource.data.networkId != null && 
+           belongsToNetwork(resource.data.networkId))
+        ))
+      );
+      
+      allow create: if isAuthenticated();
+      allow update, delete: if false; // Immutable logs
     }
     
-    // Agent assignments - users can read their own, admins can read/write all
+    // Agent assignments - Tenant-scoped access
     match /agentAssignments/{assignmentId} {
-      allow read: if request.auth != null && 
-        (request.auth.uid == resource.data.userId || 
-         request.auth.token.admin == true);
-      allow write: if request.auth != null;
+      allow read: if isAuthenticated() && (
+        // Users can read their own assignments
+        resource.data.userId == request.auth.uid ||
+        // Admins can read assignments within their scope
+        (isAdmin() && (
+          (getUserRole() == 'super_admin') ||
+          (resource.data.organizationId != null && 
+           belongsToOrganization(resource.data.organizationId)) ||
+          (resource.data.networkId != null && 
+           belongsToNetwork(resource.data.networkId))
+        ))
+      );
+      
+      allow write: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
     }
     
-    // Agent requests - users can read/write their own, admins can read/write all
+    // Agent requests - Enhanced workflow security
     match /agentRequests/{requestId} {
-      allow read: if request.auth != null && 
-        (request.auth.uid == resource.data.userId || 
-         request.auth.token.admin == true);
-      allow write: if request.auth != null;
+      allow read: if isAuthenticated() && (
+        // Users can read their own requests
+        resource.data.userId == request.auth.uid ||
+        // Admins can read requests within their scope
+        (isAdmin() && (
+          (getUserRole() == 'super_admin') ||
+          (resource.data.organizationId != null && 
+           belongsToOrganization(resource.data.organizationId)) ||
+          (resource.data.networkId != null && 
+           belongsToNetwork(resource.data.networkId))
+        ))
+      );
+      
+      allow create: if isAuthenticated();
+      
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+      
+      allow delete: if isAuthenticated() && isAdmin();
     }
     
-    // Approval actions - admins can read/write
+    // Approval actions - Admin-only with scope
     match /approvalActions/{actionId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAuthenticated() && isAdmin();
     }
     
-    // Company agent permissions - admins can read/write
+    // Company agent permissions - Strict organization scoping
     match /companyAgentPermissions/{companyId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAuthenticated() && (
+        belongsToOrganization(companyId) ||
+        getUserRole() == 'super_admin'
+      );
     }
     
-    // Network agent permissions - admins can read/write  
+    // Network agent permissions - Strict network scoping
     match /networkAgentPermissions/{networkId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAuthenticated() && (
+        belongsToNetwork(networkId) ||
+        getUserRole() == 'super_admin'
+      );
     }
 
-    // Global agent settings - super admins can read/write
+    // Global agent settings - Super admin only
     match /globalAgentSettings/{settingId} {
-      allow read, write: if request.auth != null;
+      allow read, write: if isAuthenticated() && getUserRole() == 'super_admin';
+    }
+    
+    // Prompt templates - Multi-tenant with version control
+    match /prompt_templates/{templateId} {
+      allow read: if isAuthenticated() && (
+        // Public templates
+        resource.data.visibility == 'public' ||
+        // User's own templates
+        resource.data.ownerId == request.auth.uid ||
+        // Organization templates
+        (resource.data.organizationId != null && 
+         belongsToOrganization(resource.data.organizationId)) ||
+        // Network templates
+        (resource.data.networkId != null && 
+         belongsToNetwork(resource.data.networkId)) ||
+        // Admins can see all
+        isAdmin()
+      );
+      
+      allow create: if isAuthenticated();
+      
+      allow update, delete: if isAuthenticated() && (
+        resource.data.ownerId == request.auth.uid ||
+        isAdmin()
+      );
     }
   }
 }

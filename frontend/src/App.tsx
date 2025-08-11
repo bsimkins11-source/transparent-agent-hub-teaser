@@ -1,214 +1,30 @@
-import { Routes, Route, useParams } from 'react-router-dom'
-import { AuthProvider, useAuth } from './contexts/AuthContext'
-import { CompanyBrandingProvider } from './contexts/CompanyBrandingContext'
-import ErrorBoundary from './components/ErrorBoundary'
+import React from 'react'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
 import AgentLibraryPage from './pages/AgentLibraryPage'
 import MyAgentsPage from './pages/MyAgentsPage'
-import AgentPage from './pages/AgentPage'
-import CreatorDashboard from './components/CreatorDashboard'
-import AgentSubmission from './components/AgentSubmission'
-
-
-import AdminUserManagement from './pages/AdminUserManagement'
-import SuperAdminDashboard from './pages/SuperAdminDashboard'
 import CompanyAdminDashboard from './pages/CompanyAdminDashboard'
-import CompanySelectionPage from './pages/CompanySelectionPage'
-import CompanyAgentLibrary from './pages/CompanyAgentLibrary'
-import NetworkAdminDashboard from './pages/NetworkAdminDashboard'
-import AdminRoute from './components/AdminRoute'
-import AdminRouteHandler from './components/AdminRouteHandler'
-import LoginPage from './pages/LoginPage'
-import PostLoginPage from './pages/PostLoginPage'
+import SuperAdminDashboard from './pages/SuperAdminDashboard'
 import CreatorPortal from './pages/CreatorPortal'
-import AgentSystemTestSuite from './components/AgentSystemTestSuite'
-
-// Wrapper component to provide company branding context with route params
-function CompanyAdminWrapper() {
-  const { companyId } = useParams<{ companyId: string }>();
-  return (
-    <CompanyBrandingProvider companyId={companyId}>
-      <CompanyAdminDashboard />
-    </CompanyBrandingProvider>
-  );
-}
-
-// Wrapper for company agent library routes
-function CompanyAgentLibraryWrapper() {
-  const { companySlug } = useParams<{ companySlug: string }>();
-  return (
-    <CompanyBrandingProvider companyId={companySlug}>
-      <CompanyAgentLibrary />
-    </CompanyBrandingProvider>
-  );
-}
-
-// Wrapper for network admin routes
-function NetworkAdminWrapper() {
-  const { companyId } = useParams<{ companyId: string }>();
-  return (
-    <CompanyBrandingProvider companyId={companyId}>
-      <NetworkAdminDashboard />
-    </CompanyBrandingProvider>
-  );
-}
-
-// Wrapper for standalone network admin route (needs company context from user profile)
-function StandaloneNetworkAdminWrapper() {
-  const { userProfile } = useAuth();
-  return (
-    <CompanyBrandingProvider companyId={userProfile?.organizationId}>
-      <NetworkAdminDashboard />
-    </CompanyBrandingProvider>
-  );
-}
 
 function App() {
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
-          <Routes>
-            {/* Login route - no header */}
-            <Route path="login" element={<LoginPage />} />
-            
-            {/* All other routes - with header and layout */}
-            <Route path="/" element={<Layout />}>
-              <Route index element={<HomePage />} />
-              <Route path="agents" element={<AgentLibraryPage />} />
-              <Route path="agent-library" element={<AgentLibraryPage />} />
-              <Route path="my-agents" element={<MyAgentsPage />} />
-              <Route path="agents/:agentId" element={<AgentPage />} />
-              <Route path="company/:companySlug" element={<CompanyAgentLibraryWrapper />} />
-              <Route path="company/:companySlug/network/:networkSlug" element={<CompanyAgentLibraryWrapper />} />
-              
-              {/* User Settings Route */}
-              <Route 
-                path="settings" 
-                element={
-                  <AdminRoute requireAuth={true}>
-                    <div className="p-8 text-center">
-                      <h1 className="text-2xl font-bold text-gray-900 mb-4">Account Settings</h1>
-                      <p className="text-gray-600">Account settings page coming soon...</p>
-                    </div>
-                  </AdminRoute>
-                } 
-              />
-              
-              {/* Company Admin Routes */}
-              <Route 
-                path="company-admin" 
-                element={
-                  <AdminRoute requiredRole={['super_admin', 'company_admin']}>
-                    <CompanyAdminDashboard />
-                  </AdminRoute>
-                } 
-              />
-              
-              {/* Network Admin Routes */}
-              <Route 
-                path="network-admin" 
-                element={
-                  <AdminRoute requiredRole={['super_admin', 'company_admin', 'network_admin']}>
-                    <StandaloneNetworkAdminWrapper />
-                  </AdminRoute>
-                } 
-              />
-              
-              {/* Super Admin Routes */}
-              <Route 
-                path="super-admin" 
-                element={
-                  <AdminRoute requiredRole="super_admin">
-                    <SuperAdminDashboard />
-                  </AdminRoute>
-                } 
-              />
-              
-              {/* Creator Portal Route */}
-              <Route 
-                path="creator-portal" 
-                element={
-                  <AdminRoute requiredRole={['creator', 'super_admin']}>
-                    <CreatorPortal />
-                  </AdminRoute>
-                } 
-              />
-              
-              {/* Company Admin Routes */}
-              <Route 
-                path="admin" 
-                element={
-                  <AdminRoute requiredRole={['super_admin', 'company_admin']}>
-                    <AdminRouteHandler />
-                  </AdminRoute>
-                } 
-              />
-              <Route 
-                path="admin/company/:companyId" 
-                element={
-                  <AdminRoute requiredRole={['super_admin', 'company_admin']}>
-                    <CompanyAdminWrapper />
-                  </AdminRoute>
-                } 
-              />
-              <Route 
-                path="admin/network/:companyId/:networkId" 
-                element={
-                  <AdminRoute requiredRole={['super_admin', 'company_admin', 'network_admin']}>
-                    <NetworkAdminWrapper />
-                  </AdminRoute>
-                } 
-              />
-              
-              {/* User Management Route */}
-              <Route 
-                path="admin/users" 
-                element={
-                  <AdminRoute requiredRole="company_admin">
-                    <AdminUserManagement />
-                  </AdminRoute>
-                } 
-              />
-              
-              {/* Creator Routes */}
-              <Route 
-                path="creator-dashboard" 
-                element={
-                  <AdminRoute requiredRole={['creator', 'super_admin']}>
-                    <CreatorDashboard />
-                  </AdminRoute>
-                } 
-              />
-              <Route 
-                path="agent-submission" 
-                element={
-                  <AdminRoute requiredRole={['creator', 'super_admin']}>
-                    <AgentSubmission />
-                  </AdminRoute>
-                } 
-              />
-              
-              {/* Super Admin Creator Portal */}
-              <Route 
-                path="creator-portal" 
-                element={
-                  <AdminRoute requiredRole="super_admin">
-                    <CreatorPortal />
-                  </AdminRoute>
-                } 
-              />
-              
-              <Route path="post-login" element={<PostLoginPage />} />
-              
-              {/* Test Suite Route - Development/Testing Only */}
-              <Route path="test-suite" element={<AgentSystemTestSuite />} />
-            </Route>
-          </Routes>
-        </div>
-      </AuthProvider>
-    </ErrorBoundary>
+    <Router>
+      <Layout>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<div className="p-8 text-center">Login page coming soon...</div>} />
+          <Route path="/agents" element={<AgentLibraryPage />} />
+          <Route path="/my-agents" element={<MyAgentsPage />} />
+          <Route path="/company-admin" element={<CompanyAdminDashboard />} />
+          <Route path="/super-admin" element={<SuperAdminDashboard />} />
+          <Route path="/creator-portal" element={<CreatorPortal />} />
+          <Route path="/company/:companyId" element={<div className="p-8 text-center">Company Library page coming soon...</div>} />
+          <Route path="*" element={<div className="p-8 text-center">Page not found</div>} />
+        </Routes>
+      </Layout>
+    </Router>
   )
 }
 
