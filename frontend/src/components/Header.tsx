@@ -82,7 +82,9 @@ export default function Header() {
         opacity: 1,
         position: 'relative',
         zIndex: 9999999, // Much higher z-index
-        overflow: 'visible'
+        overflow: 'visible',
+        border: '2px solid blue', // DEBUG: Temporary border to see the container bounds
+        backgroundColor: 'transparent', // Explicitly set transparent background
       }}>
         {/* Logo Image - Direct placement without container */}
         <img 
@@ -97,12 +99,23 @@ export default function Header() {
             opacity: 1,
             position: 'relative',
             zIndex: 9999999, // Much higher z-index
+            border: '2px solid red', // DEBUG: Temporary border to see the image bounds
+            backgroundColor: 'transparent', // Explicitly set transparent background
           }} 
           onError={(e) => {
             console.error('Logo failed to load:', e);
           }}
           onLoad={(e) => {
             console.log('Logo loaded successfully');
+            // Debug: Log the computed styles
+            const computedStyle = window.getComputedStyle(e.currentTarget);
+            console.log('Logo computed styles:', {
+              backgroundColor: computedStyle.backgroundColor,
+              border: computedStyle.border,
+              display: computedStyle.display,
+              width: computedStyle.width,
+              height: computedStyle.height
+            });
           }}
         />
         
