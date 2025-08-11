@@ -17,8 +17,8 @@ RUN npm run build
 # Install Express for serving
 RUN npm install express
 
-# Copy server file
-COPY frontend/server.js ./
+# Verify the build directory exists
+RUN ls -la build/
 
 # Expose port (optional, not required by Cloud Run)
 EXPOSE 8080
