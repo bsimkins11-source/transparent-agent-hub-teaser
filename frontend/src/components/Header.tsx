@@ -5,6 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 export default function Header() {
   const { currentUser } = useAuth();
 
+  console.log('🚨 HEADER IS RENDERING WITH NEW CODE! 🚨');
+
   return (
     <div style={{
       position: 'fixed',
@@ -12,12 +14,13 @@ export default function Header() {
       left: 0,
       right: 0,
       height: '64px',
-      backgroundColor: '#043C46',
+      backgroundColor: '#FF0000', // BRIGHT RED - IMPOSSIBLE TO MISS
       zIndex: 99999,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 16px'
+      padding: '0 16px',
+      border: '10px solid yellow' // HUGE YELLOW BORDER
     }}>
       {/* Logo */}
       <div style={{ 
