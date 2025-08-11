@@ -4,8 +4,6 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function Header() {
   const { currentUser } = useAuth();
-  
-  console.log('Header component rendering...');
 
   return (
     <div style={{
