@@ -137,8 +137,18 @@ export default function Header() {
             border: '2px solid white'
           }} 
           onError={(e) => {
-            console.error('Logo failed to load:', e);
-            e.currentTarget.style.display = 'none';
+            console.error('Logo failed to load, trying fallback:', e);
+            // Try the white logo as fallback
+            e.currentTarget.src = '/transparent-partners-logo-white.png';
+            e.currentTarget.onerror = () => {
+              console.error('Fallback logo also failed to load');
+              e.currentTarget.style.display = 'none';
+              // Show fallback text logo
+              const fallbackText = document.createElement('div');
+              fallbackText.textContent = 'TP';
+              fallbackText.style.cssText = 'height: 40px; width: 40px; background-color: white; color: #043C46; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border: 2px solid white;';
+              e.currentTarget.parentNode?.insertBefore(fallbackText, e.currentTarget);
+            };
           }}
           onLoad={() => {
             console.log('Logo loaded successfully');
@@ -306,26 +316,10 @@ export default function Header() {
             )}
           </div>
         ) : (
-          <Link to="/login">
-            <button style={{
-              backgroundColor: 'white',
-              color: '#043C46',
-              padding: '8px 16px',
-              borderRadius: '6px',
-              border: 'none',
-              fontWeight: '500',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              textDecoration: 'none'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#f8f9fa';
-              e.currentTarget.style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'white';
-              e.currentTarget.style.transform = 'translateY(0)';
-            }}>
+          <Link to="/login" className="inline-block">
+            <button 
+              className="bg-white text-[#043C46] px-4 py-2 rounded-md font-medium hover:bg-gray-100 transition-colors duration-200 border-none cursor-pointer"
+            >
               Sign In
             </button>
           </Link>
