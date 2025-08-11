@@ -23,6 +23,7 @@ function App() {
             <Route path="/company-admin" element={<CompanyAdminDashboard />} />
             <Route path="/super-admin" element={<SuperAdminDashboard />} />
             <Route path="/creator-portal" element={<CreatorPortal />} />
+            <Route path="/settings" element={<div className="p-8 text-center">Settings page coming soon...</div>} />
             <Route path="/company/:companyId" element={<div className="p-8 text-center">Company Library page coming soon...</div>} />
             <Route path="*" element={<div className="p-8 text-center">Page not found</div>} />
           </Routes>
