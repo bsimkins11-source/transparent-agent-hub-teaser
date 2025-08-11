@@ -20,16 +20,20 @@ export default function Layout() {
   }, [])
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       <Header />
       <Sidebar />
       <motion.main 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className={`pt-20 transition-all duration-300 ease-in-out ${
+        className={`pt-20 min-h-screen transition-all duration-300 ease-in-out ${
           sidebarExpanded ? 'lg:ml-80' : 'lg:ml-0'
         }`}
+        style={{ 
+          minHeight: 'calc(100vh - 80px)',
+          paddingTop: '80px' // Ensure content starts below header
+        }}
       >
         <Outlet />
       </motion.main>

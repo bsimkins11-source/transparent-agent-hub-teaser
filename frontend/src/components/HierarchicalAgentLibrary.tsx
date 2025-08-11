@@ -759,7 +759,7 @@ export default function HierarchicalAgentLibrary({
   // Show loading state while authentication is in progress
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 pl-8 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 pl-8 pt-20 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Authenticating...</p>
@@ -771,7 +771,7 @@ export default function HierarchicalAgentLibrary({
   // For non-authenticated users, show read-only mode
   if (!userProfile) {
     return (
-      <div className="min-h-screen bg-gray-50 pl-8">
+      <div className="min-h-screen bg-gray-50 pl-8 pt-20">
         {/* Header */}
         <div className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pl-8">
@@ -869,7 +869,7 @@ export default function HierarchicalAgentLibrary({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pl-8">
+    <div className="min-h-screen bg-gray-50 pl-8 pt-20">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pl-8">

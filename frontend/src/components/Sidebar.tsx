@@ -12,11 +12,14 @@ import {
   QuestionMarkCircleIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  BuildingLibraryIcon,
+  GlobeAltIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline'
 
 export default function Sidebar() {
-  const { currentUser, logout } = useAuth()
+  const { currentUser, userProfile, logout } = useAuth()
   const location = useLocation()
   const [isExpanded, setIsExpanded] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
@@ -58,57 +61,127 @@ export default function Sidebar() {
     }
   }, [sidebarTimeout])
 
-  const navigationItems = [
+  // Don't render sidebar for non-authenticated users
+  if (!currentUser || !userProfile) {
+    return null;
+  }
+
+  // Base navigation items that are always available
+  const baseNavigationItems = [
+    {
+      name: 'Global Library',
+      href: '/agents',
+      icon: GlobeAltIcon,
+      current: location.pathname === '/agents',
+      description: 'Browse all available agents'
+    }
+  ];
+
+  // Navigation items that require authentication
+  const authenticatedNavigationItems = [
     {
       name: 'Dashboard',
       href: '/my-agents',
       icon: UserIcon,
-      current: location.pathname === '/my-agents'
+      current: location.pathname === '/my-agents',
+      description: 'Your personal agent library'
     },
     {
       name: 'Account Settings',
       href: '/settings',
       icon: Cog6ToothIcon,
-      current: location.pathname === '/settings'
+      current: location.pathname === '/settings',
+      description: 'Manage your account preferences'
+    }
+  ];
+
+  // Role-based navigation items
+  const roleBasedNavigationItems = [
+    {
+      name: 'Company Management',
+      href: '/company-admin',
+      icon: BuildingLibraryIcon,
+      current: location.pathname === '/company-admin',
+      description: 'Manage company agents and users',
+      requiresRole: ['company_admin', 'super_admin'],
+      requiresPermission: 'canManageCompany'
     },
     {
-      name: 'Billing',
-      href: '/billing',
-      icon: CreditCardIcon,
-      current: location.pathname === '/billing'
+      name: 'Network Management',
+      href: '/network-admin',
+      icon: GlobeAltIcon,
+      current: location.pathname === '/network-admin',
+      description: 'Manage network-level access',
+      requiresRole: ['network_admin', 'super_admin'],
+      requiresPermission: 'canManageNetwork'
     },
     {
-      name: 'Documents',
-      href: '/documents',
-      icon: DocumentTextIcon,
-      current: location.pathname === '/documents'
+      name: 'System Administration',
+      href: '/super-admin',
+      icon: Cog6ToothIcon,
+      current: location.pathname === '/super-admin',
+      description: 'System-wide administration',
+      requiresRole: ['super_admin']
+    },
+    {
+      name: 'Creator Portal',
+      href: '/creator-portal',
+      icon: SparklesIcon,
+      current: location.pathname === '/creator-portal',
+      description: 'Submit and manage your agents',
+      requiresRole: ['creator', 'super_admin'],
+      requiresPermission: 'canSubmitAgents'
+    },
+    {
+      name: 'User Management',
+      href: '/admin/users',
+      icon: UserIcon,
+      current: location.pathname === '/admin/users',
+      description: 'Manage user accounts and permissions',
+      requiresRole: ['company_admin', 'network_admin', 'super_admin'],
+      requiresPermission: 'canManageUsers'
     },
     {
       name: 'Analytics',
       href: '/analytics',
       icon: ChartBarIcon,
-      current: location.pathname === '/analytics'
-    },
-    {
-      name: 'Notifications',
-      href: '/notifications',
-      icon: BellIcon,
-      current: location.pathname === '/notifications'
-    },
-    {
-      name: 'Help & Support',
-      href: '/support',
-      icon: QuestionMarkCircleIcon,
-      current: location.pathname === '/support'
+      current: location.pathname === '/analytics',
+      description: 'View system and usage analytics',
+      requiresRole: ['company_admin', 'network_admin', 'super_admin'],
+      requiresPermission: 'canViewAnalytics'
     }
-  ]
+  ];
+
+  // Get visible navigation items based on user permissions
+  const getVisibleNavigationItems = () => {
+    let items = [...baseNavigationItems];
+    
+    if (currentUser && userProfile) {
+      // Add authenticated items
+      items.push(...authenticatedNavigationItems);
+      
+      // Add role-based items
+      roleBasedNavigationItems.forEach(item => {
+        const hasRole = !item.requiresRole || item.requiresRole.includes(userProfile.role);
+        const hasPermission = !item.requiresPermission || userProfile.permissions[item.requiresPermission];
+        
+        if (hasRole && hasPermission) {
+          items.push(item);
+        }
+      });
+    }
+    
+    return items;
+  };
+
+  const navigationItems = getVisibleNavigationItems();
 
   const shouldShow = isExpanded || isHovered
 
   return (
     <>
       {/* Mobile menu button */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      <div className="lg:hidden fixed top-20 left-4 z-[9998]">
         <button
           onClick={() => {
             const newExpanded = !isExpanded
@@ -128,7 +201,7 @@ export default function Sidebar() {
 
       {/* Hover trigger area - small strip that's always visible */}
       <div 
-        className="fixed left-0 top-0 w-2 h-full z-30 lg:block hidden"
+        className="fixed left-0 top-16 w-2 h-full z-[9997] lg:block hidden"
         onMouseEnter={handleSidebarMouseEnter}
       >
         {/* Subtle visual indicator */}
@@ -148,7 +221,7 @@ export default function Sidebar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 z-80 lg:hidden"
+            className="fixed inset-0 bg-black bg-opacity-50 z-[9996] lg:hidden"
             onClick={() => setIsExpanded(false)}
           />
         )}
@@ -162,7 +235,7 @@ export default function Sidebar() {
             animate={{ x: 0 }}
             exit={{ x: -320 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className={`fixed left-0 top-0 h-full w-80 bg-white/95 backdrop-blur-sm border-r border-gray-200 z-90 transition-all duration-300 ${
+            className={`fixed left-0 top-16 h-full w-80 bg-white/95 backdrop-blur-sm border-r border-gray-200 z-[9995] transition-all duration-300 ${
               isHovered ? 'shadow-2xl' : 'shadow-xl'
             }`}
             onMouseEnter={handleSidebarMouseEnter}
@@ -246,11 +319,16 @@ export default function Sidebar() {
                             ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700 shadow-sm'
                             : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm'
                         }`}
+                        title={item.description}
                       >
                         <Icon className={`mr-3 h-5 w-5 transition-colors duration-200 ${
                           item.current ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-500'
                         }`} />
                         {item.name}
+                        {/* Role indicator for role-based items */}
+                        {item.requiresRole && (
+                          <span className="ml-auto w-2 h-2 bg-blue-500 rounded-full opacity-60"></span>
+                        )}
                       </Link>
                     </motion.div>
                   )

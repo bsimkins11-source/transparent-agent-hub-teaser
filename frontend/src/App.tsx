@@ -70,105 +70,141 @@ function App() {
       <AuthProvider>
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
           <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<HomePage />} />
-            <Route path="agents" element={<AgentLibraryPage />} />
-            <Route path="agent-library" element={<AgentLibraryPage />} />
-            <Route path="my-agents" element={<MyAgentsPage />} />
-            <Route path="agents/:agentId" element={<AgentPage />} />
-            <Route path="company/:companySlug" element={<CompanyAgentLibraryWrapper />} />
-            <Route path="company/:companySlug/network/:networkSlug" element={<CompanyAgentLibraryWrapper />} />
-            
-            {/* Network Admin Routes */}
-            <Route 
-              path="network-admin" 
-              element={
-                <AdminRoute requiredRole={['super_admin', 'company_admin', 'network_admin']}>
-                  <StandaloneNetworkAdminWrapper />
-                </AdminRoute>
-              } 
-            />
-            
-            {/* Super Admin Routes */}
-            <Route 
-              path="super-admin" 
-              element={
-                <AdminRoute requiredRole="super_admin">
-                  <SuperAdminDashboard />
-                </AdminRoute>
-              } 
-            />
-            
-            {/* Company Admin Routes */}
-            <Route 
-              path="admin" 
-              element={
-                <AdminRoute requiredRole={['super_admin', 'company_admin']}>
-                  <AdminRouteHandler />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="admin/company/:companyId" 
-              element={
-                <AdminRoute requiredRole={['super_admin', 'company_admin']}>
-                  <CompanyAdminWrapper />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="admin/network/:companyId/:networkId" 
-              element={
-                <AdminRoute requiredRole={['super_admin', 'company_admin', 'network_admin']}>
-                  <NetworkAdminWrapper />
-                </AdminRoute>
-              } 
-            />
-            
-            {/* User Management Route */}
-            <Route 
-              path="admin/users" 
-              element={
-                <AdminRoute requiredRole="company_admin">
-                  <AdminUserManagement />
-                </AdminRoute>
-              } 
-            />
-            
-            {/* Creator Routes */}
-            <Route 
-              path="creator-dashboard" 
-              element={
-                <AdminRoute requiredRole={['creator', 'super_admin']}>
-                  <CreatorDashboard />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="agent-submission" 
-              element={
-                <AdminRoute requiredRole={['creator', 'super_admin']}>
-                  <AgentSubmission />
-                </AdminRoute>
-              } 
-            />
-            
-            {/* Super Admin Creator Portal */}
-            <Route 
-              path="creator-portal" 
-              element={
-                <AdminRoute requiredRole="super_admin">
-                  <CreatorPortal />
-                </AdminRoute>
-              } 
-            />
-            
+            {/* Login route - no header */}
             <Route path="login" element={<LoginPage />} />
-            <Route path="post-login" element={<PostLoginPage />} />
             
-            {/* Test Suite Route - Development/Testing Only */}
-            <Route path="test-suite" element={<AgentSystemTestSuite />} />
-          </Route>
+            {/* All other routes - with header and layout */}
+            <Route path="/" element={<Layout />}>
+              <Route index element={<HomePage />} />
+              <Route path="agents" element={<AgentLibraryPage />} />
+              <Route path="agent-library" element={<AgentLibraryPage />} />
+              <Route path="my-agents" element={<MyAgentsPage />} />
+              <Route path="agents/:agentId" element={<AgentPage />} />
+              <Route path="company/:companySlug" element={<CompanyAgentLibraryWrapper />} />
+              <Route path="company/:companySlug/network/:networkSlug" element={<CompanyAgentLibraryWrapper />} />
+              
+              {/* User Settings Route */}
+              <Route 
+                path="settings" 
+                element={
+                  <AdminRoute requireAuth={true}>
+                    <div className="p-8 text-center">
+                      <h1 className="text-2xl font-bold text-gray-900 mb-4">Account Settings</h1>
+                      <p className="text-gray-600">Account settings page coming soon...</p>
+                    </div>
+                  </AdminRoute>
+                } 
+              />
+              
+              {/* Company Admin Routes */}
+              <Route 
+                path="company-admin" 
+                element={
+                  <AdminRoute requiredRole={['super_admin', 'company_admin']}>
+                    <CompanyAdminDashboard />
+                  </AdminRoute>
+                } 
+              />
+              
+              {/* Network Admin Routes */}
+              <Route 
+                path="network-admin" 
+                element={
+                  <AdminRoute requiredRole={['super_admin', 'company_admin', 'network_admin']}>
+                    <StandaloneNetworkAdminWrapper />
+                  </AdminRoute>
+                } 
+              />
+              
+              {/* Super Admin Routes */}
+              <Route 
+                path="super-admin" 
+                element={
+                  <AdminRoute requiredRole="super_admin">
+                    <SuperAdminDashboard />
+                  </AdminRoute>
+                } 
+              />
+              
+              {/* Creator Portal Route */}
+              <Route 
+                path="creator-portal" 
+                element={
+                  <AdminRoute requiredRole={['creator', 'super_admin']}>
+                    <CreatorPortal />
+                  </AdminRoute>
+                } 
+              />
+              
+              {/* Company Admin Routes */}
+              <Route 
+                path="admin" 
+                element={
+                  <AdminRoute requiredRole={['super_admin', 'company_admin']}>
+                    <AdminRouteHandler />
+                  </AdminRoute>
+                } 
+              />
+              <Route 
+                path="admin/company/:companyId" 
+                element={
+                  <AdminRoute requiredRole={['super_admin', 'company_admin']}>
+                    <CompanyAdminWrapper />
+                  </AdminRoute>
+                } 
+              />
+              <Route 
+                path="admin/network/:companyId/:networkId" 
+                element={
+                  <AdminRoute requiredRole={['super_admin', 'company_admin', 'network_admin']}>
+                    <NetworkAdminWrapper />
+                  </AdminRoute>
+                } 
+              />
+              
+              {/* User Management Route */}
+              <Route 
+                path="admin/users" 
+                element={
+                  <AdminRoute requiredRole="company_admin">
+                    <AdminUserManagement />
+                  </AdminRoute>
+                } 
+              />
+              
+              {/* Creator Routes */}
+              <Route 
+                path="creator-dashboard" 
+                element={
+                  <AdminRoute requiredRole={['creator', 'super_admin']}>
+                    <CreatorDashboard />
+                  </AdminRoute>
+                } 
+              />
+              <Route 
+                path="agent-submission" 
+                element={
+                  <AdminRoute requiredRole={['creator', 'super_admin']}>
+                    <AgentSubmission />
+                  </AdminRoute>
+                } 
+              />
+              
+              {/* Super Admin Creator Portal */}
+              <Route 
+                path="creator-portal" 
+                element={
+                  <AdminRoute requiredRole="super_admin">
+                    <CreatorPortal />
+                  </AdminRoute>
+                } 
+              />
+              
+              <Route path="post-login" element={<PostLoginPage />} />
+              
+              {/* Test Suite Route - Development/Testing Only */}
+              <Route path="test-suite" element={<AgentSystemTestSuite />} />
+            </Route>
           </Routes>
         </div>
       </AuthProvider>

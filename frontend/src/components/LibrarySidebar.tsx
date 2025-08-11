@@ -9,8 +9,7 @@ import {
   PlusIcon,
   UserIcon,
   GlobeAltIcon,
-  ChatBubbleLeftRightIcon,
-  ChevronDownIcon
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 import NewAgentRequestForm from './NewAgentRequestForm';
@@ -32,7 +31,6 @@ export default function LibrarySidebar({
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [sidebarTimeout, setSidebarTimeout] = useState<NodeJS.Timeout | null>(null);
   const [isNewAgentRequestModalOpen, setIsNewAgentRequestModalOpen] = useState(false);
-  const [librariesExpanded, setLibrariesExpanded] = useState(true);
 
   const handleTriggerStripMouseEnter = () => {
     if (sidebarTimeout) {
@@ -47,13 +45,12 @@ export default function LibrarySidebar({
       clearTimeout(sidebarTimeout);
       setSidebarTimeout(null);
     }
-    // Don't set sidebarHovered here - only the trigger strip can initiate
   };
 
   const handleSidebarMouseLeave = () => {
     const timeout = setTimeout(() => {
       setSidebarHovered(false);
-    }, 300); // Longer delay for smoother exit since we have unified hover area
+    }, 300);
     setSidebarTimeout(timeout);
   };
 
@@ -162,9 +159,7 @@ export default function LibrarySidebar({
         <div className="p-6 pt-12 flex-1 overflow-y-auto" style={{ scrollbarWidth: 'thin', scrollbarColor: '#d1d5db #f3f4f6' }}>
           
           {/* Home Navigation */}
-          <div className={`mb-8 transition-all duration-500 delay-100 ${
-            sidebarHovered ? 'translate-x-0 opacity-100' : 'translate-x-2 opacity-0'
-          }`}>
+          <div className="mb-8">
             <Link
               to="/"
               className="w-full flex items-center space-x-3 px-6 py-3 text-left rounded-lg transition-all duration-200 group text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:border hover:border-blue-200"
@@ -178,16 +173,14 @@ export default function LibrarySidebar({
           </div>
 
           {/* Agent Libraries Section */}
-          <div className={`mb-8 transition-all duration-500 delay-200 ${
-            sidebarHovered ? 'translate-x-0 opacity-100' : 'translate-x-2 opacity-0'
-          }`}>
+          <div className="mb-8">
             <div className="mb-4 px-3">
               <h4 className="text-sm font-medium text-gray-900 mb-2">Agent Libraries</h4>
               <p className="text-xs text-gray-600">Browse different agent collections</p>
             </div>
             
             <nav className="space-y-2 px-3">
-              {libraryItems.map((item, index) => {
+              {libraryItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
@@ -198,9 +191,6 @@ export default function LibrarySidebar({
                         ? 'bg-blue-50 text-blue-700 border border-blue-200'
                         : 'text-gray-700 hover:bg-blue-50 hover:text-blue-700 hover:border hover:border-blue-200'
                     }`}
-                    style={{
-                      transitionDelay: `${300 + (index * 50)}ms`
-                    }}
                   >
                     <Icon className={`w-4 h-4 transition-all duration-200 ${
                       item.current ? 'text-blue-600 scale-110' : 'text-gray-400 group-hover:text-blue-600 group-hover:scale-110'
@@ -216,9 +206,7 @@ export default function LibrarySidebar({
           </div>
 
           {/* Agent Actions Section */}
-          <div className={`pt-6 border-t border-gray-200 transition-all duration-500 delay-300 ${
-            sidebarHovered ? 'translate-x-0 opacity-100' : 'translate-x-2 opacity-0'
-          }`}>
+          <div className="pt-6 border-t border-gray-200">
             <div className="mb-4 px-3">
               <h4 className="text-sm font-medium text-gray-900 mb-2">Agent Actions</h4>
               <p className="text-xs text-gray-600">Manage and contribute agents</p>
@@ -238,15 +226,14 @@ export default function LibrarySidebar({
                 className="w-full flex items-center space-x-3 px-4 py-3 text-left text-green-700 bg-green-50 hover:bg-green-100 rounded-lg transition-all duration-200 group border border-green-200 hover:scale-[1.02] hover:shadow-sm"
               >
                 <PlusIcon className="w-4 h-4 text-green-600" />
+                <span className="text-green-600" />
                 <span className="font-medium text-sm">Submit Agent</span>
               </button>
             </div>
           </div>
 
           {/* Current Library Info */}
-          <div className={`mt-8 pt-6 border-t border-gray-200 transition-all duration-500 delay-400 ${
-            sidebarHovered ? 'translate-x-0 opacity-100' : 'translate-x-2 opacity-0'
-          }`}>
+          <div className="mt-8 pt-6 border-t border-gray-200">
             <div className="px-3">
               <div className="text-sm text-gray-500 mb-2">Currently viewing:</div>
               <div className="text-sm font-medium text-gray-900">

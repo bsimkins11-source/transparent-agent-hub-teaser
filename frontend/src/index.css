@@ -32,6 +32,29 @@
     color: white;
   }
   
+  /* Ensure header stays fixed and above all content */
+  header {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 99999 !important;
+    width: 100% !important;
+  }
+  
+  /* Ensure logo container doesn't overflow */
+  header .flex-shrink-0 {
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+  }
+  
+  /* Ensure logo image is properly sized */
+  header img {
+    max-height: 100% !important;
+    width: auto !important;
+    object-fit: contain !important;
+  }
+  
   /* Ensure navigation text has proper contrast */
   .header-global nav {
     display: flex !important;
@@ -55,62 +78,6 @@
   
   .header-global .text-white\/80:hover,
   .header-global .text-white\/90:hover {
-    color: white !important;
-  }
-  
-  /* FINAL ATTEMPT: CSS custom properties with maximum specificity */
-  .header-global .absolute {
-    --debug-bg: red !important;
-    --debug-border: 5px solid yellow !important;
-    --debug-color: white !important;
-    --debug-size: 20px !important;
-    --debug-weight: bold !important;
-    --debug-padding: 20px !important;
-    --debug-z: 9999 !important;
-    
-    background: var(--debug-bg) !important;
-    border: var(--debug-border) !important;
-    color: var(--debug-color) !important;
-    font-size: var(--debug-size) !important;
-    font-weight: var(--debug-weight) !important;
-    padding: var(--debug-padding) !important;
-    z-index: var(--debug-z) !important;
-  }
-  
-  .header-global .absolute * {
-    color: var(--debug-color) !important;
-    background: transparent !important;
-  }
-  
-  /* DEBUG: Add a visible element to confirm CSS is loading */
-  .header-global::before {
-    content: "🚨 CSS IS LOADED! 🚨";
-    position: fixed;
-    top: 0;
-    left: 0;
-    background: lime;
-    color: black;
-    padding: 10px;
-    z-index: 10000;
-    font-size: 16px;
-    font-weight: bold;
-    border: 3px solid blue;
-  }
-  
-  /* Ensure logo and brand text are visible */
-  .header-global .text-white\/80 {
-    color: rgba(255, 255, 255, 0.9) !important;
-  }
-  
-  .header-global .text-white\/90 {
-    color: rgba(255, 255, 255, 0.9) !important;
-  }
-  
-  .header-global .text-white\/80 {
-    color: rgba(255, 255, 255, 0.9) !important;
-  }
-  
-  .header-global .text-white\/80:hover {
     color: white !important;
   }
   
@@ -179,60 +146,55 @@
   
   /* Accent styles */
   .accent-highlight {
-    @apply text-blue-600 font-semibold;
+    @apply text-transparent-accent;
   }
   
   .accent-border {
-    @apply border-blue-200;
+    @apply border-transparent-accent;
   }
   
   .accent-bg {
-    @apply bg-blue-50;
+    @apply bg-transparent-accent;
   }
   
   .accent-hover {
-    @apply hover:bg-blue-100;
+    @apply hover:bg-transparent-accent;
   }
   
   .accent-focus {
-    @apply focus:ring-2 focus:ring-blue-500;
+    @apply focus:ring-transparent-accent focus:border-transparent-accent;
   }
   
-  /* Interactive element styles */
+  /* Interactive elements */
   .interactive-element {
-    @apply cursor-pointer transition-all duration-200;
+    @apply transition-all duration-200 ease-in-out;
   }
   
   .interactive-element:hover {
-    @apply transform scale-105 shadow-lg;
+    @apply transform scale-105;
   }
   
-  /* Custom shadow utilities */
+  /* Shadow utilities */
   .shadow-soft {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
   }
   
-  /* Company tile text contrast improvements */
+  /* Company tile text styling */
   .company-tile-text {
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    font-weight: 600;
-    letter-spacing: 0.025em;
+    @apply text-sm font-medium text-gray-900 leading-tight;
   }
   
   .company-tile-text.light {
-    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+    @apply text-gray-600;
   }
   
-  /* Ensure company tile text is always readable */
   .company-tile-text {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    @apply text-sm font-medium text-gray-900 leading-tight;
   }
   
   /* Company admin button styling */
   .company-admin-button {
-    position: relative;
-    overflow: hidden;
+    @apply relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:from-blue-700 hover:to-blue-800;
   }
   
   .company-admin-button::before {
@@ -260,28 +222,26 @@
     display: none;
   }
   
-  /* Sidebar scrollbar styling */
+  /* Sidebar navigation scrollbar styling */
   .sidebar-nav::-webkit-scrollbar {
     width: 6px;
   }
   
   .sidebar-nav::-webkit-scrollbar-track {
-    background: #f3f4f6;
-    border-radius: 3px;
+    background: transparent;
   }
   
   .sidebar-nav::-webkit-scrollbar-thumb {
-    background: #d1d5db;
+    background: rgba(156, 163, 175, 0.5);
     border-radius: 3px;
   }
   
   .sidebar-nav::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
+    background: rgba(156, 163, 175, 0.7);
   }
   
-  /* Firefox scrollbar styling */
   .sidebar-nav {
     scrollbar-width: thin;
-    scrollbar-color: #d1d5db #f3f4f6;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
   }
 }

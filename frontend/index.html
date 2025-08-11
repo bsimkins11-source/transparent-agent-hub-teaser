@@ -15,38 +15,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-      /* INLINE CSS TO BYPASS BUILD PROCESS */
-      .header-global .absolute {
-        background: red !important;
-        border: 5px solid yellow !important;
-        color: white !important;
-        font-size: 20px !important;
-        font-weight: bold !important;
-        padding: 20px !important;
-        z-index: 9999 !important;
-      }
-      
-      .header-global .absolute * {
-        color: white !important;
-        background: transparent !important;
-      }
-      
-      /* DEBUG ELEMENT */
-      .header-global::before {
-        content: "🚨 INLINE CSS WORKING! 🚨";
-        position: fixed;
-        top: 0;
-        left: 0;
-        background: lime;
-        color: black;
-        padding: 10px;
-        z-index: 10000;
-        font-size: 16px;
-        font-weight: bold;
-        border: 3px solid blue;
-      }
-    </style>
   </head>
   <body>
     <div id="root"></div>
