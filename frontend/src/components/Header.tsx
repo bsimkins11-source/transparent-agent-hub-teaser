@@ -1,12 +1,8 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
 
 export default function Header() {
-  const { currentUser } = useAuth();
-
-  console.log('🚨🚨🚨 THIS IS THE NEW HEADER COMPONENT! 🚨🚨🚨');
-  console.log('🚨🚨🚨 IF YOU SEE THIS, THE NEW CODE IS RUNNING! 🚨🚨🚨');
+  console.log('🔥 NEW HEADER CREATED FROM SCRATCH! 🔥');
 
   return (
     <div style={{
@@ -14,55 +10,58 @@ export default function Header() {
       top: 0,
       left: 0,
       right: 0,
-      height: '64px',
-      backgroundColor: '#FF0000', // BRIGHT RED - IMPOSSIBLE TO MISS
-      zIndex: 99999,
+      height: '80px',
+      backgroundColor: '#FF1493', // DEEP PINK
+      zIndex: 999999,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 16px',
-      border: '10px solid yellow' // HUGE YELLOW BORDER
+      padding: '0 20px',
+      border: '8px solid #00CED1', // DARK TURQUOISE
+      fontSize: '28px',
+      fontWeight: 'bold'
     }}>
-      {/* Logo */}
+      {/* Logo and Brand */}
       <div style={{ 
         display: 'flex', 
         alignItems: 'center', 
-        gap: '12px'
+        gap: '15px'
       }}>
         <img 
           src="/transparent-partners-logo-white.png" 
           alt="Logo" 
           style={{ 
-            height: '40px',
-            width: '40px',
+            height: '50px',
+            width: '50px',
             objectFit: 'contain'
           }} 
         />
         <span style={{ 
           color: 'white', 
-          fontSize: '18px', 
-          fontWeight: 'bold'
+          fontSize: '28px', 
+          fontWeight: 'bold',
+          textShadow: '2px 2px 4px black'
         }}>
-          Transparent Partners
+          🚀 NEW HEADER 🚀
         </span>
       </div>
 
       {/* Sign In Button */}
-      {!currentUser && (
-        <Link
-          to="/login"
-          style={{
-            color: 'white',
-            textDecoration: 'none',
-            padding: '8px 16px',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '4px',
-            fontSize: '14px'
-          }}
-        >
-          Sign In
-        </Link>
-      )}
+      <Link
+        to="/login"
+        style={{
+          color: 'black',
+          textDecoration: 'none',
+          padding: '12px 24px',
+          backgroundColor: '#FFD700', // GOLD
+          border: '4px solid #000000',
+          borderRadius: '8px',
+          fontSize: '20px',
+          fontWeight: 'bold'
+        }}
+      >
+        🔑 SIGN IN 🔑
+      </Link>
     </div>
   );
 }
