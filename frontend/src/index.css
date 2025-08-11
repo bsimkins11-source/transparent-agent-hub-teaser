@@ -75,11 +75,26 @@
     overflow: hidden !important;
   }
   
-  /* Ensure logo image is properly sized */
+  /* Ensure logo image is properly sized and has NO background */
   header img {
     max-height: 100% !important;
     width: auto !important;
     object-fit: contain !important;
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  
+  /* Specifically target the logo image to ensure no white backgrounds */
+  header img[alt="Logo"] {
+    background: none !important;
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    background-image: none !important;
   }
   
   /* Ensure navigation text has proper contrast */

@@ -72,67 +72,41 @@ export default function Header() {
       justifyContent: 'space-between',
       padding: '0 16px'
     }}>
-      {/* Logo and Brand */}
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        gap: '12px',
-        padding: '4px',
-        visibility: 'visible',
-        opacity: 1,
-        position: 'relative',
-        zIndex: 9999999, // Much higher z-index
-        overflow: 'visible',
-        border: '2px solid blue', // DEBUG: Temporary border to see the container bounds
-        backgroundColor: 'transparent', // Explicitly set transparent background
-      }}>
-        {/* Logo Image - Direct placement without container */}
-        <img 
-          src="/transparent-partners-logo-white.png" 
-          alt="Logo" 
-          style={{ 
-            height: '40px',
-            width: '40px',
-            objectFit: 'contain',
-            display: 'block',
-            visibility: 'visible',
-            opacity: 1,
-            position: 'relative',
-            zIndex: 9999999, // Much higher z-index
-            border: '2px solid red', // DEBUG: Temporary border to see the image bounds
-            backgroundColor: 'transparent', // Explicitly set transparent background
-          }} 
-          onError={(e) => {
-            console.error('Logo failed to load:', e);
-          }}
-          onLoad={(e) => {
-            console.log('Logo loaded successfully');
-            // Debug: Log the computed styles
-            const computedStyle = window.getComputedStyle(e.currentTarget);
-            console.log('Logo computed styles:', {
-              backgroundColor: computedStyle.backgroundColor,
-              border: computedStyle.border,
-              display: computedStyle.display,
-              width: computedStyle.width,
-              height: computedStyle.height
-            });
-          }}
-        />
-        
-        {/* Brand Text */}
-        <span style={{ 
-          color: 'white', 
-          fontSize: '18px', 
-          fontWeight: 'bold',
-          padding: '4px',
-          visibility: 'visible',
-          opacity: 1,
+      {/* Logo - SUPER SIMPLE, NO CONTAINERS */}
+      <img 
+        src="/transparent-partners-logo-white.png" 
+        alt="Logo" 
+        style={{ 
+          height: '40px',
+          width: '40px',
+          objectFit: 'contain',
           display: 'block',
-          zIndex: 9999999 // Much higher z-index
-        }}>
-          Transparent Partners
-        </span>
-      </div>
+          marginRight: '12px',
+          zIndex: 9999999,
+          // Force override any CSS that might add backgrounds
+          background: 'none !important',
+          backgroundColor: 'transparent !important',
+          border: 'none !important',
+          outline: 'none !important',
+          boxShadow: 'none !important',
+        }} 
+        onError={(e) => {
+          console.error('Logo failed to load:', e);
+        }}
+        onLoad={(e) => {
+          console.log('Logo loaded successfully');
+        }}
+      />
+      
+      {/* Brand Text */}
+      <span style={{ 
+        color: 'white', 
+        fontSize: '18px', 
+        fontWeight: 'bold',
+        zIndex: 9999999
+      }}>
+        Transparent Partners
+      </span>
 
       {/* Desktop Navigation */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
