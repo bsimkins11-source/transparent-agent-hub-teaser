@@ -8,7 +8,7 @@ WORKDIR /app
 COPY frontend/package*.json ./
 RUN npm install
 
-# Copy rest of the frontend app
+# Copy the entire frontend directory
 COPY frontend/ .
 
 # Build the React app
@@ -17,7 +17,8 @@ RUN npm run build
 # Install Express for serving
 RUN npm install express
 
-# Verify the build directory exists
+# Verify the build directory exists and show contents
+RUN ls -la
 RUN ls -la build/
 
 # Expose port (optional, not required by Cloud Run)
