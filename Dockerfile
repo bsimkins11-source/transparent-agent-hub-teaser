@@ -19,6 +19,14 @@ RUN npm run build
 # Install Express
 RUN npm install express
 
+# Debug: Show what we have
+RUN echo "=== Container contents ==="
+RUN ls -la
+RUN echo "=== Build directory contents ==="
+RUN ls -la build/
+RUN echo "=== Package.json ==="
+RUN cat package.json
+
 # Expose port
 EXPOSE 8080
 
