@@ -122,6 +122,22 @@
     z-index: 99999999 !important;
   }
   
+  /* Force SVG logo to stay visible */
+  header svg {
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    z-index: 99999999 !important;
+  }
+  
+  /* Force SVG pattern and image to stay visible */
+  header svg pattern,
+  header svg image {
+    background: none !important;
+    background-color: transparent !important;
+  }
+  
   /* Ensure navigation text has proper contrast */
   .header-global nav {
     display: flex !important;

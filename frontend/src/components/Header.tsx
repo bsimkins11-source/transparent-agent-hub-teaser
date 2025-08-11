@@ -72,27 +72,29 @@ export default function Header() {
       justifyContent: 'space-between',
       padding: '0 16px'
     }}>
-      {/* Logo - CSS BACKGROUND IMAGE (IMPOSSIBLE TO OVERRIDE) */}
-      <div 
+      {/* Logo - INLINE SVG (FINAL NUCLEAR OPTION) */}
+      <svg 
+        width="40" 
+        height="40" 
+        viewBox="0 0 40 40"
         style={{ 
-          height: '40px',
-          width: '40px',
           position: 'absolute',
           left: '16px',
           top: '12px',
           zIndex: 99999999,
-          backgroundImage: 'url("/transparent-partners-logo-white.png")',
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          // Force override everything
-          background: 'url("/transparent-partners-logo-white.png") no-repeat center / contain !important',
-          backgroundColor: 'transparent !important',
-          border: 'none !important',
-          outline: 'none !important',
-          boxShadow: 'none !important',
-        }} 
-      />
+          backgroundColor: 'transparent',
+          border: 'none',
+          outline: 'none',
+          boxShadow: 'none',
+        }}
+      >
+        <defs>
+          <pattern id="logoPattern" patternUnits="userSpaceOnUse" width="40" height="40">
+            <image href="/transparent-partners-logo-white.png" width="40" height="40" />
+          </pattern>
+        </defs>
+        <rect width="40" height="40" fill="url(#logoPattern)" />
+      </svg>
       
       {/* Brand Text */}
       <span style={{ 
