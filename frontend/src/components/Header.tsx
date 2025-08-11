@@ -26,6 +26,61 @@ export default function Header() {
   const userDropdownRef = useRef<HTMLDivElement>(null);
   const librariesDropdownRef = useRef<HTMLDivElement>(null);
   const adminDropdownRef = useRef<HTMLDivElement>(null);
+  
+  // DEBUG: Find the white box
+  useEffect(() => {
+    const findWhiteBox = () => {
+      console.log('🔍 SEARCHING FOR WHITE BOX...');
+      
+      // Search all elements for white backgrounds
+      const allElements = document.querySelectorAll('*');
+      const whiteElements: Element[] = [];
+      
+      allElements.forEach((element) => {
+        const style = window.getComputedStyle(element);
+        const bgColor = style.backgroundColor;
+        const bgImage = style.backgroundImage;
+        
+        if (bgColor && (bgColor.includes('white') || bgColor.includes('rgb(255, 255, 255)') || bgColor.includes('#ffffff'))) {
+          whiteElements.push(element);
+          console.log('🔍 Found white background element:', element, {
+            tagName: element.tagName,
+            className: element.className,
+            id: element.id,
+            backgroundColor: bgColor,
+            backgroundImage: bgImage,
+            position: style.position,
+            zIndex: style.zIndex
+          });
+        }
+      });
+      
+      console.log('🔍 Total white elements found:', whiteElements.length);
+      
+      // Also check for elements in the header area
+      const headerArea = document.querySelector('header') || document.querySelector('[style*="position: fixed"]');
+      if (headerArea) {
+        console.log('🔍 Header area found:', headerArea);
+        const headerChildren = headerArea.querySelectorAll('*');
+        console.log('🔍 Header children count:', headerChildren.length);
+        headerChildren.forEach((child, index) => {
+          const style = window.getComputedStyle(child);
+          console.log(`🔍 Header child ${index}:`, {
+            tagName: child.tagName,
+            className: child.className,
+            backgroundColor: style.backgroundColor,
+            position: style.position,
+            zIndex: style.zIndex
+          });
+        });
+      }
+    };
+    
+    // Run immediately and after a delay
+    findWhiteBox();
+    setTimeout(findWhiteBox, 1000);
+    setTimeout(findWhiteBox, 3000);
+  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
