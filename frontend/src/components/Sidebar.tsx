@@ -216,7 +216,7 @@ export default function Sidebar() {
             // Dispatch custom event for layout adjustment
             window.dispatchEvent(new CustomEvent('sidebarStateChange', { detail: { expanded: newExpanded } }))
           }}
-          className="p-2 rounded-lg bg-white shadow-soft border border-gray-200"
+          className="p-2 rounded-lg bg-white shadow-md border border-gray-200"
         >
           {isExpanded ? (
             <XMarkIcon className="w-6 h-6 text-gray-600" />
