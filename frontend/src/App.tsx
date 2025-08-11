@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import Layout from './components/Layout'
 import HomePage from './pages/HomePage'
+import LoginPage from './pages/LoginPage'
 import AgentLibraryPage from './pages/AgentLibraryPage'
 import MyAgentsPage from './pages/MyAgentsPage'
 import CompanyAdminDashboard from './pages/CompanyAdminDashboard'
@@ -16,7 +17,7 @@ function App() {
         <Layout>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/login" element={<div className="p-8 text-center">Login page coming soon...</div>} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="/agents" element={<AgentLibraryPage />} />
             <Route path="/my-agents" element={<MyAgentsPage />} />
             <Route path="/company-admin" element={<CompanyAdminDashboard />} />

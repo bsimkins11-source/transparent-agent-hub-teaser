@@ -18,9 +18,11 @@ export interface EnvironmentConfig {
 
 export const getEnvironmentConfig = (): EnvironmentConfig => {
   const hostname = window.location.hostname;
+  console.log('🌍 Detecting environment from hostname:', hostname);
   
   // Detect environment from hostname
   if (hostname.includes('transparent-ai-staging') || hostname.includes('staging')) {
+    console.log('🔧 Using STAGING configuration');
     return {
       projectId: 'transparent-ai-staging',
       environment: 'staging',
@@ -40,17 +42,27 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
     };
   }
   
-  // Production configuration
+  // Production configuration - use environment variables from .env file
+  console.log('🔧 Using PRODUCTION configuration');
+  console.log('🔑 Environment variables:', {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY ? '✅ Set' : '❌ Missing',
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ? '✅ Set' : '❌ Missing',
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ? '✅ Set' : '❌ Missing',
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ? '✅ Set' : '❌ Missing',
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ? '✅ Set' : '❌ Missing',
+    appId: import.meta.env.VITE_FIREBASE_APP_ID ? '✅ Set' : '❌ Missing'
+  });
+  
   return {
-    projectId: 'ai-agent-hub-web-portal-79fb0',
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'ai-agent-hub-web-portal-79fb0',
     environment: 'production',
     firebaseConfig: {
-      apiKey: 'AIzaSyAf2KwetCFEARZiaBP_QW07JVT1_tfZ_IY',
-      authDomain: 'ai-agent-hub-web-portal-79fb0.firebaseapp.com',
-      projectId: 'ai-agent-hub-web-portal-79fb0',
-      storageBucket: 'ai-agent-hub-web-portal-79fb0.firebasestorage.app',
-      messagingSenderId: '72861076114',
-      appId: '1:72861076114:web:1ea856ad05ef5f0eeef44b'
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyAf2KwetCFEARZiaBP_QW07JVT1_tfZ_IY',
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'ai-agent-hub-web-portal-79fb0.firebaseapp.com',
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'ai-agent-hub-web-portal-79fb0',
+      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'ai-agent-hub-web-portal-79fb0.firebasestorage.app',
+      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '72861076114',
+      appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:72861076114:web:1ea856ad05ef5f0eeef44b'
     },
     features: {
       enableAnalytics: true,

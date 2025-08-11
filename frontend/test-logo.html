@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo and Firebase Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .logo-test {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .logo-test img {
+            border: 2px solid #ddd;
+            padding: 10px;
+            background: white;
+        }
+        .firebase-test {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Logo and Firebase Configuration Test</h1>
+    
+    <div class="test-section">
+        <h2>📸 Logo Accessibility Test</h2>
+        <p>Testing if the Transparent Partners logo files are accessible:</p>
+        
+        <div class="logo-test">
+            <div>
+                <h3>White Logo</h3>
+                <img src="/transparent-partners-logo-white.png" alt="White Logo" width="200">
+                <p>Path: /transparent-partners-logo-white.png</p>
+            </div>
+            <div>
+                <h3>Regular Logo</h3>
+                <img src="/transparent-partners-logo.png" alt="Regular Logo" width="200">
+                <p>Path: /transparent-partners-logo.png</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔥 Firebase Configuration Test</h2>
+        <p>Testing Firebase environment variables:</p>
+        <div class="firebase-test" id="firebase-config">
+            Loading Firebase configuration...
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🌍 Environment Detection</h2>
+        <p>Current hostname: <strong id="hostname"></strong></p>
+        <p>Expected environment: <strong id="environment"></strong></p>
+    </div>
+
+    <script type="module">
+        // Test Firebase configuration
+        async function testFirebaseConfig() {
+            const configDiv = document.getElementById('firebase-config');
+            const hostnameDiv = document.getElementById('hostname');
+            const environmentDiv = document.getElementById('environment');
+            
+            // Show hostname
+            hostnameDiv.textContent = window.location.hostname;
+            
+            // Detect environment
+            let environment = 'production';
+            if (window.location.hostname.includes('transparent-ai-staging') || window.location.hostname.includes('staging')) {
+                environment = 'staging';
+            }
+            environmentDiv.textContent = environment;
+            
+            // Test environment variables
+            const envVars = {
+                'VITE_FIREBASE_API_KEY': import.meta.env.VITE_FIREBASE_API_KEY,
+                'VITE_FIREBASE_AUTH_DOMAIN': import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+                'VITE_FIREBASE_PROJECT_ID': import.meta.env.VITE_FIREBASE_PROJECT_ID,
+                'VITE_FIREBASE_STORAGE_BUCKET': import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+                'VITE_FIREBASE_MESSAGING_SENDER_ID': import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+                'VITE_FIREBASE_APP_ID': import.meta.env.VITE_FIREBASE_APP_ID
+            };
+            
+            let configHtml = '<h3>Environment Variables:</h3><ul>';
+            for (const [key, value] of Object.entries(envVars)) {
+                const status = value ? '✅' : '❌';
+                const displayValue = value ? `${value.substring(0, 20)}...` : 'Not set';
+                configHtml += `<li>${status} ${key}: ${displayValue}</li>`;
+            }
+            configHtml += '</ul>';
+            
+            configDiv.innerHTML = configHtml;
+        }
+        
+        // Run tests
+        testFirebaseConfig();
+        
+        // Test logo loading
+        document.querySelectorAll('img').forEach(img => {
+            img.addEventListener('load', () => {
+                console.log(`✅ Logo loaded: ${img.src}`);
+            });
+            img.addEventListener('error', (e) => {
+                console.error(`❌ Logo failed to load: ${img.src}`, e);
+            });
+        });
+    </script>
+</body>
+</html>
