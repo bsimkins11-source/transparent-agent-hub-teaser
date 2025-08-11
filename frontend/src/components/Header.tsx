@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   BookOpenIcon,
   BuildingOfficeIcon,
+  UserGroupIcon,
   UserIcon,
+  CogIcon,
+  ChevronDownIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
   XMarkIcon,
-  ChevronDownIcon
+  GlobeAltIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -16,9 +21,26 @@ export default function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   
+  const [isLibrariesDropdownOpen, setIsLibrariesDropdownOpen] = useState(false);
+  const [isAdminDropdownOpen, setIsAdminDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isAgentsDropdownOpen, setIsAgentsDropdownOpen] = useState(false);
-  const [isLibraryDropdownOpen, setIsLibraryDropdownOpen] = useState(false);
+  
+  const librariesDropdownRef = useRef<HTMLDivElement>(null);
+  const adminDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (librariesDropdownRef.current && !librariesDropdownRef.current.contains(event.target as Node)) {
+        setIsLibrariesDropdownOpen(false);
+      }
+      if (adminDropdownRef.current && !adminDropdownRef.current.contains(event.target as Node)) {
+        setIsAdminDropdownOpen(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -29,204 +51,206 @@ export default function Header() {
     }
   };
 
-  const isActiveRoute = (path: string) => {
-    if (path === '/') return location.pathname === '/';
-    if (path.startsWith('/company/')) return location.pathname.startsWith('/company/');
-    return location.pathname === path;
-  };
-
-  const navLinkClass = (path: string) => {
-    const baseClasses = "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap";
-    return isActiveRoute(path) 
-      ? `${baseClasses} bg-white/15 text-white` 
-      : `${baseClasses} text-white/90 hover:bg-white/10 hover:text-white`;
-  };
-
   return (
-    <header className="fixed top-0 left-0 right-0 z-100 bg-gradient-to-r from-[#043C46] via-[#043C46] to-[#0F5F6B] border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-4">
+    <header className="fixed top-0 left-0 right-0 z-[99999] bg-white/95 backdrop-blur-sm border-b border-gray-200 shadow-lg">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 gap-4">
           
           {/* Logo/Brand */}
-          <div 
-            onClick={() => {
-              console.log('Logo clicked - navigating to home page');
-              window.location.href = '/';
-            }}
-            className="flex items-center cursor-pointer p-2 min-h-16 flex-shrink-0"
-            title="Click to go to Home Page"
-          >
-            <img 
-              src="/transparent-partners-logo-white.png" 
-              alt="Transparent Partners Logo" 
-              className="h-15 max-w-64 object-contain block pointer-events-none"
-            />
+          <div className="flex items-center cursor-pointer p-2 flex-shrink-0">
+            <Link to="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-brand-600 to-brand-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-sm">TP</span>
+              </div>
+              <span className="text-gray-900 font-bold text-lg truncate max-w-[200px] sm:max-w-none">
+                Transparent Partners
+              </span>
+            </Link>
           </div>
 
-          {/* Navigation - Agents and Library Dropdowns */}
-          <nav className="hidden lg:flex items-center gap-6 flex-1 justify-center">
+          {/* Navigation */}
+          <nav className="hidden md:flex items-center gap-6 flex-shrink-0">
+            {/* Global Library - Always visible */}
+            <Link
+              to="/agents"
+              className="text-gray-600 hover:text-brand-600 font-medium transition-colors whitespace-nowrap"
+            >
+              Browse Agents
+            </Link>
+
             {currentUser && userProfile && (
               <>
-                {/* Agents Dropdown */}
-                <div className="relative">
+                {/* Libraries Dropdown */}
+                <div className="relative" ref={librariesDropdownRef}>
                   <button
-                    onClick={() => setIsAgentsDropdownOpen(!isAgentsDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-white/90 hover:bg-white/10 hover:text-white"
+                    onClick={() => setIsLibrariesDropdownOpen(!isLibrariesDropdownOpen)}
+                    className="flex items-center gap-2 text-gray-600 hover:text-brand-600 font-medium transition-colors whitespace-nowrap group"
+                    onMouseEnter={() => setIsLibrariesDropdownOpen(true)}
                   >
                     <BookOpenIcon className="w-4 h-4" />
-                    <span>Agents</span>
-                    <ChevronDownIcon className="w-4 h-4" />
+                    <span>Libraries</span>
+                    <ChevronDownIcon className="w-4 h-4 transition-transform group-hover:rotate-180" />
                   </button>
                   
-                  {isAgentsDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                      <Link 
-                        to="/agents" 
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        onClick={() => setIsAgentsDropdownOpen(false)}
-                      >
-                        <BookOpenIcon className="w-4 h-4" />
-                        All Agents
-                      </Link>
-                      <Link 
-                        to="/my-agents" 
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        onClick={() => setIsAgentsDropdownOpen(false)}
+                  {isLibrariesDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute top-full left-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
+                    >
+                      <Link
+                        to="/my-agents"
+                        onClick={() => setIsLibrariesDropdownOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
+                          location.pathname === '/my-agents' ? 'bg-brand-50 text-brand-700' : ''
+                        }`}
                       >
                         <UserIcon className="w-4 h-4" />
-                        My Library
+                        <span>My Library</span>
                       </Link>
-                    </div>
+                      
+                      {userProfile.organizationId && userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
+                        <Link
+                          to={`/company/${userProfile.organizationId}`}
+                          onClick={() => setIsLibrariesDropdownOpen(false)}
+                          className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
+                            location.pathname.startsWith('/company/') ? 'bg-brand-50 text-brand-700' : ''
+                          }`}
+                        >
+                          <BuildingOfficeIcon className="w-4 h-4" />
+                          <span>{userProfile.organizationName || 'Company Library'}</span>
+                        </Link>
+                      )}
+                      
+                      {userProfile.role === 'creator' && (
+                        <Link
+                          to="/creator-portal"
+                          onClick={() => setIsLibrariesDropdownOpen(false)}
+                          className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
+                            location.pathname === '/creator-portal' ? 'bg-brand-50 text-brand-700' : ''
+                          }`}
+                        >
+                          <SparklesIcon className="w-4 h-4" />
+                          <span>Creator Portal</span>
+                        </Link>
+                      )}
+                    </motion.div>
                   )}
                 </div>
 
-                {/* Library Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => setIsLibraryDropdownOpen(!isLibraryDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-white/90 hover:bg-white/10 hover:text-white"
-                  >
-                    <BuildingOfficeIcon className="w-4 h-4" />
-                    <span>Library</span>
-                    <ChevronDownIcon className="w-4 h-4" />
-                  </button>
-                  
-                  {isLibraryDropdownOpen && (
-                    <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                      {userProfile.organizationId !== 'pending-assignment' && 
-                       userProfile.organizationId !== 'unassigned' && (
-                        <Link 
-                          to={`/company/${userProfile.organizationId}`} 
-                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                          onClick={() => setIsLibraryDropdownOpen(false)}
-                        >
-                          <BuildingOfficeIcon className="w-4 h-4" />
-                          Company Library
-                        </Link>
-                      )}
-                      <Link 
-                        to="/my-agents" 
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                        onClick={() => setIsLibraryDropdownOpen(false)}
+                {/* Admin Dropdown */}
+                {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'network_admin') && (
+                  <div className="relative" ref={adminDropdownRef}>
+                    <button
+                      onClick={() => setIsAdminDropdownOpen(!isAdminDropdownOpen)}
+                      className="flex items-center gap-2 text-gray-600 hover:text-brand-600 font-medium transition-colors whitespace-nowrap group"
+                      onMouseEnter={() => setIsAdminDropdownOpen(true)}
+                    >
+                      <CogIcon className="w-4 h-4" />
+                      <span>Admin</span>
+                      <ChevronDownIcon className="w-4 h-4 transition-transform group-hover:rotate-180" />
+                    </button>
+                    
+                    {isAdminDropdownOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50"
                       >
-                        <UserIcon className="w-4 h-4" />
-                        Personal Library
-                      </Link>
-                    </div>
-                  )}
-                </div>
+                        {userProfile.role === 'super_admin' && (
+                          <Link
+                            to="/super-admin"
+                            onClick={() => setIsAdminDropdownOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
+                              location.pathname === '/super-admin' ? 'bg-brand-50 text-brand-700' : ''
+                            }`}
+                          >
+                            <span className="text-lg">👑</span>
+                            <div>
+                              <div className="font-medium">Super Admin</div>
+                              <div className="text-xs text-gray-500">Global management</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin') && (
+                          <Link
+                            to="/company-admin"
+                            onClick={() => setIsAdminDropdownOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
+                              location.pathname === '/company-admin' ? 'bg-brand-50 text-brand-700' : ''
+                            }`}
+                          >
+                            <BuildingOfficeIcon className="w-4 h-4" />
+                            <div>
+                              <div className="font-medium">Company Admin</div>
+                              <div className="text-xs text-gray-500">{userProfile.organizationName || 'Company management'}</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {(userProfile.role === 'super_admin' || userProfile.role === 'network_admin') && (
+                          <Link
+                            to="/network-admin"
+                            onClick={() => setIsAdminDropdownOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
+                              location.pathname === '/network-admin' ? 'bg-brand-50 text-brand-700' : ''
+                            }`}
+                          >
+                            <UserGroupIcon className="w-4 h-4" />
+                            <div>
+                              <div className="font-medium">Network Admin</div>
+                              <div className="text-xs text-gray-500">Network management</div>
+                            </div>
+                          </Link>
+                        )}
+                        
+                        {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'network_admin') && (
+                          <Link
+                            to="/admin/users"
+                            onClick={() => setIsAdminDropdownOpen(false)}
+                            className={`flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors ${
+                              location.pathname === '/admin/users' ? 'bg-brand-50 text-brand-700' : ''
+                            }`}
+                          >
+                            <UserIcon className="w-4 h-4" />
+                            <span>User Management</span>
+                          </Link>
+                        )}
+                      </motion.div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </nav>
 
           {/* User Section */}
-          <div className="flex items-center gap-4 text-white flex-shrink-0">
+          <div className="flex items-center gap-4 flex-shrink-0">
             {currentUser ? (
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-sm">
-                  <UserIcon className="w-4 h-4" />
-                  <span className="hidden sm:inline">{currentUser.email}</span>
-                </div>
+                <span className="text-sm text-gray-600 hidden sm:block truncate max-w-[120px]">
+                  {currentUser.displayName || currentUser.email?.split('@')[0]}
+                </span>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-all duration-200 hover:bg-white/10 hover:opacity-80"
+                  className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors whitespace-nowrap"
                 >
-                  <ArrowRightOnRectangleIcon className="w-4 h-4" />
-                  <span className="hidden sm:inline">Logout</span>
+                  Logout
                 </button>
               </div>
             ) : (
-              <Link 
+              <Link
                 to="/login"
-                className="px-6 py-2 text-sm font-medium rounded-lg border border-white/20 transition-all duration-200 hover:bg-white/10"
+                className="px-6 py-2 text-sm font-medium rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition-colors whitespace-nowrap"
               >
                 Sign In
               </Link>
             )}
-
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
-            >
-              {isMobileMenuOpen ? (
-                <XMarkIcon className="h-6 w-6 text-white" />
-              ) : (
-                <Bars3Icon className="h-6 w-6 text-white" />
-              )}
-            </button>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && currentUser && userProfile && (
-          <div className="lg:hidden border-t border-white/10 py-4">
-            <nav className="flex flex-col gap-2">
-              <div className="border-b border-white/10 pb-2 mb-2">
-                <h3 className="text-white/70 text-xs font-medium uppercase tracking-wider mb-2 px-3">Agents</h3>
-                <Link 
-                  to="/agents" 
-                  className={navLinkClass('/agents')}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <BookOpenIcon className="w-4 h-4" />
-                  <span>All Agents</span>
-                </Link>
-                <Link 
-                  to="/my-agents" 
-                  className={navLinkClass('/my-agents')}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <UserIcon className="w-4 h-4" />
-                  <span>My Library</span>
-                </Link>
-              </div>
-              
-              <div>
-                <h3 className="text-white/70 text-xs font-medium uppercase tracking-wider mb-2 px-3">Library</h3>
-                {userProfile.organizationId !== 'pending-assignment' && 
-                 userProfile.organizationId !== 'unassigned' && (
-                  <Link 
-                    to={`/company/${userProfile.organizationId}`} 
-                    className={navLinkClass('/company/')}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                  >
-                    <BuildingOfficeIcon className="w-4 h-4" />
-                    <span>Company Library</span>
-                  </Link>
-                )}
-                <Link 
-                  to="/my-agents" 
-                  className={navLinkClass('/my-agents')}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                >
-                  <UserIcon className="w-4 h-4" />
-                  <span>Personal Library</span>
-                </Link>
-              </div>
-            </nav>
-          </div>
-        )}
       </div>
     </header>
   );
