@@ -768,17 +768,101 @@ export default function HierarchicalAgentLibrary({
     );
   }
 
-  // Show message if user is not authenticated
+  // For non-authenticated users, show read-only mode
   if (!userProfile) {
     return (
-      <div className="min-h-screen bg-gray-50 pl-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">🔐</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Authentication Required</h2>
-          <p className="text-gray-600 mb-4">Please sign in to access the agent library.</p>
-          <Link to="/login" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-            Sign In
-          </Link>
+      <div className="min-h-screen bg-gray-50 pl-8">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pl-8">
+            {/* Breadcrumb */}
+            <nav className="flex mb-4" aria-label="Breadcrumb">
+              <ol className="flex items-center space-x-2">
+                <li className="flex items-center">
+                  <span className="text-sm font-medium text-gray-900">Global Library</span>
+                </li>
+              </ol>
+            </nav>
+
+            {/* Library Header */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center mb-8"
+            >
+              <div className="flex items-center justify-center mb-4">
+                <span className="text-4xl mr-3">🌍</span>
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900">
+                  Global Agent Library
+                </h1>
+              </div>
+              
+              <div className="mb-4">
+                <span className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                  Read-Only Mode
+                </span>
+              </div>
+              
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
+                Browse our collection of AI agents. Sign in to add agents to your library and access full functionality.
+              </p>
+              
+              {/* Sign In Prompt */}
+              <div className="mb-6">
+                <Link
+                  to="/"
+                  className="inline-flex items-center px-6 py-3 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+                >
+                  Sign In to Get Started
+                </Link>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Read-Only Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pl-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {/* Show limited agent information for non-authenticated users */}
+            {agents.slice(0, 12).map((agent) => (
+              <div key={agent.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-3/4">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">{agent.name}</h3>
+                    <p className="text-sm text-gray-500">{agent.provider}</p>
+                  </div>
+                  <div className="w-16 h-6 bg-gray-100 rounded text-xs text-gray-600 flex items-center justify-center">
+                    {agent.metadata?.tier || 'N/A'}
+                  </div>
+                </div>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-3">{agent.description}</p>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {agent.metadata?.tags?.slice(0, 3).map((tag: string, index: number) => (
+                    <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+                <div className="text-center">
+                  <span className="text-xs text-gray-500">Sign in to access full functionality</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {agents.length > 12 && (
+            <div className="text-center mt-8">
+              <p className="text-gray-600 mb-4">
+                Showing 12 of {agents.length} agents. Sign in to see all agents and access full functionality.
+              </p>
+              <Link
+                to="/"
+                className="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Sign In to See More
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     );

@@ -23,7 +23,7 @@ export default function AdminRoute({
   }
   
   if (!currentUser || !userProfile) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/" replace />
   }
   
   // Check role hierarchy - super admin can access everything

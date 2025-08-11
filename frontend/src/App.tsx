@@ -20,6 +20,7 @@ import NetworkAdminDashboard from './pages/NetworkAdminDashboard'
 import AdminRoute from './components/AdminRoute'
 import AdminRouteHandler from './components/AdminRouteHandler'
 import LoginPage from './pages/LoginPage'
+import PostLoginPage from './pages/PostLoginPage'
 import CreatorPortal from './pages/CreatorPortal'
 import AgentSystemTestSuite from './components/AgentSystemTestSuite'
 
@@ -72,6 +73,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="agents" element={<AgentLibraryPage />} />
+            <Route path="agent-library" element={<AgentLibraryPage />} />
             <Route path="my-agents" element={<MyAgentsPage />} />
             <Route path="agents/:agentId" element={<AgentPage />} />
             <Route path="company/:companySlug" element={<CompanyAgentLibraryWrapper />} />
@@ -162,6 +164,7 @@ function App() {
             />
             
             <Route path="login" element={<LoginPage />} />
+            <Route path="post-login" element={<PostLoginPage />} />
             
             {/* Test Suite Route - Development/Testing Only */}
             <Route path="test-suite" element={<AgentSystemTestSuite />} />

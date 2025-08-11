@@ -1,16 +1,13 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   BookOpenIcon,
   BuildingOfficeIcon,
-  UserGroupIcon,
   UserIcon,
-  CogIcon,
-  ChevronDownIcon,
   ArrowRightOnRectangleIcon,
   Bars3Icon,
-  XMarkIcon
+  XMarkIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -20,6 +17,8 @@ export default function Header() {
   const navigate = useNavigate();
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAgentsDropdownOpen, setIsAgentsDropdownOpen] = useState(false);
+  const [isLibraryDropdownOpen, setIsLibraryDropdownOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -30,408 +29,205 @@ export default function Header() {
     }
   };
 
-  // Enhanced header with better layout and spacing
+  const isActiveRoute = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    if (path.startsWith('/company/')) return location.pathname.startsWith('/company/');
+    return location.pathname === path;
+  };
+
+  const navLinkClass = (path: string) => {
+    const baseClasses = "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 whitespace-nowrap";
+    return isActiveRoute(path) 
+      ? `${baseClasses} bg-white/15 text-white` 
+      : `${baseClasses} text-white/90 hover:bg-white/10 hover:text-white`;
+  };
+
   return (
-    <div style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: 100,
-      background: 'linear-gradient(90deg, #043C46 0%, #043C46 66%, #0F5F6B 100%)',
-      borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
-    }}>
-      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 1rem' }}>
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          height: '64px',
-          gap: '1rem'
-        }}>
+    <header className="fixed top-0 left-0 right-0 z-100 bg-gradient-to-r from-[#043C46] via-[#043C46] to-[#0F5F6B] border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="flex justify-between items-center h-16 gap-4">
           
-          {/* Logo/Brand - Top Left */}
+          {/* Logo/Brand */}
           <div 
             onClick={() => {
               console.log('Logo clicked - navigating to home page');
-              // Force navigation to home page
               window.location.href = '/';
             }}
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              cursor: 'pointer',
-              padding: '8px 0',
-              minHeight: '64px',
-              zIndex: 10,
-              position: 'relative',
-              flexShrink: 0
-            }}
+            className="flex items-center cursor-pointer p-2 min-h-16 flex-shrink-0"
             title="Click to go to Home Page"
           >
             <img 
               src="/transparent-partners-logo-white.png" 
               alt="Transparent Partners Logo" 
-              style={{ 
-                height: '60px',
-                maxWidth: '250px',
-                objectFit: 'contain',
-                display: 'block',
-                pointerEvents: 'none' // Ensure clicks go to the Link, not the image
-              }} 
+              className="h-15 max-w-64 object-contain block pointer-events-none"
             />
           </div>
 
-          {/* Navigation - Center with proper spacing */}
-          <nav style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '1.5rem',
-            flex: 1,
-            justifyContent: 'center',
-            flexWrap: 'wrap'
-          }}>
+          {/* Navigation - Agents and Library Dropdowns */}
+          <nav className="hidden lg:flex items-center gap-6 flex-1 justify-center">
             {currentUser && userProfile && (
               <>
-                {/* Direct navigation links with consistent styling */}
-                <Link
-                  to="/agents"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    color: 'white',
-                    textDecoration: 'none',
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    padding: '0.5rem 0.75rem',
-                    borderRadius: '0.375rem',
-                    backgroundColor: location.pathname === '/agents' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                    transition: 'all 0.2s ease',
-                    whiteSpace: 'nowrap'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = location.pathname === '/agents' ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
-                  }}
-                >
-                  <BookOpenIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
-                  <span>All Agents</span>
-                </Link>
-                
-                <Link
-                  to="/my-agents"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    color: 'white',
-                    textDecoration: 'none',
-                    fontSize: '0.875rem',
-                    fontWeight: '500',
-                    padding: '0.5rem 0.75rem',
-                    borderRadius: '0.375rem',
-                    backgroundColor: location.pathname === '/my-agents' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                    transition: 'all 0.2s ease',
-                    whiteSpace: 'nowrap'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = location.pathname === '/my-agents' ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
-                  }}
-                >
-                  <UserIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
-                  <span>My Library</span>
-                </Link>
-                
-                {/* Company link if user has organization */}
-                {userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
-                  <Link
-                    to={`/company/${userProfile.organizationId}`}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      color: 'white',
-                      textDecoration: 'none',
-                      fontSize: '0.875rem',
-                      fontWeight: '500',
-                      padding: '0.5rem 0.75rem',
-                      borderRadius: '0.375rem',
-                      backgroundColor: location.pathname.startsWith('/company/') ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                      transition: 'all 0.2s ease',
-                      whiteSpace: 'nowrap'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = location.pathname.startsWith('/company/') ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
-                    }}
+                {/* Agents Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsAgentsDropdownOpen(!isAgentsDropdownOpen)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-white/90 hover:bg-white/10 hover:text-white"
                   >
-                    <BuildingOfficeIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
-                    <span>{userProfile.organizationName || 'Company'}</span>
-                  </Link>
-                )}
-                
-                {/* Creator links */}
-                {userProfile.role === 'creator' && (
-                  <>
-                    <Link
-                      to="/creator-dashboard"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        color: 'white',
-                        textDecoration: 'none',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        padding: '0.5rem 0.75rem',
-                        borderRadius: '0.375rem',
-                        backgroundColor: location.pathname === '/creator-dashboard' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                        transition: 'all 0.2s ease',
-                        whiteSpace: 'nowrap'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = location.pathname === '/creator-dashboard' ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
-                      }}
-                    >
-                      <span style={{ fontSize: '1rem' }}>📊</span>
-                      <span>Creator Dashboard</span>
-                    </Link>
-                    
-                    <Link
-                      to="/agent-submission"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.5rem',
-                        color: 'white',
-                        textDecoration: 'none',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        padding: '0.5rem 0.75rem',
-                        borderRadius: '0.375rem',
-                        backgroundColor: location.pathname === '/agent-submission' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                        transition: 'all 0.2s ease',
-                        whiteSpace: 'nowrap'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = location.pathname === '/agent-submission' ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
-                      }}
-                    >
-                      <span style={{ fontSize: '1rem' }}>➕</span>
-                      <span>Submit Agent</span>
-                    </Link>
-                  </>
-                )}
-                
-                {/* Admin links */}
-                {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'network_admin') && (
-                  <>
-                    {userProfile.role === 'super_admin' && (
-                      <>
-                        <Link
-                          to="/super-admin"
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            color: 'white',
-                            textDecoration: 'none',
-                            fontSize: '0.875rem',
-                            fontWeight: '500',
-                            padding: '0.5rem 0.75rem',
-                            borderRadius: '0.375rem',
-                            backgroundColor: location.pathname === '/super-admin' ? 'rgba(255, 255, 255, 0.2)' : 'transparent',
-                            transition: 'all 0.2s ease',
-                            whiteSpace: 'nowrap',
-                            border: location.pathname === '/super-admin' ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid transparent'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.2)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = location.pathname === '/super-admin' ? 'rgba(255, 255, 255, 0.2)' : 'transparent';
-                          }}
-                        >
-                          <span style={{ fontSize: '1rem' }}>👑</span>
-                          <span>Super Admin</span>
-                        </Link>
-                        
-                        <Link
-                          to="/creator-portal"
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
-                            color: 'white',
-                            textDecoration: 'none',
-                            fontSize: '0.875rem',
-                            fontWeight: '500',
-                            padding: '0.5rem 0.75rem',
-                            borderRadius: '0.375rem',
-                            backgroundColor: location.pathname === '/creator-portal' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                            transition: 'all 0.2s ease',
-                            whiteSpace: 'nowrap'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = location.pathname === '/creator-portal' ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
-                          }}
-                        >
-                          <span style={{ fontSize: '1rem' }}>🚀</span>
-                          <span>Creator Portal</span>
-                        </Link>
-                      </>
-                    )}
-                    
-                    {(userProfile.role === 'super_admin' || userProfile.role === 'company_admin') && 
-                     userProfile.organizationId !== 'pending-assignment' && userProfile.organizationId !== 'unassigned' && (
-                      <Link
-                        to="/admin"
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                          color: 'white',
-                          textDecoration: 'none',
-                          fontSize: '0.875rem',
-                          fontWeight: '500',
-                          padding: '0.5rem 0.75rem',
-                          borderRadius: '0.375rem',
-                          backgroundColor: location.pathname === '/admin' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                          transition: 'all 0.2s ease',
-                          whiteSpace: 'nowrap'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = location.pathname === '/admin' ? 'rgba(255, 255, 255, 0.15)' : 'transparent';
-                        }}
+                    <BookOpenIcon className="w-4 h-4" />
+                    <span>Agents</span>
+                    <ChevronDownIcon className="w-4 h-4" />
+                  </button>
+                  
+                  {isAgentsDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                      <Link 
+                        to="/agents" 
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        onClick={() => setIsAgentsDropdownOpen(false)}
                       >
-                        <BuildingOfficeIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
-                        <span>Company Admin</span>
+                        <BookOpenIcon className="w-4 h-4" />
+                        All Agents
                       </Link>
-                    )}
-                  </>
-                )}
+                      <Link 
+                        to="/my-agents" 
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        onClick={() => setIsAgentsDropdownOpen(false)}
+                      >
+                        <UserIcon className="w-4 h-4" />
+                        My Library
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                {/* Library Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsLibraryDropdownOpen(!isLibraryDropdownOpen)}
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-white/90 hover:bg-white/10 hover:text-white"
+                  >
+                    <BuildingOfficeIcon className="w-4 h-4" />
+                    <span>Library</span>
+                    <ChevronDownIcon className="w-4 h-4" />
+                  </button>
+                  
+                  {isLibraryDropdownOpen && (
+                    <div className="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                      {userProfile.organizationId !== 'pending-assignment' && 
+                       userProfile.organizationId !== 'unassigned' && (
+                        <Link 
+                          to={`/company/${userProfile.organizationId}`} 
+                          className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                          onClick={() => setIsLibraryDropdownOpen(false)}
+                        >
+                          <BuildingOfficeIcon className="w-4 h-4" />
+                          Company Library
+                        </Link>
+                      )}
+                      <Link 
+                        to="/my-agents" 
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        onClick={() => setIsLibraryDropdownOpen(false)}
+                      >
+                        <UserIcon className="w-4 h-4" />
+                        Personal Library
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </>
             )}
           </nav>
 
-          {/* User Menu - Right side */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '1rem', 
-            color: 'white',
-            flexShrink: 0
-          }}>
+          {/* User Section */}
+          <div className="flex items-center gap-4 text-white flex-shrink-0">
             {currentUser ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: 'white' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem', color: 'white' }}>
-                  <UserIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
-                  <span>{currentUser.email}</span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <UserIcon className="w-4 h-4" />
+                  <span className="hidden sm:inline">{currentUser.email}</span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                    background: 'transparent',
-                    border: 'none',
-                    color: 'white',
-                    fontSize: '0.875rem',
-                    cursor: 'pointer',
-                    padding: '0.5rem',
-                    borderRadius: '0.375rem',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.opacity = '0.8';
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.opacity = '1';
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                  }}
+                  className="flex items-center gap-1 px-3 py-2 text-sm rounded-lg transition-all duration-200 hover:bg-white/10 hover:opacity-80"
                 >
-                  <ArrowRightOnRectangleIcon style={{ width: '1rem', height: '1rem', color: 'white' }} />
-                  <span>Logout</span>
+                  <ArrowRightOnRectangleIcon className="w-4 h-4" />
+                  <span className="hidden sm:inline">Logout</span>
                 </button>
               </div>
             ) : (
               <Link 
                 to="/login"
-                style={{
-                  background: 'transparent',
-                  color: 'white',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '0.5rem',
-                  textDecoration: 'none',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
+                className="px-6 py-2 text-sm font-medium rounded-lg border border-white/20 transition-all duration-200 hover:bg-white/10"
               >
                 Sign In
               </Link>
             )}
-          </div>
 
-          {/* Mobile menu button */}
-          <div style={{ display: 'none' }}>
-            {currentUser && (
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                style={{
-                  padding: '0.5rem',
-                  borderRadius: '0.375rem',
-                  color: 'white',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                }}
-              >
-                {isMobileMenuOpen ? (
-                  <XMarkIcon style={{ height: '1.5rem', width: '1.5rem', color: 'white' }} />
-                ) : (
-                  <Bars3Icon style={{ height: '1.5rem', width: '1.5rem', color: 'white' }} />
-                )}
-              </button>
-            )}
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg hover:bg-white/10 transition-colors"
+            >
+              {isMobileMenuOpen ? (
+                <XMarkIcon className="h-6 w-6 text-white" />
+              ) : (
+                <Bars3Icon className="h-6 w-6 text-white" />
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && currentUser && userProfile && (
+          <div className="lg:hidden border-t border-white/10 py-4">
+            <nav className="flex flex-col gap-2">
+              <div className="border-b border-white/10 pb-2 mb-2">
+                <h3 className="text-white/70 text-xs font-medium uppercase tracking-wider mb-2 px-3">Agents</h3>
+                <Link 
+                  to="/agents" 
+                  className={navLinkClass('/agents')}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <BookOpenIcon className="w-4 h-4" />
+                  <span>All Agents</span>
+                </Link>
+                <Link 
+                  to="/my-agents" 
+                  className={navLinkClass('/my-agents')}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <UserIcon className="w-4 h-4" />
+                  <span>My Library</span>
+                </Link>
+              </div>
+              
+              <div>
+                <h3 className="text-white/70 text-xs font-medium uppercase tracking-wider mb-2 px-3">Library</h3>
+                {userProfile.organizationId !== 'pending-assignment' && 
+                 userProfile.organizationId !== 'unassigned' && (
+                  <Link 
+                    to={`/company/${userProfile.organizationId}`} 
+                    className={navLinkClass('/company/')}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <BuildingOfficeIcon className="w-4 h-4" />
+                    <span>Company Library</span>
+                  </Link>
+                )}
+                <Link 
+                  to="/my-agents" 
+                  className={navLinkClass('/my-agents')}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <UserIcon className="w-4 h-4" />
+                  <span>Personal Library</span>
+                </Link>
+              </div>
+            </nav>
+          </div>
+        )}
       </div>
-    </div>
+    </header>
   );
 }
