@@ -22,14 +22,6 @@ export default function Header() {
   const librariesDropdownRef = useRef<HTMLDivElement>(null);
   const adminDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Header: currentUser:', currentUser);
-    console.log('Header: userProfile:', userProfile);
-    console.log('Header: Libraries dropdown state:', isLibrariesDropdownOpen);
-    console.log('Header: Admin dropdown state:', isAdminDropdownOpen);
-  }, [currentUser, userProfile, isLibrariesDropdownOpen, isAdminDropdownOpen]);
-
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (librariesDropdownRef.current && !librariesDropdownRef.current.contains(event.target as Node)) {
@@ -76,11 +68,6 @@ export default function Header() {
           <nav className="hidden md:flex items-center gap-6 flex-shrink-0">
             {currentUser && userProfile && (
               <>
-                {/* Debug Info */}
-                <div className="text-white text-xs">
-                  Role: {userProfile.role} | Org: {userProfile.organizationId}
-                </div>
-                
                 {/* Libraries Dropdown */}
                 <div 
                   className="relative" 
