@@ -1,1 +1,11 @@
-{"projects":{"default":"ai-agent-hub-web-portal-79fb0"}}
+{
+  "projects": {
+    "default": "ai-agent-hub-web-portal-79fb0"
+  },
+  "targets": {
+    "ai-agent-hub-web-portal-79fb0": {
+      "hosting": {}
+    }
+  },
+  "etags": {}
+}

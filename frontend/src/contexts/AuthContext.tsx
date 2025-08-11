@@ -241,22 +241,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Google authentication
   const loginWithGoogle = useCallback(async (): Promise<void> => {
-    const provider = new GoogleAuthProvider()
-    provider.addScope('email')
-    provider.addScope('profile')
-    provider.setCustomParameters({
-      prompt: 'select_account'
-    })
+    console.log('🚀 Starting Google OAuth process...');
     
     try {
-      logger.debug('Starting Google authentication', undefined, 'Auth')
+      const provider = new GoogleAuthProvider()
+      console.log('✅ GoogleAuthProvider created');
+      
+      provider.addScope('email')
+      provider.addScope('profile')
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      })
+      console.log('✅ Provider configured with scopes and parameters');
+      
+      console.log('🔥 About to call signInWithPopup...');
       const result = await signInWithPopup(auth, provider)
+      console.log('✅ signInWithPopup successful:', result);
+      
       const user = result.user
+      console.log('👤 User object:', user);
       
       logger.authSuccess('Google authentication successful', { email: user.email })
+      console.log('📋 Creating/updating user profile...');
       await createOrUpdateUserProfile(user)
+      console.log('✅ User profile created/updated successfully');
     } catch (error) {
-      console.error('Google OAuth Error:', error)
+      console.error('❌ Google OAuth Error Details:', {
+        error,
+        errorCode: error?.code,
+        errorMessage: error?.message,
+        errorStack: error?.stack
+      });
       throw handleAuthError(error as AuthError, 'Google login')
     }
   }, [createOrUpdateUserProfile])

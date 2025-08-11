@@ -1,5 +1,13 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import { 
+  BuildingLibraryIcon,
+  UserGroupIcon,
+  ShieldCheckIcon,
+  ChartBarIcon,
+  SparklesIcon,
+  CogIcon
+} from '@heroicons/react/24/outline'
 
 export default function HomePage() {
   return (
@@ -30,6 +38,143 @@ export default function HomePage() {
                 className="border-2 border-teal-600 text-teal-600 px-8 py-4 rounded-lg font-semibold hover:bg-teal-600 hover:text-white transition-all duration-200"
               >
                 Sign In
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ADMIN NAVIGATION SECTION - PROMINENTLY DISPLAYED */}
+      <section className="py-16 bg-gradient-to-r from-red-50 to-orange-50 border-y-4 border-red-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-red-800 mb-4">
+              🚀 ADMINISTRATION & MANAGEMENT
+            </h2>
+            <p className="text-xl text-red-700 max-w-3xl mx-auto">
+              Complete administrative control over AI agents, users, and system operations
+            </p>
+          </div>
+
+          {/* Admin Navigation Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {/* Company Management */}
+            <Link
+              to="/company-admin"
+              className="group bg-white rounded-xl p-6 shadow-lg border-2 border-red-200 hover:border-red-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+            >
+              <div className="flex items-center mb-4">
+                <BuildingLibraryIcon className="w-8 h-8 text-red-600 mr-3" />
+                <h3 className="text-xl font-bold text-red-800">Company Management</h3>
+              </div>
+              <p className="text-red-700 mb-4">
+                Manage company agents, users, and organizational settings
+              </p>
+              <div className="flex items-center text-red-600 font-semibold group-hover:text-red-800">
+                Access Dashboard →
+              </div>
+            </Link>
+
+            {/* Network Management */}
+            <Link
+              to="/network-admin"
+              className="group bg-white rounded-xl p-6 shadow-lg border-2 border-red-200 hover:border-red-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+            >
+              <div className="flex items-center mb-4">
+                <UserGroupIcon className="w-8 h-8 text-red-600 mr-3" />
+                <h3 className="text-xl font-bold text-red-800">Network Management</h3>
+              </div>
+              <p className="text-red-700 mb-4">
+                Control network-level access and cross-company permissions
+              </p>
+              <div className="flex items-center text-red-600 font-semibold group-hover:text-red-800">
+                Access Dashboard →
+              </div>
+            </Link>
+
+            {/* System Administration */}
+            <Link
+              to="/super-admin"
+              className="group bg-white rounded-xl p-6 shadow-lg border-2 border-red-200 hover:border-red-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+            >
+              <div className="flex items-center mb-4">
+                <ShieldCheckIcon className="w-8 h-8 text-red-600 mr-3" />
+                <h3 className="text-xl font-bold text-red-800">System Administration</h3>
+              </div>
+              <p className="text-red-700 mb-4">
+                System-wide administration and global configuration
+              </p>
+              <div className="flex items-center text-red-600 font-semibold group-hover:text-red-800">
+                Access Dashboard →
+              </div>
+            </Link>
+
+            {/* User Management */}
+            <Link
+              to="/admin/users"
+              className="group bg-white rounded-xl p-6 shadow-lg border-2 border-red-200 hover:border-red-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+            >
+              <div className="flex items-center mb-4">
+                <UserGroupIcon className="w-8 h-8 text-red-600 mr-3" />
+                <h3 className="text-xl font-bold text-red-800">User Management</h3>
+              </div>
+              <p className="text-red-700 mb-4">
+                Manage user accounts, permissions, and access control
+              </p>
+              <div className="flex items-center text-red-600 font-semibold group-hover:text-red-800">
+                Access Dashboard →
+              </div>
+            </Link>
+
+            {/* Analytics Dashboard */}
+            <Link
+              to="/analytics"
+              className="group bg-white rounded-xl p-6 shadow-lg border-2 border-red-200 hover:border-red-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+            >
+              <div className="flex items-center mb-4">
+                <ChartBarIcon className="w-8 h-8 text-red-600 mr-3" />
+                <h3 className="text-xl font-bold text-red-800">Analytics Dashboard</h3>
+              </div>
+              <p className="text-red-700 mb-4">
+                View system analytics, usage metrics, and performance data
+              </p>
+              <div className="flex items-center text-red-600 font-semibold group-hover:text-red-800">
+                Access Dashboard →
+              </div>
+            </Link>
+
+            {/* Creator Portal */}
+            <Link
+              to="/creator-portal"
+              className="group bg-white rounded-xl p-6 shadow-lg border-2 border-red-200 hover:border-red-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+            >
+              <div className="flex items-center mb-4">
+                <SparklesIcon className="w-8 h-8 text-red-600 mr-3" />
+                <h3 className="text-xl font-bold text-red-800">Creator Portal</h3>
+              </div>
+              <p className="text-red-700 mb-4">
+                Submit and manage your AI agents for the marketplace
+              </p>
+              <div className="flex items-center text-red-600 font-semibold group-hover:text-red-800">
+                Access Portal →
+              </div>
+            </Link>
+          </div>
+
+          {/* Quick Access Buttons */}
+          <div className="text-center mt-12">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                to="/my-agents"
+                className="bg-red-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
+              >
+                🎯 My Agent Library
+              </Link>
+              <Link
+                to="/agents"
+                className="border-2 border-red-600 text-red-600 px-8 py-4 rounded-lg font-semibold hover:bg-red-600 hover:text-white transition-all duration-200"
+              >
+                🌐 Global Agent Library
               </Link>
             </div>
           </div>

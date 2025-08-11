@@ -19,16 +19,23 @@ export default function LoginPage() {
   const navigate = useNavigate()
 
   const handleGoogleLogin = async () => {
+    console.log('🔘 Google login button clicked');
     try {
+      console.log('⏳ Setting loading state...');
       setLoading(true)
+      console.log('🚀 Calling loginWithGoogle...');
       await loginWithGoogle()
+      console.log('✅ Google login successful, showing success toast...');
       toast.success('Welcome! Logged in successfully')
+      console.log('🧭 Navigating to /my-agents...');
       navigate('/my-agents')
     } catch (error) {
-      console.error('Google login error:', error)
+      console.error('❌ Google login error in LoginPage:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to log in with Google'
+      console.log('🚨 Showing error toast:', errorMessage);
       toast.error(errorMessage)
     } finally {
+      console.log('🏁 Setting loading to false...');
       setLoading(false)
     }
   }

@@ -65,10 +65,10 @@ export default function Sidebar() {
     }
   }, [sidebarTimeout])
 
-  // Don't render sidebar for non-authenticated users
-  if (!currentUser || !userProfile) {
-    return null;
-  }
+  // TEMPORARILY REMOVED AUTH CHECK FOR TESTING
+  // if (!currentUser || !userProfile) {
+  //   return null;
+  // }
 
   // Base navigation items that are always available
   const baseNavigationItems = [
@@ -170,38 +170,52 @@ export default function Sidebar() {
   const getVisibleNavigationItems = () => {
     let items = [...baseNavigationItems];
     
-    if (currentUser && userProfile) {
+    // TEMPORARILY BYPASSING AUTH FOR TESTING
+    // if (currentUser && userProfile) {
       // Add authenticated items
       items.push(...authenticatedNavigationItems);
       
       // Add creator items
       creatorNavigationItems.forEach(item => {
-        const hasRole = !item.requiresRole || item.requiresRole.includes(userProfile.role);
-        const hasPermission = !item.requiresPermission || userProfile.permissions[item.requiresPermission];
+        // const hasRole = !item.requiresRole || item.requiresRole.includes(userProfile.role);
+        // const hasPermission = !item.requiresPermission || userProfile.permissions[item.requiresPermission];
         
-        if (hasRole && hasPermission) {
+        // if (hasRole && hasPermission) {
           items.push(item);
-        }
+        // }
       });
-    }
+    // }
     
     return items;
   };
 
   // Get visible admin items
   const getVisibleAdminItems = () => {
-    if (!currentUser || !userProfile) return [];
+    // TEMPORARILY BYPASSING AUTH FOR TESTING
+    // if (!currentUser || !userProfile) return [];
 
-    return adminNavigationItems.filter(item => {
-      const hasRole = !item.requiresRole || item.requiresRole.includes(userProfile.role);
-      const hasPermission = !item.requiresPermission || userProfile.permissions[item.requiresPermission];
-      return hasRole && hasPermission;
-    });
+    // return adminNavigationItems.filter(item => {
+    //   const hasRole = !item.requiresRole || item.requiresRole.includes(userProfile.role);
+    //   const hasPermission = !item.requiresPermission || userProfile.permissions[item.requiresPermission];
+    //   return hasRole && hasPermission;
+    // });
+    
+    // Show all admin items for testing
+    return adminNavigationItems;
   };
 
   const navigationItems = getVisibleNavigationItems();
   const adminItems = getVisibleAdminItems();
   const hasAdminAccess = adminItems.length > 0;
+
+  // DEBUG LOGGING
+  console.log('🔍 Sidebar Debug:', {
+    currentUser: !!currentUser,
+    userProfile: !!userProfile,
+    adminItems: adminItems,
+    hasAdminAccess: hasAdminAccess,
+    adminItemsLength: adminItems.length
+  });
 
   const shouldShow = isExpanded || isHovered
 
@@ -379,7 +393,8 @@ export default function Sidebar() {
                 </div>
 
                 {/* Admin Section */}
-                {hasAdminAccess && (
+                {/* TEMPORARILY ALWAYS SHOW FOR TESTING */}
+                {true && (
                   <motion.div 
                     className="mb-6"
                     initial={{ opacity: 0, y: -10 }}
