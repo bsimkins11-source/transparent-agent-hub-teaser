@@ -15,7 +15,11 @@ import {
   XMarkIcon,
   BuildingLibraryIcon,
   GlobeAltIcon,
-  SparklesIcon
+  SparklesIcon,
+  ShieldCheckIcon,
+  UserGroupIcon,
+  CogIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
 
 export default function Sidebar() {
@@ -95,8 +99,8 @@ export default function Sidebar() {
     }
   ];
 
-  // Role-based navigation items
-  const roleBasedNavigationItems = [
+  // Admin navigation items - grouped together
+  const adminNavigationItems = [
     {
       name: 'Company Management',
       href: '/company-admin',
@@ -104,42 +108,37 @@ export default function Sidebar() {
       current: location.pathname === '/company-admin',
       description: 'Manage company agents and users',
       requiresRole: ['company_admin', 'super_admin'],
-      requiresPermission: 'canManageCompany'
+      requiresPermission: 'canManageCompany',
+      category: 'admin'
     },
     {
       name: 'Network Management',
       href: '/network-admin',
-      icon: GlobeAltIcon,
+      icon: UserGroupIcon,
       current: location.pathname === '/network-admin',
       description: 'Manage network-level access',
       requiresRole: ['network_admin', 'super_admin'],
-      requiresPermission: 'canManageNetwork'
+      requiresPermission: 'canManageNetwork',
+      category: 'admin'
     },
     {
       name: 'System Administration',
       href: '/super-admin',
-      icon: Cog6ToothIcon,
+      icon: ShieldCheckIcon,
       current: location.pathname === '/super-admin',
       description: 'System-wide administration',
-      requiresRole: ['super_admin']
-    },
-    {
-      name: 'Creator Portal',
-      href: '/creator-portal',
-      icon: SparklesIcon,
-      current: location.pathname === '/creator-portal',
-      description: 'Submit and manage your agents',
-      requiresRole: ['creator', 'super_admin'],
-      requiresPermission: 'canSubmitAgents'
+      requiresRole: ['super_admin'],
+      category: 'admin'
     },
     {
       name: 'User Management',
       href: '/admin/users',
-      icon: UserIcon,
+      icon: UserGroupIcon,
       current: location.pathname === '/admin/users',
       description: 'Manage user accounts and permissions',
       requiresRole: ['company_admin', 'network_admin', 'super_admin'],
-      requiresPermission: 'canManageUsers'
+      requiresPermission: 'canManageUsers',
+      category: 'admin'
     },
     {
       name: 'Analytics',
@@ -148,7 +147,22 @@ export default function Sidebar() {
       current: location.pathname === '/analytics',
       description: 'View system and usage analytics',
       requiresRole: ['company_admin', 'network_admin', 'super_admin'],
-      requiresPermission: 'canViewAnalytics'
+      requiresPermission: 'canViewAnalytics',
+      category: 'admin'
+    }
+  ];
+
+  // Creator portal - separate from admin
+  const creatorNavigationItems = [
+    {
+      name: 'Creator Portal',
+      href: '/creator-portal',
+      icon: SparklesIcon,
+      current: location.pathname === '/creator-portal',
+      description: 'Submit and manage your agents',
+      requiresRole: ['creator', 'super_admin'],
+      requiresPermission: 'canSubmitAgents',
+      category: 'creator'
     }
   ];
 
@@ -160,8 +174,8 @@ export default function Sidebar() {
       // Add authenticated items
       items.push(...authenticatedNavigationItems);
       
-      // Add role-based items
-      roleBasedNavigationItems.forEach(item => {
+      // Add creator items
+      creatorNavigationItems.forEach(item => {
         const hasRole = !item.requiresRole || item.requiresRole.includes(userProfile.role);
         const hasPermission = !item.requiresPermission || userProfile.permissions[item.requiresPermission];
         
@@ -174,7 +188,20 @@ export default function Sidebar() {
     return items;
   };
 
+  // Get visible admin items
+  const getVisibleAdminItems = () => {
+    if (!currentUser || !userProfile) return [];
+    
+    return adminNavigationItems.filter(item => {
+      const hasRole = !item.requiresRole || item.requiresRole.includes(userProfile.role);
+      const hasPermission = !item.requiresPermission || userProfile.permissions[item.requiresPermission];
+      return hasRole && hasPermission;
+    });
+  };
+
   const navigationItems = getVisibleNavigationItems();
+  const adminItems = getVisibleAdminItems();
+  const hasAdminAccess = adminItems.length > 0;
 
   const shouldShow = isExpanded || isHovered
 
@@ -212,6 +239,16 @@ export default function Sidebar() {
           transition={{ duration: 0.3 }}
           whileHover={{ opacity: 0.8, scale: 1.1 }}
         />
+        
+        {/* Small hint text */}
+        <motion.div 
+          className="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 font-medium pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isHovered ? 1 : 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          Menu
+        </motion.div>
       </div>
 
       {/* Overlay for mobile */}
@@ -289,6 +326,9 @@ export default function Sidebar() {
                     <p className="text-xs text-gray-500 truncate">
                       {currentUser?.email}
                     </p>
+                    <p className="text-xs text-blue-600 font-medium capitalize mt-1">
+                      {userProfile.role.replace('_', ' ')}
+                    </p>
                   </div>
                 </div>
               </motion.div>
@@ -303,36 +343,114 @@ export default function Sidebar() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.3 }}
               >
-                {navigationItems.map((item, index) => {
-                  const Icon = item.icon
-                  return (
-                    <motion.div
-                      key={item.name}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.4 + index * 0.05, duration: 0.3 }}
+                {/* Main Navigation */}
+                <div className="mb-6">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+                    Navigation
+                  </h3>
+                  <div className="space-y-1">
+                    {navigationItems.map((item, index) => {
+                      const Icon = item.icon
+                      return (
+                        <motion.div
+                          key={item.name}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.4 + index * 0.05, duration: 0.3 }}
+                        >
+                          <Link
+                            to={item.href}
+                            className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                              item.current
+                                ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700 shadow-sm'
+                                : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm'
+                            }`}
+                            title={item.description}
+                          >
+                            <Icon className={`mr-3 h-5 w-5 transition-colors duration-200 ${
+                              item.current ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-500'
+                            }`} />
+                            {item.name}
+                          </Link>
+                        </motion.div>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Admin Section */}
+                {hasAdminAccess && (
+                  <motion.div 
+                    className="mb-6"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6, duration: 0.3 }}
+                  >
+                    <div className="flex items-center space-x-2 mb-3 px-3">
+                      <ShieldCheckIcon className="w-4 h-4 text-red-600" />
+                      <h3 className="text-xs font-semibold text-red-600 uppercase tracking-wider">
+                        Administration
+                      </h3>
+                    </div>
+                    <div className="space-y-1">
+                      {adminItems.map((item, index) => {
+                        const Icon = item.icon
+                        return (
+                          <motion.div
+                            key={item.name}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.7 + index * 0.05, duration: 0.3 }}
+                          >
+                            <Link
+                              to={item.href}
+                              className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                                item.current
+                                  ? 'bg-red-50 text-red-700 border-r-2 border-red-700 shadow-sm'
+                                  : 'text-gray-700 hover:bg-red-50 hover:text-red-700 hover:shadow-sm'
+                              }`}
+                              title={item.description}
+                            >
+                              <Icon className={`mr-3 h-5 w-5 transition-colors duration-200 ${
+                                item.current ? 'text-red-700' : 'text-gray-400 group-hover:text-red-500'
+                              }`} />
+                              {item.name}
+                              <span className="ml-auto w-2 h-2 bg-red-500 rounded-full opacity-60"></span>
+                            </Link>
+                          </motion.div>
+                        )
+                      })}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Quick Actions */}
+                <motion.div 
+                  className="mb-6"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8, duration: 0.3 }}
+                >
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-3">
+                    Quick Actions
+                  </h3>
+                  <div className="space-y-1">
+                    <Link
+                      to="/agent-submission"
+                      className="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-green-700 hover:bg-green-50 hover:text-green-800 hover:shadow-sm"
                     >
-                      <Link
-                        to={item.href}
-                        className={`group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                          item.current
-                            ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700 shadow-sm'
-                            : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm'
-                        }`}
-                        title={item.description}
-                      >
-                        <Icon className={`mr-3 h-5 w-5 transition-colors duration-200 ${
-                          item.current ? 'text-blue-700' : 'text-gray-400 group-hover:text-gray-500'
-                        }`} />
-                        {item.name}
-                        {/* Role indicator for role-based items */}
-                        {item.requiresRole && (
-                          <span className="ml-auto w-2 h-2 bg-blue-500 rounded-full opacity-60"></span>
-                        )}
-                      </Link>
-                    </motion.div>
-                  )
-                })}
+                      <SparklesIcon className="mr-3 h-5 w-5 text-green-500 group-hover:text-green-600 transition-colors duration-200" />
+                      Submit Agent
+                    </Link>
+                    <Link
+                      to="/new-agent-request"
+                      className="group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 text-blue-700 hover:bg-blue-50 hover:text-blue-800 hover:shadow-sm"
+                    >
+                      <ChatBubbleLeftRightIcon className="mr-3 h-5 w-5 text-blue-500 group-hover:text-blue-600 transition-colors duration-200" />
+                      Request Agent
+                    </Link>
+                  </div>
+                </motion.div>
               </motion.nav>
 
               {/* Logout */}
@@ -340,7 +458,7 @@ export default function Sidebar() {
                 className="px-4 py-4 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-white"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5, duration: 0.3 }}
+                transition={{ delay: 0.9, duration: 0.3 }}
               >
                 <button
                   onClick={handleLogout}

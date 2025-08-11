@@ -113,6 +113,52 @@
     background: linear-gradient(90deg, #043C46 0%, #043C46 66%, #0F5F6B 100%);
   }
   
+  /* Dropdown-specific fixes */
+  header .relative {
+    position: relative !important;
+    overflow: visible !important;
+  }
+  
+  header .absolute {
+    position: absolute !important;
+    z-index: 999999 !important;
+    overflow: visible !important;
+  }
+  
+  /* Ensure dropdown menus are visible */
+  header div[class*="bg-white"] {
+    background-color: white !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+    z-index: 999999 !important;
+  }
+  
+  /* Force dropdown positioning */
+  header .top-full {
+    top: 100% !important;
+  }
+  
+  header .left-0 {
+    left: 0 !important;
+  }
+  
+  header .right-0 {
+    right: 0 !important;
+  }
+  
+  /* Ensure dropdown links are visible */
+  header .text-gray-700 {
+    color: #374151 !important;
+  }
+  
+  header .hover\:bg-gray-50:hover {
+    background-color: #f9fafb !important;
+  }
+  
+  header .hover\:text-gray-900:hover {
+    color: #111827 !important;
+  }
+  
   /* Button styles */
   .btn-primary {
     @apply bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors;
@@ -138,61 +184,57 @@
   
   /* Agent card styles */
   .agent-card {
-    @apply bg-white rounded-lg shadow-md border border-gray-200 p-4 hover:shadow-lg transition-shadow;
+    @apply bg-white rounded-lg shadow-soft border border-gray-200 p-6 hover:shadow-medium transition-shadow duration-200;
   }
   
   .agent-card:hover {
-    @apply shadow-lg;
+    @apply shadow-medium;
   }
   
-  /* Action card styles */
   .action-card {
-    @apply bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-all duration-200;
+    @apply bg-white rounded-lg shadow-soft border border-gray-200 p-6 cursor-pointer;
   }
   
   .action-card:hover {
-    @apply shadow-lg transform -translate-y-1;
+    @apply shadow-medium border-accent-500;
   }
   
-  /* Status badge styles */
   .status-badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
   
   .status-badge-success {
-    @apply bg-green-100 text-green-800;
+    @apply bg-success-100 text-success-800;
   }
   
   .status-badge-warning {
-    @apply bg-yellow-100 text-yellow-800;
+    @apply bg-warning-100 text-warning-800;
   }
   
   .status-badge-error {
-    @apply bg-red-100 text-red-800;
+    @apply bg-error-100 text-error-800;
   }
   
-  /* Accent styles */
   .accent-highlight {
-    @apply text-transparent-accent;
+    @apply text-accent-600 font-semibold;
   }
   
   .accent-border {
-    @apply border-transparent-accent;
+    @apply border-accent-300;
   }
   
   .accent-bg {
-    @apply bg-transparent-accent;
+    @apply bg-accent-50;
   }
   
   .accent-hover {
-    @apply hover:bg-transparent-accent;
+    @apply hover:bg-accent-100;
   }
   
   .accent-focus {
-    @apply focus:ring-transparent-accent focus:border-transparent-accent;
+    @apply focus:ring-accent-500 focus:border-accent-500;
   }
   
-  /* Interactive elements */
   .interactive-element {
     @apply transition-all duration-200 ease-in-out;
   }
@@ -201,27 +243,24 @@
     @apply transform scale-105;
   }
   
-  /* Shadow utilities */
   .shadow-soft {
-    box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+    @apply shadow-soft;
   }
   
-  /* Company tile text styling */
   .company-tile-text {
-    @apply text-sm font-medium text-gray-900 leading-tight;
+    @apply text-sm font-medium text-gray-900;
   }
   
   .company-tile-text.light {
-    @apply text-gray-600;
+    @apply text-gray-500;
   }
   
   .company-tile-text {
-    @apply text-sm font-medium text-gray-900 leading-tight;
+    @apply text-xs text-gray-400;
   }
   
-  /* Company admin button styling */
   .company-admin-button {
-    @apply relative overflow-hidden bg-gradient-to-r from-blue-600 to-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:from-blue-700 hover:to-blue-800;
+    @apply relative overflow-hidden bg-gradient-to-r from-transparent-600 to-transparent-700 text-white px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105;
   }
   
   .company-admin-button::before {
@@ -239,7 +278,6 @@
     left: 100%;
   }
   
-  /* Scrollbar hiding */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -249,26 +287,25 @@
     display: none;
   }
   
-  /* Sidebar navigation scrollbar styling */
   .sidebar-nav::-webkit-scrollbar {
     width: 6px;
   }
   
   .sidebar-nav::-webkit-scrollbar-track {
-    background: transparent;
+    background: #f1f1f1;
   }
   
   .sidebar-nav::-webkit-scrollbar-thumb {
-    background: rgba(156, 163, 175, 0.5);
+    background: #c1c1c1;
     border-radius: 3px;
   }
   
   .sidebar-nav::-webkit-scrollbar-thumb:hover {
-    background: rgba(156, 163, 175, 0.7);
+    background: #a8a8a8;
   }
   
   .sidebar-nav {
     scrollbar-width: thin;
-    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+    scrollbar-color: #c1c1c1 #f1f1f1;
   }
 }

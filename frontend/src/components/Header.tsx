@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { 
-  ChevronDownIcon, 
   UserIcon, 
   Cog6ToothIcon, 
   BuildingLibraryIcon, 
@@ -18,12 +17,27 @@ export default function Header() {
   const { currentUser, userProfile, logout } = useAuth();
   const location = useLocation();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [showAdminDropdown, setShowAdminDropdown] = useState(false);
-  const [showNavDropdown, setShowNavDropdown] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  
+  // Ref for user dropdown container
+  const userDropdownRef = useRef<HTMLDivElement>(null);
 
   // Debug logging
   console.log('Header render - currentUser:', currentUser?.email, 'userProfile:', userProfile?.role, 'permissions:', userProfile?.permissions);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -124,36 +138,47 @@ export default function Header() {
         alignItems: 'center', 
         gap: '12px' 
       }}>
-        <img 
-          src="/transparent-partners-logo.png" 
-          alt="Transparent Partners Logo" 
-          style={{ 
-            height: '40px', 
-            width: 'auto',
-            backgroundColor: 'white',
-            padding: '8px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-            border: '2px solid white'
-          }} 
-          onError={(e) => {
-            console.error('Logo failed to load, trying fallback:', e);
-            // Try the white logo as fallback
-            e.currentTarget.src = '/transparent-partners-logo-white.png';
-            e.currentTarget.onerror = () => {
-              console.error('Fallback logo also failed to load');
-              e.currentTarget.style.display = 'none';
-              // Show fallback text logo
-              const fallbackText = document.createElement('div');
-              fallbackText.textContent = 'TP';
-              fallbackText.style.cssText = 'height: 40px; width: 40px; background-color: white; color: #043C46; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); border: 2px solid white;';
-              e.currentTarget.parentNode?.insertBefore(fallbackText, e.currentTarget);
-            };
-          }}
-          onLoad={() => {
-            console.log('Logo loaded successfully');
-          }}
-        />
+        <div style={{
+          height: '48px',
+          width: '48px',
+          backgroundColor: 'white',
+          padding: '6px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+          border: '2px solid white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden'
+        }}>
+          <img 
+            src="/transparent-partners-logo.png" 
+            alt="Transparent Partners Logo" 
+            style={{ 
+              height: '100%',
+              width: '100%',
+              objectFit: 'contain',
+              display: 'block'
+            }} 
+            onError={(e) => {
+              console.error('Logo failed to load, trying fallback:', e);
+              // Try the white logo as fallback
+              e.currentTarget.src = '/transparent-partners-logo-white.png';
+              e.currentTarget.onerror = () => {
+                console.error('Fallback logo also failed to load');
+                e.currentTarget.style.display = 'none';
+                // Show fallback text logo
+                const fallbackText = document.createElement('div');
+                fallbackText.textContent = 'TP';
+                fallbackText.style.cssText = 'height: 100%; width: 100%; background-color: white; color: #043C46; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 16px; border-radius: 4px;';
+                e.currentTarget.parentNode?.insertBefore(fallbackText, e.currentTarget);
+              };
+            }}
+            onLoad={() => {
+              console.log('Logo loaded successfully');
+            }}
+          />
+        </div>
         <span style={{ 
           color: 'white', 
           fontSize: '18px', 
@@ -163,109 +188,35 @@ export default function Header() {
         </span>
       </div>
 
-      {/* Desktop Navigation */}
+      {/* Desktop Navigation - Simplified */}
       <div className="hidden lg:flex items-center space-x-6">
-        {/* Libraries Menu */}
-        <div className="relative">
-          <button
-            onClick={() => setShowNavDropdown(!showNavDropdown)}
-            className="flex items-center text-white hover:text-blue-200 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
+        {/* Quick Links */}
+        <Link 
+          to="/agents"
+          className="text-white hover:text-blue-200 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
+        >
+          Global Library
+        </Link>
+        
+        {currentUser && userProfile && (
+          <Link 
+            to="/my-agents"
+            className="text-white hover:text-blue-200 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
           >
-            <span>Libraries</span>
-            <ChevronDownIcon className={`ml-1 h-4 w-4 transition-transform duration-200 ${showNavDropdown ? 'rotate-180' : ''}`} />
-          </button>
+            Dashboard
+          </Link>
+        )}
 
-          {showNavDropdown && (
-            <div className="absolute left-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[999999]">
-              <Link
-                to="/agents"
-                onClick={() => setShowNavDropdown(false)}
-                className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
-                  location.pathname === '/agents' ? 'bg-blue-50 text-blue-700' : ''
-                }`}
-              >
-                <GlobeAltIcon className="mr-3 h-4 w-4" />
-                Global Library
-              </Link>
-              {currentUser && userProfile && (
-                <>
-                  <Link
-                    to="/company-admin"
-                    onClick={() => setShowNavDropdown(false)}
-                    className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
-                      location.pathname === '/company-admin' ? 'bg-blue-50 text-blue-700' : ''
-                    }`}
-                  >
-                    <BuildingLibraryIcon className="mr-3 h-4 w-4" />
-                    Company Library
-                  </Link>
-                  <Link
-                    to="/my-agents"
-                    onClick={() => setShowNavDropdown(false)}
-                    className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
-                      location.pathname === '/my-agents' ? 'bg-blue-50 text-blue-700' : ''
-                    }`}
-                  >
-                    <UserIcon className="mr-3 h-4 w-4" />
-                    My Library
-                  </Link>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Admin Menu - Only show for admin users */}
+        {/* Admin Hint for Admin Users */}
         {currentUser && userProfile && (userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'network_admin') && (
-          <div className="relative">
-            <button
-              onClick={() => setShowAdminDropdown(!showAdminDropdown)}
-              className="flex items-center text-white hover:text-blue-200 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
-            >
-              <span>Admin</span>
-              <ChevronDownIcon className={`ml-1 h-4 w-4 transition-transform duration-200 ${showAdminDropdown ? 'rotate-180' : ''}`} />
-            </button>
-
-            {showAdminDropdown && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[999999]">
-                <Link
-                  to="/super-admin"
-                  onClick={() => setShowAdminDropdown(false)}
-                  className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
-                    location.pathname === '/super-admin' ? 'bg-blue-50 text-blue-700' : ''
-                  }`}
-                >
-                  <Cog6ToothIcon className="mr-3 h-4 w-4" />
-                  Super Admin Page
-                </Link>
-                <Link
-                  to="/company-admin"
-                  onClick={() => setShowAdminDropdown(false)}
-                  className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
-                    location.pathname === '/company-admin' ? 'bg-blue-50 text-blue-700' : ''
-                  }`}
-                >
-                  <BuildingLibraryIcon className="mr-3 h-4 w-4" />
-                  Company Super Admin Page
-                </Link>
-                <Link
-                  to="/creator-portal"
-                  onClick={() => setShowAdminDropdown(false)}
-                  className={`flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors duration-200 ${
-                    location.pathname === '/creator-portal' ? 'bg-blue-50 text-blue-700' : ''
-                  }`}
-                >
-                  <SparklesIcon className="mr-3 h-4 w-4" />
-                  Agent Submission Page
-                </Link>
-              </div>
-            )}
+          <div className="flex items-center text-blue-200 text-xs px-3 py-1 bg-blue-900/20 rounded-full">
+            <span>Admin features available in sidebar →</span>
           </div>
         )}
 
         {/* User Profile Section */}
         {currentUser && userProfile ? (
-          <div className="relative">
+          <div className="relative" ref={userDropdownRef}>
             <button
               onClick={() => setShowUserDropdown(!showUserDropdown)}
               className="flex items-center text-white hover:text-blue-200 transition-colors duration-200 px-3 py-2 rounded-md text-sm font-medium"
@@ -274,11 +225,13 @@ export default function Header() {
                 <UserIcon className="h-5 w-5 text-white" />
               </div>
               <span>{userProfile.displayName || currentUser.email?.split('@')[0] || 'User'}</span>
-              <ChevronDownIcon className={`ml-1 h-4 w-4 transition-transform duration-200 ${showUserDropdown ? 'rotate-180' : ''}`} />
             </button>
 
             {showUserDropdown && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[999999]">
+              <div 
+                className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-[999999]"
+                style={{ position: 'absolute', zIndex: 999999 }}
+              >
                 <div className="px-4 py-3 border-b border-gray-200">
                   <p className="text-sm font-medium text-gray-900">{userProfile.displayName || 'User'}</p>
                   <p className="text-sm text-gray-500">{currentUser.email}</p>
@@ -403,18 +356,6 @@ export default function Header() {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Click outside to close dropdowns */}
-      {(showUserDropdown || showAdminDropdown || showNavDropdown) && (
-        <div
-          className="fixed inset-0 z-[999998]"
-          onClick={() => {
-            setShowUserDropdown(false);
-            setShowAdminDropdown(false);
-            setShowNavDropdown(false);
-          }}
-        />
       )}
     </div>
   );
