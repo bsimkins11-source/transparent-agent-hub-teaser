@@ -95,6 +95,18 @@
     outline: none !important;
     box-shadow: none !important;
     background-image: none !important;
+    position: absolute !important;
+    z-index: 99999999 !important;
+    pointer-events: none !important;
+  }
+  
+  /* Force logo to stay on top of everything */
+  img[alt="Logo"] {
+    position: absolute !important;
+    z-index: 99999999 !important;
+    pointer-events: none !important;
+    background: none !important;
+    background-color: transparent !important;
   }
   
   /* Ensure navigation text has proper contrast */

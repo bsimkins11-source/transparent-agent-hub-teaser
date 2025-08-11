@@ -72,7 +72,7 @@ export default function Header() {
       justifyContent: 'space-between',
       padding: '0 16px'
     }}>
-      {/* Logo - FORCE DEBUGGING */}
+      {/* Logo - FLOATING ON TOP OF EVERYTHING */}
       <img 
         src="/transparent-partners-logo-white.png" 
         alt="Logo" 
@@ -80,61 +80,18 @@ export default function Header() {
           height: '40px',
           width: '40px',
           objectFit: 'contain',
-          display: 'block',
-          marginRight: '12px',
-          zIndex: 9999999,
-          // NUCLEAR OPTION - Force override EVERYTHING
-          background: 'red !important',
-          backgroundColor: 'red !important',
-          border: '3px solid yellow !important',
-          outline: '3px solid green !important',
-          boxShadow: '0 0 10px purple !important',
-          // Force dimensions
-          minWidth: '40px !important',
-          maxWidth: '40px !important',
-          minHeight: '40px !important',
-          maxHeight: '40px !important',
+          position: 'absolute',
+          left: '16px',
+          top: '12px',
+          zIndex: 99999999,
+          // Force it to stay on top
+          pointerEvents: 'none',
         }} 
         onError={(e) => {
           console.error('Logo failed to load:', e);
         }}
         onLoad={(e) => {
           console.log('Logo loaded successfully');
-          // Debug: Log ALL computed styles
-          const computedStyle = window.getComputedStyle(e.currentTarget);
-          console.log('🔍 LOGO DEBUG - All computed styles:', {
-            background: computedStyle.background,
-            backgroundColor: computedStyle.backgroundColor,
-            border: computedStyle.border,
-            outline: computedStyle.outline,
-            boxShadow: computedStyle.boxShadow,
-            width: computedStyle.width,
-            height: computedStyle.height,
-            display: computedStyle.display,
-            position: computedStyle.position,
-            zIndex: computedStyle.zIndex
-          });
-          
-          // Check if there are any CSS rules affecting this element
-          const rules = [];
-          for (let i = 0; i < document.styleSheets.length; i++) {
-            try {
-              const sheet = document.styleSheets[i];
-              if (sheet.cssRules) {
-                for (let j = 0; j < sheet.cssRules.length; j++) {
-                  const rule = sheet.cssRules[j];
-                  if (rule instanceof CSSStyleRule && rule.selectorText) {
-                    if (rule.selectorText.includes('img') || rule.selectorText.includes('header')) {
-                      rules.push(rule.selectorText);
-                    }
-                  }
-                }
-              }
-            } catch (e) {
-              // Cross-origin stylesheets will throw errors
-            }
-          }
-          console.log('🔍 CSS rules affecting img/header:', rules);
         }}
       />
       
