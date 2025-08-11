@@ -1,117 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  UserIcon, 
-  Cog6ToothIcon, 
-  BuildingLibraryIcon, 
-  GlobeAltIcon, 
-  SparklesIcon, 
-  ChartBarIcon,
-  ArrowRightOnRectangleIcon,
-  Bars3Icon,
-  XMarkIcon,
-  ChevronDownIcon
-} from '@heroicons/react/24/outline';
 
 export default function Header() {
-  const { currentUser, userProfile, logout } = useAuth();
-  const location = useLocation();
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [showLibrariesDropdown, setShowLibrariesDropdown] = useState(false);
-  const [showAdminDropdown, setShowAdminDropdown] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const { currentUser } = useAuth();
   
-  // Refs for dropdown containers
-  const userDropdownRef = useRef<HTMLDivElement>(null);
-  const librariesDropdownRef = useRef<HTMLDivElement>(null);
-  const adminDropdownRef = useRef<HTMLDivElement>(null);
-  
-  // DEBUG: Find the white box
-  useEffect(() => {
-    const findWhiteBox = () => {
-      console.log('🔍 SEARCHING FOR WHITE BOX...');
-      
-      // Search all elements for white backgrounds
-      const allElements = document.querySelectorAll('*');
-      const whiteElements: Element[] = [];
-      
-      allElements.forEach((element) => {
-        const style = window.getComputedStyle(element);
-        const bgColor = style.backgroundColor;
-        const bgImage = style.backgroundImage;
-        
-        if (bgColor && (bgColor.includes('white') || bgColor.includes('rgb(255, 255, 255)') || bgColor.includes('#ffffff'))) {
-          whiteElements.push(element);
-          console.log('🔍 Found white background element:', element, {
-            tagName: element.tagName,
-            className: element.className,
-            id: element.id,
-            backgroundColor: bgColor,
-            backgroundImage: bgImage,
-            position: style.position,
-            zIndex: style.zIndex
-          });
-        }
-      });
-      
-      console.log('🔍 Total white elements found:', whiteElements.length);
-      
-      // Also check for elements in the header area
-      const headerArea = document.querySelector('header') || document.querySelector('[style*="position: fixed"]');
-      if (headerArea) {
-        console.log('🔍 Header area found:', headerArea);
-        const headerChildren = headerArea.querySelectorAll('*');
-        console.log('🔍 Header children count:', headerChildren.length);
-        headerChildren.forEach((child, index) => {
-          const style = window.getComputedStyle(child);
-          console.log(`🔍 Header child ${index}:`, {
-            tagName: child.tagName,
-            className: child.className,
-            backgroundColor: style.backgroundColor,
-            position: style.position,
-            zIndex: style.zIndex
-          });
-        });
-      }
-    };
-    
-    // Run immediately and after a delay
-    findWhiteBox();
-    setTimeout(findWhiteBox, 1000);
-    setTimeout(findWhiteBox, 3000);
-  }, []);
-
-  // Close dropdowns when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target as Node)) {
-        setShowUserDropdown(false);
-      }
-      if (librariesDropdownRef.current && !librariesDropdownRef.current.contains(event.target as Node)) {
-        setShowLibrariesDropdown(false);
-      }
-      if (adminDropdownRef.current && !adminDropdownRef.current.contains(event.target as Node)) {
-        setShowAdminDropdown(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      setShowUserDropdown(false);
-    } catch (error) {
-      console.error('Failed to log out:', error);
-    }
-  };
+  console.log('Header component rendering...');
 
   return (
     <div style={{
@@ -127,332 +21,46 @@ export default function Header() {
       justifyContent: 'space-between',
       padding: '0 16px'
     }}>
-      {/* Logo - BASE64 EMBEDDED (IMPOSSIBLE TO OVERRIDE) */}
-      <div 
-        style={{ 
-          height: '40px',
-          width: '40px',
-          position: 'absolute',
-          left: '16px',
-          top: '12px',
-          zIndex: 99999999,
-          // Force it to stay visible with inline styles
-          backgroundColor: 'transparent',
-          outline: 'none',
-          boxShadow: 'none',
-          // Add a temporary colored border to see what's happening
-          border: '2px solid red',
-        }}
-      >
-        {/* This is a placeholder - the actual logo should be visible above */}
-        <div style={{
-          width: '100%',
-          height: '100%',
-          backgroundColor: 'rgba(255, 0, 0, 0.3)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: '10px',
-          fontWeight: 'bold',
-        }}>
-          LOGO
-        </div>
-      </div>
-      
-      {/* Brand Text */}
-      <span style={{ 
-        color: 'white', 
-        fontSize: '18px', 
-        fontWeight: 'bold',
-        zIndex: 9999999
+      {/* Logo */}
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '12px'
       }}>
-        Transparent Partners
-      </span>
-
-      {/* Desktop Navigation */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-        {/* Libraries Dropdown */}
-        <div style={{ position: 'relative' }} ref={librariesDropdownRef}>
-          <button
-            onClick={() => setShowLibrariesDropdown(!showLibrariesDropdown)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              color: 'white',
-              backgroundColor: 'transparent',
-              border: 'none',
-              padding: '8px 16px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            <span>Libraries</span>
-            <ChevronDownIcon style={{ marginLeft: '4px', width: '16px', height: '16px' }} />
-          </button>
-
-          {showLibrariesDropdown && (
-            <div style={{
-              position: 'absolute',
-              left: 0,
-              top: '100%',
-              marginTop: '8px',
-              width: '256px',
-              backgroundColor: 'white',
-              borderRadius: '8px',
-              boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-              border: '1px solid #e5e7eb',
-              zIndex: 999999,
-              padding: '8px 0'
-            }}>
-              <Link
-                to="/agents"
-                onClick={() => setShowLibrariesDropdown(false)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '8px 16px',
-                  color: '#374151',
-                  textDecoration: 'none',
-                  fontSize: '14px'
-                }}
-              >
-                <GlobeAltIcon style={{ marginRight: '12px', width: '16px', height: '16px' }} />
-                Global Library
-              </Link>
-              {currentUser && userProfile && (
-                <>
-                  <Link
-                    to="/company-admin"
-                    onClick={() => setShowLibrariesDropdown(false)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '8px 16px',
-                      color: '#374151',
-                      textDecoration: 'none',
-                      fontSize: '14px'
-                    }}
-                  >
-                    <BuildingLibraryIcon style={{ marginRight: '12px', width: '16px', height: '16px' }} />
-                    Company Library
-                  </Link>
-                  <Link
-                    to="/my-agents"
-                    onClick={() => setShowLibrariesDropdown(false)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '8px 16px',
-                      color: '#374151',
-                      textDecoration: 'none',
-                      fontSize: '14px'
-                    }}
-                  >
-                    <UserIcon style={{ marginRight: '12px', width: '16px', height: '16px' }} />
-                    My Library
-                  </Link>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Admin Dropdown */}
-        {currentUser && userProfile && (userProfile.role === 'super_admin' || userProfile.role === 'company_admin' || userProfile.role === 'network_admin') && (
-          <div style={{ position: 'relative' }} ref={adminDropdownRef}>
-            <button
-              onClick={() => setShowAdminDropdown(!showAdminDropdown)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                color: 'white',
-                backgroundColor: 'transparent',
-                border: 'none',
-                padding: '8px 16px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              <span>Admin</span>
-              <ChevronDownIcon style={{ marginLeft: '4px', width: '16px', height: '16px' }} />
-            </button>
-
-            {showAdminDropdown && (
-              <div style={{
-                position: 'absolute',
-                right: 0,
-                top: '100%',
-                marginTop: '8px',
-                width: '256px',
-                backgroundColor: 'white',
-                borderRadius: '8px',
-                boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-                border: '1px solid #e5e7eb',
-                zIndex: 999999,
-                padding: '8px 0'
-              }}>
-                <Link
-                  to="/super-admin"
-                  onClick={() => setShowAdminDropdown(false)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '8px 16px',
-                    color: '#374151',
-                    textDecoration: 'none',
-                    fontSize: '14px'
-                  }}
-                >
-                  <Cog6ToothIcon style={{ marginRight: '12px', width: '16px', height: '16px' }} />
-                  Super Admin
-                </Link>
-                <Link
-                  to="/company-admin"
-                  onClick={() => setShowAdminDropdown(false)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '8px 16px',
-                    color: '#374151',
-                    textDecoration: 'none',
-                    fontSize: '14px'
-                  }}
-                >
-                  <BuildingLibraryIcon style={{ marginRight: '12px', width: '16px', height: '16px' }} />
-                  Company Admin
-                </Link>
-                <Link
-                  to="/creator-portal"
-                  onClick={() => setShowAdminDropdown(false)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '8px 16px',
-                    color: '#374151',
-                    textDecoration: 'none',
-                    fontSize: '14px'
-                  }}
-                >
-                  <SparklesIcon style={{ marginRight: '12px', width: '16px', height: '16px' }} />
-                  Creator Portal
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* User Profile Section */}
-        {currentUser && userProfile ? (
-          <div style={{ position: 'relative' }} ref={userDropdownRef}>
-            <button
-              onClick={() => setShowUserDropdown(!showUserDropdown)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                color: 'white',
-                backgroundColor: 'transparent',
-                border: 'none',
-                padding: '8px 16px',
-                cursor: 'pointer',
-                fontSize: '14px'
-              }}
-            >
-              <div style={{
-                width: '32px',
-                height: '32px',
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: '8px'
-              }}>
-                <UserIcon style={{ width: '20px', height: '20px' }} />
-              </div>
-              <span>{userProfile.displayName || currentUser.email?.split('@')[0] || 'User'}</span>
-              <ChevronDownIcon style={{ marginLeft: '4px', width: '16px', height: '16px' }} />
-            </button>
-
-            {showUserDropdown && (
-              <div style={{
-                position: 'absolute',
-                right: 0,
-                top: '100%',
-                marginTop: '8px',
-                width: '192px',
-                backgroundColor: 'white',
-                borderRadius: '8px',
-                boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-                border: '1px solid #e5e7eb',
-                zIndex: 999999,
-                padding: '8px 0'
-              }}>
-                <div style={{
-                  padding: '8px 16px',
-                  fontSize: '14px',
-                  color: '#6b7280',
-                  borderBottom: '1px solid #f3f4f6'
-                }}>
-                  Signed in as <span style={{ fontWeight: '500', color: '#111827' }}>{currentUser.email}</span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  style={{
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: '8px 16px',
-                    fontSize: '14px',
-                    color: '#374151',
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center'
-                  }}
-                >
-                  <ArrowRightOnRectangleIcon style={{ marginRight: '12px', width: '16px', height: '16px' }} />
-                  Sign out
-                </button>
-              </div>
-            )}
-          </div>
-        ) : (
-          <Link
-            to="/login"
-            style={{
-              color: 'white',
-              textDecoration: 'none',
-              padding: '8px 16px',
-              border: '1px solid rgba(255,255,255,0.2)',
-              borderRadius: '4px',
-              fontSize: '14px'
-            }}
-          >
-            Sign In
-          </Link>
-        )}
+        <img 
+          src="/transparent-partners-logo-white.png" 
+          alt="Logo" 
+          style={{ 
+            height: '40px',
+            width: '40px',
+            objectFit: 'contain'
+          }} 
+        />
+        <span style={{ 
+          color: 'white', 
+          fontSize: '18px', 
+          fontWeight: 'bold'
+        }}>
+          Transparent Partners
+        </span>
       </div>
 
-      {/* Mobile menu button */}
-      <div style={{ display: 'none' }}>
-        <button
-          onClick={() => setShowMobileMenu(!showMobileMenu)}
+      {/* Sign In Button */}
+      {!currentUser && (
+        <Link
+          to="/login"
           style={{
             color: 'white',
-            backgroundColor: 'transparent',
-            border: 'none',
-            padding: '8px',
-            cursor: 'pointer'
+            textDecoration: 'none',
+            padding: '8px 16px',
+            border: '1px solid rgba(255,255,255,0.2)',
+            borderRadius: '4px',
+            fontSize: '14px'
           }}
         >
-          {showMobileMenu ? (
-            <XMarkIcon style={{ width: '24px', height: '24px' }} />
-          ) : (
-            <Bars3Icon style={{ width: '24px', height: '24px' }} />
-          )}
-        </button>
-      </div>
+          Sign In
+        </Link>
+      )}
     </div>
   );
 }
