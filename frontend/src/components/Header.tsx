@@ -5,7 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 export default function Header() {
   const { currentUser } = useAuth();
 
-  console.log('🚨 HEADER IS RENDERING WITH NEW CODE! 🚨');
+  console.log('🚨🚨🚨 THIS IS THE NEW HEADER COMPONENT! 🚨🚨🚨');
+  console.log('🚨🚨🚨 IF YOU SEE THIS, THE NEW CODE IS RUNNING! 🚨🚨🚨');
 
   return (
     <div style={{
