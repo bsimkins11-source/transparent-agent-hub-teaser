@@ -45,10 +45,7 @@ export default function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-[99999] shadow-lg">
-      {/* Logo-matching gradient background that starts with logo color and transitions out */}
-      <div className="absolute inset-0 bg-gradient-to-r from-teal-600 via-teal-500 to-teal-400"></div>
-      
+    <header className="fixed top-0 left-0 right-0 z-[99999] bg-gradient-to-r from-teal-700 via-teal-600 to-teal-500 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 gap-4">
           
