@@ -48,7 +48,7 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-[99999] shadow-lg">
       {/* Logo-matching background: solid #043C46 extending 1/3 across, then gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-[#043C46] from-33% via-[#043C46] via-33% to-teal-700"></div>
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 gap-4">
           
           {/* Logo/Brand - Always visible */}
