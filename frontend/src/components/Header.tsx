@@ -84,45 +84,27 @@ export default function Header() {
         zIndex: 9999999, // Much higher z-index
         overflow: 'visible'
       }}>
-        {/* Logo Container */}
-        <div style={{
-          height: '40px',
-          width: '40px',
-          backgroundColor: 'transparent',
-          padding: '4px',
-          borderRadius: '4px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          visibility: 'visible',
-          opacity: 1,
-          position: 'relative',
-          zIndex: 9999999, // Much higher z-index
-          overflow: 'visible'
-        }}>
-          <img 
-            src="/transparent-partners-logo-white.png" 
-            alt="Logo" 
-            style={{ 
-              height: '32px',
-              width: '32px',
-              objectFit: 'contain',
-              display: 'block',
-              visibility: 'visible',
-              opacity: 1,
-              position: 'relative',
-              zIndex: 9999999 // Much higher z-index
-            }} 
-            onError={(e) => {
-              console.error('Logo failed to load:', e);
-            }}
-            onLoad={(e) => {
-              console.log('Logo loaded successfully');
-            }}
-          />
-          
-
-        </div>
+        {/* Logo Image - Direct placement without container */}
+        <img 
+          src="/transparent-partners-logo-white.png" 
+          alt="Logo" 
+          style={{ 
+            height: '40px',
+            width: '40px',
+            objectFit: 'contain',
+            display: 'block',
+            visibility: 'visible',
+            opacity: 1,
+            position: 'relative',
+            zIndex: 9999999, // Much higher z-index
+          }} 
+          onError={(e) => {
+            console.error('Logo failed to load:', e);
+          }}
+          onLoad={(e) => {
+            console.log('Logo loaded successfully');
+          }}
+        />
         
         {/* Brand Text */}
         <span style={{ 
