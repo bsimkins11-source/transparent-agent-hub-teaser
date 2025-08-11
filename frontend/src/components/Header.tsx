@@ -1,6 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 export default function Header() {
+  console.log('Header component rendering...');
+  
   return (
     <div style={{
       position: 'fixed',
@@ -15,19 +18,64 @@ export default function Header() {
       justifyContent: 'space-between',
       padding: '0 16px'
     }}>
-      <div style={{ color: 'white', fontSize: '18px', fontWeight: 'bold' }}>
-        🚀 Transparent Partners
-      </div>
-      <button style={{
-        backgroundColor: 'white',
-        color: '#043C46',
-        padding: '8px 16px',
-        borderRadius: '6px',
-        border: 'none',
-        fontWeight: '500'
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '12px' 
       }}>
-        Sign In
-      </button>
+        <img 
+          src="/transparent-partners-logo.png" 
+          alt="Transparent Partners Logo" 
+          style={{ 
+            height: '40px', 
+            width: 'auto',
+            // Enhanced styling for better visibility
+            backgroundColor: 'white',
+            padding: '6px',
+            borderRadius: '6px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            border: '1px solid rgba(255,255,255,0.2)'
+          }} 
+          onError={(e) => {
+            console.error('Logo failed to load:', e);
+            // Fallback to text if image fails
+            e.currentTarget.style.display = 'none';
+          }}
+          onLoad={() => {
+            console.log('Logo loaded successfully');
+          }}
+        />
+        <span style={{ 
+          color: 'white', 
+          fontSize: '18px', 
+          fontWeight: 'bold' 
+        }}>
+          Transparent Partners
+        </span>
+      </div>
+      <Link to="/login">
+        <button style={{
+          backgroundColor: 'white',
+          color: '#043C46',
+          padding: '8px 16px',
+          borderRadius: '6px',
+          border: 'none',
+          fontWeight: '500',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          textDecoration: 'none'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.backgroundColor = '#f8f9fa';
+          e.currentTarget.style.transform = 'translateY(-1px)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.backgroundColor = 'white';
+          e.currentTarget.style.transform = 'translateY(0)';
+        }}>
+          Sign In
+        </button>
+      </Link>
     </div>
   );
 }
