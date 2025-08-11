@@ -1,0 +1,37 @@
+steps:
+  # Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/transparent-ai-frontend', '.']
+    
+  # Push the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/transparent-ai-frontend']
+    
+  # Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'transparent-ai-frontend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/transparent-ai-frontend'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '10'
+
+images:
+  - 'gcr.io/$PROJECT_ID/transparent-ai-frontend'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

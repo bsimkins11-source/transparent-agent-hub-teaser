@@ -4,30 +4,23 @@ FROM node:20-slim
 # Set working directory
 WORKDIR /app
 
-# Copy package files first for better caching
+# Copy package files
 COPY frontend/package*.json ./
 
-# Install ALL dependencies (including dev dependencies needed for build)
+# Install dependencies
 RUN npm ci
 
-# Copy the entire frontend source
+# Copy source code
 COPY frontend/ .
 
-# Build the React app with Vite
+# Build the app
 RUN npm run build
 
-# Install Express for serving (production only)
-RUN npm install express --production
-
-# Remove dev dependencies to reduce image size
-RUN npm prune --production
-
-# Show what we have
-RUN ls -la
-RUN ls -la build/
+# Install Express
+RUN npm install express
 
 # Expose port
 EXPOSE 8080
 
-# Start the server
+# Start server
 CMD ["node", "server.js"]
