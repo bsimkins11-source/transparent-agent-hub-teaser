@@ -1264,22 +1264,25 @@ export default function SuperAdminDashboard() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Coca-Cola Library - Prominent */}
+            {/* Coca-Cola Library - Super Admin Only Access */}
             <Link
-              to="/company/tccc"
-              className="p-4 bg-white border border-red-200 rounded-lg hover:border-red-300 hover:shadow-md transition-all duration-200 group"
+              to="/company/coca-cola"
+              className="p-4 bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-300 rounded-lg hover:border-red-400 hover:shadow-lg transition-all duration-200 group transform hover:scale-105"
             >
               <div className="flex items-center space-x-3 mb-3">
                 <img src="/coca-cola-logo.png" alt="Coca-Cola" className="w-10 h-10 rounded-lg" />
                 <div>
                   <h3 className="font-bold text-red-900 text-lg">Coca-Cola Library</h3>
                   <p className="text-sm text-red-600">Marketing & Branding</p>
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-200 text-red-800">
+                    🔒 Super Admin Only
+                  </span>
                 </div>
               </div>
               <p className="text-sm text-gray-700 mb-3">Access Project Harmony & Symphony marketing agents with full Coca-Cola branding</p>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-red-600 font-medium">🎨 Coke Red Theme</span>
-                <span className="text-xs text-red-600 font-medium">→ View Library</span>
+                <span className="text-xs text-red-600 font-medium font-semibold">→ Access Library</span>
               </div>
             </Link>
 

@@ -740,8 +740,8 @@ const localAgents: Agent[] = [
     approvalDate: '2024-01-15T00:00:00Z',
     rejectionReason: '',
     auditTrail: [],
-    organizationId: 'coca-cola',
-    organizationName: 'Coca-Cola',
+    organizationId: 'tccc',
+    organizationName: 'The Coca-Cola Company',
     networkId: '',
     networkName: '',
     icon: '🎉'
@@ -970,7 +970,9 @@ const localAgents: Agent[] = [
     networkId: '',
     networkName: '',
     icon: '🎨'
-  }
+  },
+
+
 ];
 
 /**
