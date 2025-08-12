@@ -78,3 +78,4 @@ Every push to `main` branch triggers automatic deployment!
 - ✅ No Firebase dependencies
 # Vercel deployment test - Tue Aug 12 09:14:36 CDT 2025
 # Force Vercel rebuild - Tue Aug 12 09:16:19 CDT 2025
+# Root directory fixed - Vercel should now build from frontend/ - Tue Aug 12 09:22:52 CDT 2025
