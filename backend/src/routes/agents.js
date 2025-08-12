@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { db, optionalAuth } = require('../middleware/auth');
 const agentService = require('../services/agentService');
-const admin = require('firebase-admin');
+
 
 // GET /api/agents - List all agents
 router.get('/', optionalAuth, async (req, res) => {

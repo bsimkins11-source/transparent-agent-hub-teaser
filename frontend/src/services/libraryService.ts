@@ -89,13 +89,13 @@ export const getLibraryAgents = async (
             const { getAllLocalAgents } = await import('./localAgentService');
             const allAgents = await getAllLocalAgents();
             
-            // OVERRIDE: Force Coca-Cola agents for testing
-            console.log('🔍 Company library filtering - OVERRIDING for Coca-Cola');
+            // Filter agents by the user's organization
+            console.log(`🔍 Company library filtering for organization: ${userProfile.organizationId}`);
             agents = allAgents.filter(agent => 
-              agent.organizationId === 'coca-cola' || 
-              agent.allowedClients.includes('coca-cola')
+              agent.organizationId === userProfile.organizationId || 
+              agent.allowedClients.includes(userProfile.organizationId)
             );
-            console.log(`✅ FORCED: Loaded ${agents.length} Coca-Cola company agents:`, agents.map(a => a.name));
+            console.log(`✅ Loaded ${agents.length} company agents for ${userProfile.organizationId}:`, agents.map(a => a.name));
           } catch (error) {
             console.log('📭 No company agents found, loading demo company agents');
             const { getAllLocalAgents } = await import('./localAgentService');

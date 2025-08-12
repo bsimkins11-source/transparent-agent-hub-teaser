@@ -116,15 +116,28 @@ export default function CompanyAgentLibrary() {
 
 
   const loadAgents = async () => {
-    // Load Coca-Cola agents from libraryService
+    // Load company-specific agents based on companyId
     try {
       const { getLibraryAgents } = await import('../services/libraryService');
-      const cokeAgents = await getLibraryAgents('company', userProfile);
-      console.log('🔍 CompanyAgentLibrary: Loaded Coca-Cola agents:', cokeAgents);
       
-      if (cokeAgents.length > 0) {
+      // Create a modified userProfile with the correct organizationId for this company
+      if (!userProfile || !companyId) {
+        console.error('Missing userProfile or companyId');
+        setLoading(false);
+        return;
+      }
+      
+      const modifiedUserProfile = {
+        ...userProfile,
+        organizationId: companyId
+      };
+      
+      const companyAgents = await getLibraryAgents('company', modifiedUserProfile);
+      console.log(`🔍 CompanyAgentLibrary: Loaded ${companyId} agents:`, companyAgents);
+      
+      if (companyAgents.length > 0) {
         // Convert AgentWithContext back to Agent for compatibility
-        const agents = cokeAgents.map(agent => ({
+        const agents = companyAgents.map(agent => ({
           id: agent.id,
           name: agent.name,
           description: agent.description,
@@ -138,55 +151,112 @@ export default function CompanyAgentLibrary() {
         
         setAgents(agents);
         setFilteredAgents(agents);
-        setCategories(['Brand Marketing', 'Marketing Operations', 'Campaign Development', 'Brand Intelligence', 'Social Media', 'Consumer Intelligence', 'Event Management']);
-        setProviders(['openai', 'anthropic']);
-        setAvailableTags(['brand-harmony', 'messaging', 'tone', 'visual-identity', 'consistency', 'coca-cola', 'marketing-orchestration', 'multi-channel', 'customer-journey', 'campaign-coordination', 'synchronization', 'campaign-creation', 'social-media', 'promotional', 'content-generation', 'brand-analytics', 'sentiment-analysis', 'market-share', 'campaign-effectiveness', 'global-markets', 'conversation-monitoring', 'platform-management', 'engagement', 'customer-insights', 'behavior-analysis', 'consumer-preferences', 'trends', 'purchasing-patterns', 'event-planning', 'product-launches', 'promotional-activities', 'coordination', 'brand-events']);
+        
+        // Set company-specific categories and tags
+        if (companyId === 'coca-cola') {
+          setCategories(['Brand Marketing', 'Marketing Operations', 'Campaign Development', 'Brand Intelligence', 'Social Media', 'Consumer Intelligence', 'Event Management']);
+          setProviders(['openai', 'anthropic']);
+          setAvailableTags(['brand-harmony', 'messaging', 'tone', 'visual-identity', 'consistency', 'coca-cola', 'marketing-orchestration', 'multi-channel', 'customer-journey', 'campaign-coordination', 'synchronization', 'campaign-creation', 'social-media', 'promotional', 'content-generation', 'brand-analytics', 'sentiment-analysis', 'market-share', 'campaign-effectiveness', 'global-markets', 'conversation-monitoring', 'platform-management', 'engagement', 'customer-insights', 'behavior-analysis', 'consumer-preferences', 'trends', 'purchasing-patterns', 'event-planning', 'product-launches', 'promotional-activities', 'coordination', 'brand-events']);
+        } else {
+          // Transparent Partners or other companies
+          setCategories(['AI Development', 'Agent Management', 'Security & Compliance', 'Performance Monitoring', 'Data Management', 'Integration Services']);
+          setProviders(['google', 'openai', 'anthropic']);
+          setAvailableTags(['ai-development', 'agent-management', 'security', 'compliance', 'performance', 'monitoring', 'data-management', 'integration', 'transparent-partners', 'enterprise', 'scalability', 'reliability']);
+        }
+        
         setLoading(false);
         return;
       }
     } catch (error) {
-      console.error('Error loading Coca-Cola agents:', error);
+      console.error(`Error loading ${companyId} agents:`, error);
     }
     
-         // Fallback to mock agents if libraryService fails
-     const mockAgents: Agent[] = [
-       {
-         id: 'project-harmony',
-         name: 'Project Harmony',
-         description: 'Coca-Cola\'s AI-powered brand harmony agent that ensures consistent messaging, tone, and visual identity across all marketing campaigns and touchpoints.',
-         provider: 'openai',
-         route: '/agents/project-harmony',
-         visibility: 'company',
-         status: 'approved',
-         metadata: {
-           tags: ['brand-harmony', 'messaging', 'tone', 'visual-identity', 'consistency', 'coca-cola'],
-           category: 'Brand Marketing',
-           tier: 'premium',
-           permissionType: 'approval'
-         }
-       },
-       {
-         id: 'project-symphony',
-         name: 'Project Symphony',
-         description: 'Coca-Cola\'s AI marketing orchestration agent that coordinates multi-channel campaigns, synchronizes messaging, and optimizes customer journey touchpoints.',
-         provider: 'anthropic',
-         route: '/agents/project-symphony',
-         visibility: 'company',
-         status: 'approved',
-         metadata: {
-           tags: ['marketing-orchestration', 'multi-channel', 'customer-journey', 'campaign-coordination', 'synchronization', 'coca-cola'],
-           category: 'Marketing Operations',
-           tier: 'premium',
-           permissionType: 'approval'
-         }
-       }
-     ];
+    // Fallback to company-specific mock agents if libraryService fails
+    let mockAgents: Agent[];
+    
+    if (companyId === 'coca-cola') {
+      mockAgents = [
+        {
+          id: 'project-harmony',
+          name: 'Project Harmony',
+          description: 'Coca-Cola\'s AI-powered brand harmony agent that ensures consistent messaging, tone, and visual identity across all marketing campaigns and touchpoints.',
+          provider: 'openai',
+          route: '/agents/project-harmony',
+          visibility: 'company',
+          status: 'approved',
+          metadata: {
+            tags: ['brand-harmony', 'messaging', 'tone', 'visual-identity', 'consistency', 'coca-cola'],
+            category: 'Brand Marketing',
+            tier: 'premium',
+            permissionType: 'approval'
+          }
+        },
+        {
+          id: 'project-symphony',
+          name: 'Project Symphony',
+          description: 'Coca-Cola\'s AI marketing orchestration agent that coordinates multi-channel campaigns, synchronizes messaging, and optimizes customer journey touchpoints.',
+          provider: 'anthropic',
+          route: '/agents/project-symphony',
+          visibility: 'company',
+          status: 'approved',
+          metadata: {
+            tags: ['marketing-orchestration', 'multi-channel', 'customer-journey', 'campaign-coordination', 'synchronization', 'coca-cola'],
+            category: 'Marketing Operations',
+            tier: 'premium',
+            permissionType: 'approval'
+          }
+        }
+      ];
+    } else {
+      // Transparent Partners agents
+      mockAgents = [
+        {
+          id: 'ai-hub-manager',
+          name: 'AI Hub Manager',
+          description: 'Transparent Partners\' AI hub management agent that orchestrates and coordinates all AI agents across the platform.',
+          provider: 'google',
+          route: '/agents/ai-hub-manager',
+          visibility: 'company',
+          status: 'approved',
+          metadata: {
+            tags: ['ai-development', 'agent-management', 'orchestration', 'transparent-partners'],
+            category: 'AI Development',
+            tier: 'premium',
+            permissionType: 'approval'
+          }
+        },
+        {
+          id: 'security-compliance',
+          name: 'Security & Compliance',
+          description: 'Transparent Partners\' security and compliance agent that ensures all AI operations meet enterprise security standards.',
+          provider: 'openai',
+          route: '/agents/security-compliance',
+          visibility: 'company',
+          status: 'approved',
+          metadata: {
+            tags: ['security', 'compliance', 'enterprise', 'transparent-partners'],
+            category: 'Security & Compliance',
+            tier: 'premium',
+            permissionType: 'approval'
+          }
+        }
+      ];
+    }
      
-     setAgents(mockAgents);
+    setAgents(mockAgents);
     setFilteredAgents(mockAgents);
-    setCategories(['conversation', 'creative', 'marketing', 'analytics', 'writing']);
-    setProviders(['google', 'openai', 'anthropic']);
-    setAvailableTags(['conversation', 'writing', 'creative', 'image', 'generation', 'marketing', 'analytics', 'campaigns', 'sales', 'data', 'content']);
+    
+    // Set categories and tags based on company
+    if (companyId === 'coca-cola') {
+      setCategories(['Brand Marketing', 'Marketing Operations', 'Campaign Development', 'Brand Intelligence', 'Social Media', 'Consumer Intelligence', 'Event Management']);
+      setProviders(['openai', 'anthropic']);
+      setAvailableTags(['brand-harmony', 'messaging', 'tone', 'visual-identity', 'consistency', 'coca-cola', 'marketing-orchestration', 'multi-channel', 'customer-journey', 'campaign-coordination', 'synchronization', 'campaign-creation', 'social-media', 'promotional', 'content-generation', 'brand-analytics', 'sentiment-analysis', 'market-share', 'campaign-effectiveness', 'global-markets', 'conversation-monitoring', 'platform-management', 'engagement', 'customer-insights', 'behavior-analysis', 'consumer-preferences', 'trends', 'purchasing-patterns', 'event-planning', 'product-launches', 'promotional-activities', 'coordination', 'brand-events']);
+    } else {
+      setCategories(['AI Development', 'Agent Management', 'Security & Compliance', 'Performance Monitoring', 'Data Management', 'Integration Services']);
+      setProviders(['google', 'openai', 'anthropic']);
+      setAvailableTags(['ai-development', 'agent-management', 'security', 'compliance', 'performance', 'monitoring', 'data-management', 'integration', 'transparent-partners', 'enterprise', 'scalability', 'reliability']);
+    }
+    
     setLoading(false);
   };
 
@@ -394,8 +464,15 @@ export default function CompanyAgentLibrary() {
 
 
 
-      {/* Section 3: Coca-Cola Red Content Box - Shorter, Combined, Pushed Down */}
-      <div className="bg-gradient-to-r from-[#E61A27] to-[#D4141A] text-white py-5 relative z-10 mt-16">
+      {/* Section 3: Company Branded Content Box - Dynamic based on company */}
+      <div 
+        className="text-white py-5 relative z-10 mt-16"
+        style={{
+          background: companyBranding ? 
+            `linear-gradient(to right, ${companyBranding.primaryColor}, ${companyBranding.secondaryColor})` :
+            'linear-gradient(to right, #6B7280, #4B5563)'
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             
@@ -417,7 +494,10 @@ export default function CompanyAgentLibrary() {
                     setSearchFocused(false);
                   }
                 }}
-                className="w-full pl-12 pr-4 py-4 border-0 rounded-xl focus:outline-none focus:ring-2 text-lg transition-all duration-200 bg-white/95 hover:bg-white focus:bg-white focus:ring-[#E61A27] shadow-lg"
+                className="w-full pl-12 pr-4 py-4 border-0 rounded-xl focus:outline-none focus:ring-2 text-lg transition-all duration-200 bg-white/95 hover:bg-white focus:bg-white shadow-lg"
+                style={{
+                  '--tw-ring-color': companyId === 'coca-cola' ? '#E61A27' : '#8B5CF6'
+                } as React.CSSProperties}
                 aria-label="Search agents"
                 role="searchbox"
               />
@@ -462,12 +542,23 @@ export default function CompanyAgentLibrary() {
         </div>
       </div>
 
-      {/* 2. FILTER BAR - Universal Design */}
-      <div className="bg-red-50 border-b border-red-200">
+      {/* 2. FILTER BAR - Company Branded Design */}
+      <div 
+        className="border-b"
+        style={{
+          backgroundColor: companyBranding ? `${companyBranding.primaryColor}10` : '#F3F4F6',
+          borderColor: companyBranding ? `${companyBranding.primaryColor}30` : '#D1D5DB'
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         {/* Stats */}
-            <div className="flex items-center space-x-6 text-sm text-[#E61A27]">
+            <div 
+              className="flex items-center space-x-6 text-sm"
+              style={{
+                color: companyBranding ? companyBranding.primaryColor : '#6B7280'
+              }}
+            >
               <div className="flex items-center space-x-2">
                 <StarIcon className="w-4 h-4" />
                 <span>{filteredAgents.length} agents</span>
@@ -484,7 +575,20 @@ export default function CompanyAgentLibrary() {
               <div className="lg:hidden w-full">
                               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="w-full px-3 py-2 border-2 border-[#3B82F6] rounded-lg text-sm transition-all duration-200 flex items-center justify-center space-x-2 hover:border-[#1E40AF] text-[#3B82F6] hover:text-[#1E40AF] bg-white/80 hover:bg-white"
+                className="w-full px-3 py-2 border-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-center space-x-2 bg-white/80 hover:bg-white"
+                style={{
+                  borderColor: companyBranding ? companyBranding.primaryColor : '#6B7280',
+                  color: companyBranding ? companyBranding.primaryColor : '#6B7280',
+                  '--tw-border-opacity': '1'
+                } as React.CSSProperties}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = companyBranding ? companyBranding.secondaryColor : '#4B5563';
+                  e.currentTarget.style.color = companyBranding ? companyBranding.secondaryColor : '#4B5563';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = companyBranding ? companyBranding.primaryColor : '#6B7280';
+                  e.currentTarget.style.color = companyBranding ? companyBranding.primaryColor : '#6B7280';
+                }}
               >
                   <AdjustmentsHorizontalIcon className="w-4 h-4" />
                   <span>{showAdvancedFilters ? 'Hide' : 'Show'} Filters</span>
@@ -496,7 +600,10 @@ export default function CompanyAgentLibrary() {
                 <select
                   value={filters.tier}
                   onChange={(e) => setFilters({ ...filters, tier: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E61A27] text-sm transition-colors hover:border-gray-400"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-sm transition-colors hover:border-gray-400"
+                  style={{
+                    '--tw-ring-color': companyBranding ? companyBranding.primaryColor : '#6B7280'
+                  } as React.CSSProperties}
                 >
                   <option value="all">All Tiers</option>
                   <option value="free">Free</option>
@@ -507,7 +614,10 @@ export default function CompanyAgentLibrary() {
                 <select
                   value={filters.access}
                   onChange={(e) => setFilters({ ...filters, access: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E61A27] text-sm transition-colors hover:border-gray-400"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-sm transition-colors hover:border-gray-400"
+                  style={{
+                    '--tw-ring-color': companyBranding ? companyBranding.primaryColor : '#6B7280'
+                  } as React.CSSProperties}
                 >
                   <option value="all">All Access</option>
                   <option value="direct">Direct Access</option>
@@ -517,7 +627,10 @@ export default function CompanyAgentLibrary() {
                 <select
                   value={filters.provider}
                   onChange={(e) => setFilters({ ...filters, provider: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#E61A27] text-sm transition-colors hover:border-gray-400"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 text-sm transition-colors hover:border-gray-400"
+                  style={{
+                    '--tw-ring-color': companyBranding ? companyBranding.primaryColor : '#6B7280'
+                  } as React.CSSProperties}
                 >
                   <option value="all">All Providers</option>
                   <option value="openai">OpenAI</option>
@@ -528,7 +641,10 @@ export default function CompanyAgentLibrary() {
                 <select
                   value={filters.category}
                   onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E61A27] text-sm transition-colors hover:border-gray-400"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-sm transition-colors hover:border-gray-400"
+                  style={{
+                    '--tw-ring-color': companyBranding ? companyBranding.primaryColor : '#6B7280'
+                  } as React.CSSProperties}
                 >
                   <option value="all">All Categories</option>
                   {categories.map(category => (
@@ -781,7 +897,8 @@ export default function CompanyAgentLibrary() {
                     <div className="flex flex-wrap gap-2 mb-3">
                       <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${
                         agent.metadata?.tier === 'free' ? 'bg-green-100 text-green-800' :
-                        agent.metadata?.tier === 'premium' ? 'bg-red-100 text-[#E61A27]' :
+                        agent.metadata?.tier === 'premium' ? 
+                          (companyId === 'coca-cola' ? 'bg-red-100 text-[#E61A27]' : 'bg-blue-100 text-[#2563EB]') :
                         'bg-purple-100 text-purple-800'
                       }`}>
                         <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -789,7 +906,13 @@ export default function CompanyAgentLibrary() {
                         </svg>
                         {agent.metadata?.tier || 'free'}
                       </span>
-                      <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-red-100 text-[#E61A27] rounded-full">
+                      <span 
+                        className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full"
+                        style={{
+                          backgroundColor: companyId === 'coca-cola' ? '#FEF2F2' : '#EFF6FF',
+                          color: companyId === 'coca-cola' ? '#E61A27' : '#2563EB'
+                        }}
+                      >
                         {agent.metadata?.category || 'general'}
                       </span>
                     </div>
@@ -809,14 +932,34 @@ export default function CompanyAgentLibrary() {
                       ) : agent.metadata?.tier === 'free' ? (
                         <button 
                           onClick={() => handleAddFreeAgent(agent)}
-                          className="px-4 py-2 bg-[#E61A27] text-white text-sm rounded-md hover:bg-[#D4141A] transition-colors font-medium"
+                          className="px-4 py-2 text-white text-sm rounded-md transition-colors font-medium"
+                          style={{
+                            backgroundColor: companyId === 'coca-cola' ? '#E61A27' : '#2563EB',
+                            '--tw-bg-opacity': '1'
+                          } as React.CSSProperties}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = companyId === 'coca-cola' ? '#D4141A' : '#1D4ED8';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = companyId === 'coca-cola' ? '#E61A27' : '#2563EB';
+                          }}
                         >
                           Add to my library
                         </button>
                       ) : (
                         <button 
                           onClick={() => handleRequestAgent(agent)}
-                          className="px-4 py-2 bg-[#E61A27] text-white text-sm rounded-md hover:bg-[#D4141A] transition-colors font-medium"
+                          className="px-4 py-2 text-white text-sm rounded-md transition-colors font-medium"
+                          style={{
+                            backgroundColor: companyId === 'coca-cola' ? '#E61A27' : '#2563EB',
+                            '--tw-bg-opacity': '1'
+                          } as React.CSSProperties}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = companyId === 'coca-cola' ? '#D4141A' : '#1D4ED8';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = companyId === 'coca-cola' ? '#E61A27' : '#2563EB';
+                          }}
                         >
                           Request Access
                         </button>
@@ -840,8 +983,18 @@ export default function CompanyAgentLibrary() {
             className="bg-white rounded-lg p-6 max-w-md w-full"
           >
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                <PlusIcon className="w-6 h-6 text-[#E61A27]" />
+              <div 
+                className="w-10 h-10 rounded-full flex items-center justify-center"
+                style={{
+                  backgroundColor: companyId === 'coca-cola' ? '#FEF2F2' : '#EFF6FF'
+                }}
+              >
+                <PlusIcon 
+                  className="w-6 h-6" 
+                  style={{
+                    color: companyId === 'coca-cola' ? '#E61A27' : '#2563EB'
+                  }}
+                />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Request Agent Access</h3>
@@ -856,7 +1009,10 @@ export default function CompanyAgentLibrary() {
                 value={requestReason}
                 onChange={(e) => setRequestReason(e.target.value)}
                 placeholder="Please explain why you need access to this agent..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#E61A27]"
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2"
+                  style={{
+                    '--tw-ring-color': companyBranding ? companyBranding.primaryColor : '#6B7280'
+                  } as React.CSSProperties}
                 rows={4}
               />
             </div>
@@ -869,7 +1025,16 @@ export default function CompanyAgentLibrary() {
               </button>
               <button
                 onClick={submitAgentRequest}
-                className="flex-1 px-4 py-2 bg-[#E61A27] text-white rounded-lg hover:bg-[#D4141A] transition-colors"
+                className="flex-1 px-4 py-2 text-white rounded-lg transition-colors"
+                style={{
+                  backgroundColor: companyId === 'coca-cola' ? '#E61A27' : '#2563EB'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = companyId === 'coca-cola' ? '#D4141A' : '#1D4ED8';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = companyId === 'coca-cola' ? '#E61A27' : '#2563EB';
+                }}
               >
                 Submit Request
               </button>

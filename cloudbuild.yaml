@@ -29,6 +29,9 @@ steps:
       - '1'
       - '--max-instances'
       - '10'
+      - '--set-env-vars'
+      - 'NODE_ENV=production'
+      - '--no-cache'
 
 images:
   - 'gcr.io/$PROJECT_ID/transparent-ai-frontend'

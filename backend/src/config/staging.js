@@ -36,10 +36,7 @@ module.exports = {
     enableErrorReporting: true
   },
   
-  // Firebase Configuration
-  firebase: {
-    projectId: process.env.FIREBASE_PROJECT_ID || 'transparent-ai-staging'
-  },
+  // Firebase removed - using local services,
   
   // API Keys (set these in environment variables)
   apiKeys: {

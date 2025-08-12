@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY frontend/package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies with legacy peer deps to avoid conflicts
+RUN npm ci --legacy-peer-deps
 
 # Copy source code
 COPY frontend/ .
@@ -16,16 +16,20 @@ COPY frontend/ .
 # Build the app
 RUN npm run build
 
-# Install Express
+# Verify build output
+RUN echo "=== Build completed successfully ==="
+RUN ls -la
+RUN echo "=== Dist directory contents ==="
+RUN ls -la dist/
+
+# Install Express for the server
 RUN npm install express
 
-# Debug: Show what we have
-RUN echo "=== Container contents ==="
-RUN ls -la
-RUN echo "=== Build directory contents ==="
-RUN ls -la build/
-RUN echo "=== Package.json ==="
-RUN cat package.json
+# Copy server.js to the root of the app
+COPY frontend/server.js ./
+
+# Clean up dev dependencies to reduce image size
+RUN npm prune --production
 
 # Expose port
 EXPOSE 8080

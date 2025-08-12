@@ -56,8 +56,8 @@ export function CompanyBrandingProvider({ children, companyId }: CompanyBranding
         return;
       }
 
-      // OVERRIDE: Force Coca-Cola branding for testing
-      console.log('🔍 CompanyBrandingContext: OVERRIDING to force Coca-Cola branding');
+      // Company branding based on actual companyId
+      console.log('🔍 CompanyBrandingContext: Loading branding for company:', id);
       const mockCompanies: { [key: string]: CompanyBranding } = {
         'transparent-partners': {
           id: 'transparent-partners',
@@ -76,40 +76,13 @@ export function CompanyBrandingProvider({ children, companyId }: CompanyBranding
           primaryColor: '#E61A27', // Coca-Cola signature red
           secondaryColor: '#D4141A', // Coca-Cola secondary red
           status: 'active'
-        },
-        'acme-corp': {
-          id: 'acme-corp',
-          name: 'Acme Corporation',
-          domain: 'acme.com',
-          logo: 'https://logo.clearbit.com/acme.com',
-          primaryColor: '#dc2626', // Red primary
-          secondaryColor: '#b91c1c', // Darker red secondary
-          status: 'active'
-        },
-        'global-tech': {
-          id: 'global-tech',
-          name: 'Global Tech Solutions',
-          domain: 'globaltech.io',
-          logo: 'https://logo.clearbit.com/globaltech.io',
-          primaryColor: '#2563eb', // Blue primary
-          secondaryColor: '#1d4ed8', // Darker blue secondary
-          status: 'active'
-        },
-        'startup-inc': {
-          id: 'startup-inc',
-          name: 'Startup Inc',
-          domain: 'startup.inc',
-          logo: 'https://logo.clearbit.com/startup.inc',
-          primaryColor: '#7c3aed', // Purple primary
-          secondaryColor: '#6d28d9', // Darker purple secondary
-          status: 'active'
         }
       };
 
-      // OVERRIDE: Force Coca-Cola company regardless of ID
-      const company = mockCompanies['coca-cola']; // Always use Coca-Cola
+      // Get the company based on the actual companyId parameter
+      const company = mockCompanies[id];
       if (company) {
-        console.log('🔍 CompanyBrandingContext: FORCED to use Coca-Cola company:', company);
+        console.log('🔍 CompanyBrandingContext: Using company:', company);
         setCompanyBranding(company);
         applyCompanyBranding(company);
         

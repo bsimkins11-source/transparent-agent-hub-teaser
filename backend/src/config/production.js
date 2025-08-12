@@ -34,11 +34,7 @@ module.exports = {
     enableErrorReporting: true
   },
   
-  // Firebase Configuration
-  firebase: {
-    projectId: process.env.FIREBASE_PROJECT_ID || 
-      (process.env.NODE_ENV === 'staging' ? 'transparent-ai-staging' : 'ai-agent-hub-web-portal-79fb0')
-  },
+  // Firebase removed - using local services
   
   // API Keys (set these in environment variables)
   apiKeys: {

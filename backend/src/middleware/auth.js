@@ -1,22 +1,19 @@
-const admin = require('firebase-admin');
+// Simple local authentication middleware (Firebase removed)
 
-// Initialize Firebase Admin if not already initialized
-if (!admin.apps.length) {
-  // Determine project ID based on environment
-  const projectId = process.env.FIREBASE_PROJECT_ID || 
-    (process.env.NODE_ENV === 'staging' ? 'transparent-ai-staging' : 'ai-agent-hub-web-portal-79fb0');
-  
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-    projectId: projectId
-  });
-  
-  console.log(`🔧 Firebase Admin initialized with project: ${projectId}`);
-}
+// Mock database for local development
+const db = {
+  // Mock database methods
+  collection: () => ({
+    doc: () => ({
+      get: async () => ({ exists: false, data: () => ({}) }),
+      set: async () => ({}),
+      update: async () => ({}),
+      delete: async () => ({})
+    })
+  })
+};
 
-const db = admin.firestore();
-
-// Middleware to verify Firebase token
+// Middleware to verify authentication token
 const requireAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
@@ -26,18 +23,20 @@ const requireAuth = async (req, res, next) => {
     }
 
     const token = authHeader.split('Bearer ')[1];
-    const decodedToken = await admin.auth().verifyIdToken(token);
     
-    // Get user's custom claims
-    const userRecord = await admin.auth().getUser(decodedToken.uid);
-    req.user = {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
-      admin: userRecord.customClaims?.admin || false,
-      client: userRecord.customClaims?.client || false
-    };
-    
-    next();
+    // Simple token validation for local development
+    // In production, this would validate against a proper auth service
+    if (token === 'local-dev-token') {
+      req.user = {
+        uid: 'local-user-123',
+        email: 'local@example.com',
+        admin: true,
+        client: true
+      };
+      next();
+    } else {
+      res.status(401).json({ error: 'Invalid token' });
+    }
   } catch (error) {
     console.error('Auth error:', error);
     res.status(401).json({ error: 'Invalid token' });
@@ -67,15 +66,16 @@ const optionalAuth = async (req, res, next) => {
     
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split('Bearer ')[1];
-      const decodedToken = await admin.auth().verifyIdToken(token);
       
-      const userRecord = await admin.auth().getUser(decodedToken.uid);
-      req.user = {
-        uid: decodedToken.uid,
-        email: decodedToken.email,
-        admin: userRecord.customClaims?.admin || false,
-        client: userRecord.customClaims?.client || false
-      };
+      // Simple token validation for local development
+      if (token === 'local-dev-token') {
+        req.user = {
+          uid: 'local-user-123',
+          email: 'local@example.com',
+          admin: true,
+          client: true
+        };
+      }
     }
     
     next();
@@ -90,6 +90,5 @@ module.exports = {
   requireAdmin,
   requireClient,
   optionalAuth,
-  admin,
   db
 };

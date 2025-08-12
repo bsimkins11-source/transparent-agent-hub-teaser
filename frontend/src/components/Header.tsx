@@ -190,20 +190,11 @@ export default function Header() {
                     </Link>
                     <Link
                       to="/company/transparent-partners"
-                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200"
+                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
                       onClick={closeAllDropdowns}
                     >
                       <BuildingOfficeIcon className="w-5 h-5" />
-                      <span>Transparent Partners</span>
-                    </Link>
-                    {/* Coca-Cola Library - Demo Access */}
-                    <Link
-                      to="/company/coca-cola"
-                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
-                      onClick={closeAllDropdowns}
-                    >
-                      <BuildingOfficeIcon className="w-5 h-5" />
-                      <span className="text-red-600 font-medium">Coca-Cola Library</span>
+                      <span className="text-blue-600 font-medium">Transparent Partners</span>
                     </Link>
                     <Link
                       to="/my-agents"

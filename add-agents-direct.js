@@ -1,4 +1,4 @@
-// Simple script to add agents using environment variables
+nope// Simple script to add agents using environment variables
 const { execSync } = require('child_process');
 
 console.log('🤖 Adding Google agents to Firestore...\n');
@@ -108,8 +108,8 @@ try {
   
   console.log('\n🎉 Agent addition process completed!');
   console.log('\n📋 Verification URLs:');
-  console.log('   • Gemini Chat Agent: https://console.firebase.google.com/project/ai-agent-hub-web-portal-79fb0/firestore/data/~2Fagents~2Fgemini-chat-agent');
-  console.log('   • Google Imagen Agent: https://console.firebase.google.com/project/ai-agent-hub-web-portal-79fb0/firestore/data/~2Fagents~2Fimagen-agent');
+  console.log('   • Gemini Chat Agent: Available in local services');
+console.log('   • Google Imagen Agent: Available in local services');
   console.log('\n🚀 Test the agents at: https://ai-agent-hub-web-portal-79fb0.web.app/agents');
   
 } catch (error) {
