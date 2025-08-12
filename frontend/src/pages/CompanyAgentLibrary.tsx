@@ -116,15 +116,15 @@ export default function CompanyAgentLibrary() {
 
 
   const loadAgents = async () => {
-    // Load company-specific agents based on companyId
+    // Load Coca-Cola agents from libraryService
     try {
       const { getLibraryAgents } = await import('../services/libraryService');
-      const companyAgents = await getLibraryAgents('company', userProfile);
-      console.log(`🔍 CompanyAgentLibrary: Loaded ${companyId} agents:`, companyAgents);
+      const cokeAgents = await getLibraryAgents('company', userProfile);
+      console.log('🔍 CompanyAgentLibrary: Loaded Coca-Cola agents:', cokeAgents);
       
-      if (companyAgents.length > 0) {
+      if (cokeAgents.length > 0) {
         // Convert AgentWithContext back to Agent for compatibility
-        const agents = companyAgents.map(agent => ({
+        const agents = cokeAgents.map(agent => ({
           id: agent.id,
           name: agent.name,
           description: agent.description,
@@ -138,112 +138,55 @@ export default function CompanyAgentLibrary() {
         
         setAgents(agents);
         setFilteredAgents(agents);
-        
-        // Set company-specific categories and tags
-        if (companyId === 'coca-cola') {
-          setCategories(['Brand Marketing', 'Marketing Operations', 'Campaign Development', 'Brand Intelligence', 'Social Media', 'Consumer Intelligence', 'Event Management']);
-          setProviders(['openai', 'anthropic']);
-          setAvailableTags(['brand-harmony', 'messaging', 'tone', 'visual-identity', 'consistency', 'coca-cola', 'marketing-orchestration', 'multi-channel', 'customer-journey', 'campaign-coordination', 'synchronization', 'campaign-creation', 'social-media', 'promotional', 'content-generation', 'brand-analytics', 'sentiment-analysis', 'market-share', 'campaign-effectiveness', 'global-markets', 'conversation-monitoring', 'platform-management', 'engagement', 'customer-insights', 'behavior-analysis', 'consumer-preferences', 'trends', 'purchasing-patterns', 'event-planning', 'product-launches', 'promotional-activities', 'coordination', 'brand-events']);
-        } else {
-          // Transparent Partners or other companies
-          setCategories(['AI Development', 'Agent Management', 'Security & Compliance', 'Performance Monitoring', 'Data Management', 'Integration Services']);
-          setProviders(['google', 'openai', 'anthropic']);
-          setAvailableTags(['ai-development', 'agent-management', 'security', 'compliance', 'performance', 'monitoring', 'data-management', 'integration', 'transparent-partners', 'enterprise', 'scalability', 'reliability']);
-        }
-        
+        setCategories(['Brand Marketing', 'Marketing Operations', 'Campaign Development', 'Brand Intelligence', 'Social Media', 'Consumer Intelligence', 'Event Management']);
+        setProviders(['openai', 'anthropic']);
+        setAvailableTags(['brand-harmony', 'messaging', 'tone', 'visual-identity', 'consistency', 'coca-cola', 'marketing-orchestration', 'multi-channel', 'customer-journey', 'campaign-coordination', 'synchronization', 'campaign-creation', 'social-media', 'promotional', 'content-generation', 'brand-analytics', 'sentiment-analysis', 'market-share', 'campaign-effectiveness', 'global-markets', 'conversation-monitoring', 'platform-management', 'engagement', 'customer-insights', 'behavior-analysis', 'consumer-preferences', 'trends', 'purchasing-patterns', 'event-planning', 'product-launches', 'promotional-activities', 'coordination', 'brand-events']);
         setLoading(false);
         return;
       }
     } catch (error) {
-      console.error(`Error loading ${companyId} agents:`, error);
+      console.error('Error loading Coca-Cola agents:', error);
     }
     
-    // Fallback to company-specific mock agents if libraryService fails
-    let mockAgents: Agent[];
-    
-    if (companyId === 'coca-cola') {
-      mockAgents = [
-        {
-          id: 'project-harmony',
-          name: 'Project Harmony',
-          description: 'Coca-Cola\'s AI-powered brand harmony agent that ensures consistent messaging, tone, and visual identity across all marketing campaigns and touchpoints.',
-          provider: 'openai',
-          route: '/agents/project-harmony',
-          visibility: 'company',
-          status: 'approved',
-          metadata: {
-            tags: ['brand-harmony', 'messaging', 'tone', 'visual-identity', 'consistency', 'coca-cola'],
-            category: 'Brand Marketing',
-            tier: 'premium',
-            permissionType: 'approval'
-          }
-        },
-        {
-          id: 'project-symphony',
-          name: 'Project Symphony',
-          description: 'Coca-Cola\'s AI marketing orchestration agent that coordinates multi-channel campaigns, synchronizes messaging, and optimizes customer journey touchpoints.',
-          provider: 'anthropic',
-          route: '/agents/project-symphony',
-          visibility: 'company',
-          status: 'approved',
-          metadata: {
-            tags: ['marketing-orchestration', 'multi-channel', 'customer-journey', 'campaign-coordination', 'synchronization', 'coca-cola'],
-            category: 'Marketing Operations',
-            tier: 'premium',
-            permissionType: 'approval'
-          }
-        }
-      ];
-    } else {
-      // Transparent Partners agents
-      mockAgents = [
-        {
-          id: 'ai-hub-manager',
-          name: 'AI Hub Manager',
-          description: 'Transparent Partners\' AI hub management agent that orchestrates and coordinates all AI agents across the platform.',
-          provider: 'google',
-          route: '/agents/ai-hub-manager',
-          visibility: 'company',
-          status: 'approved',
-          metadata: {
-            tags: ['ai-development', 'agent-management', 'orchestration', 'transparent-partners'],
-            category: 'AI Development',
-            tier: 'premium',
-            permissionType: 'approval'
-          }
-        },
-        {
-          id: 'security-compliance',
-          name: 'Security & Compliance',
-          description: 'Transparent Partners\' security and compliance agent that ensures all AI operations meet enterprise security standards.',
-          provider: 'openai',
-          route: '/agents/security-compliance',
-          visibility: 'company',
-          status: 'approved',
-          metadata: {
-            tags: ['security', 'compliance', 'enterprise', 'transparent-partners'],
-            category: 'Security & Compliance',
-            tier: 'premium',
-            permissionType: 'approval'
-          }
-        }
-      ];
-    }
+         // Fallback to mock agents if libraryService fails
+     const mockAgents: Agent[] = [
+       {
+         id: 'project-harmony',
+         name: 'Project Harmony',
+         description: 'Coca-Cola\'s AI-powered brand harmony agent that ensures consistent messaging, tone, and visual identity across all marketing campaigns and touchpoints.',
+         provider: 'openai',
+         route: '/agents/project-harmony',
+         visibility: 'company',
+         status: 'approved',
+         metadata: {
+           tags: ['brand-harmony', 'messaging', 'tone', 'visual-identity', 'consistency', 'coca-cola'],
+           category: 'Brand Marketing',
+           tier: 'premium',
+           permissionType: 'approval'
+         }
+       },
+       {
+         id: 'project-symphony',
+         name: 'Project Symphony',
+         description: 'Coca-Cola\'s AI marketing orchestration agent that coordinates multi-channel campaigns, synchronizes messaging, and optimizes customer journey touchpoints.',
+         provider: 'anthropic',
+         route: '/agents/project-symphony',
+         visibility: 'company',
+         status: 'approved',
+         metadata: {
+           tags: ['marketing-orchestration', 'multi-channel', 'customer-journey', 'campaign-coordination', 'synchronization', 'coca-cola'],
+           category: 'Marketing Operations',
+           tier: 'premium',
+           permissionType: 'approval'
+         }
+       }
+     ];
      
-    setAgents(mockAgents);
+     setAgents(mockAgents);
     setFilteredAgents(mockAgents);
-    
-    // Set categories and tags based on company
-    if (companyId === 'coca-cola') {
-      setCategories(['Brand Marketing', 'Marketing Operations', 'Campaign Development', 'Brand Intelligence', 'Social Media', 'Consumer Intelligence', 'Event Management']);
-      setProviders(['openai', 'anthropic']);
-      setAvailableTags(['brand-harmony', 'messaging', 'tone', 'visual-identity', 'consistency', 'coca-cola', 'marketing-orchestration', 'multi-channel', 'customer-journey', 'campaign-coordination', 'synchronization', 'campaign-creation', 'social-media', 'promotional', 'content-generation', 'brand-analytics', 'sentiment-analysis', 'market-share', 'campaign-effectiveness', 'global-markets', 'conversation-monitoring', 'platform-management', 'engagement', 'customer-insights', 'behavior-analysis', 'consumer-preferences', 'trends', 'purchasing-patterns', 'event-planning', 'product-launches', 'promotional-activities', 'coordination', 'brand-events']);
-    } else {
-      setCategories(['AI Development', 'Agent Management', 'Security & Compliance', 'Performance Monitoring', 'Data Management', 'Integration Services']);
-      setProviders(['google', 'openai', 'anthropic']);
-      setAvailableTags(['ai-development', 'agent-management', 'security', 'compliance', 'performance', 'monitoring', 'data-management', 'integration', 'transparent-partners', 'enterprise', 'scalability', 'reliability']);
-    }
-    
+    setCategories(['conversation', 'creative', 'marketing', 'analytics', 'writing']);
+    setProviders(['google', 'openai', 'anthropic']);
+    setAvailableTags(['conversation', 'writing', 'creative', 'image', 'generation', 'marketing', 'analytics', 'campaigns', 'sales', 'data', 'content']);
     setLoading(false);
   };
 
@@ -451,15 +394,8 @@ export default function CompanyAgentLibrary() {
 
 
 
-      {/* Section 3: Company Branded Content Box - Dynamic based on company */}
-      <div 
-        className="text-white py-5 relative z-10 mt-16"
-        style={{
-          background: companyId === 'coca-cola' 
-            ? 'linear-gradient(to right, #E61A27, #D4141A)' 
-            : 'linear-gradient(to right, #8B5CF6, #7C3AED)'
-        }}
-      >
+      {/* Section 3: Coca-Cola Red Content Box - Shorter, Combined, Pushed Down */}
+      <div className="bg-gradient-to-r from-[#E61A27] to-[#D4141A] text-white py-5 relative z-10 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
             
@@ -481,10 +417,7 @@ export default function CompanyAgentLibrary() {
                     setSearchFocused(false);
                   }
                 }}
-                className="w-full pl-12 pr-4 py-4 border-0 rounded-xl focus:outline-none focus:ring-2 text-lg transition-all duration-200 bg-white/95 hover:bg-white focus:bg-white shadow-lg"
-                style={{
-                  '--tw-ring-color': companyId === 'coca-cola' ? '#E61A27' : '#8B5CF6'
-                } as React.CSSProperties}
+                className="w-full pl-12 pr-4 py-4 border-0 rounded-xl focus:outline-none focus:ring-2 text-lg transition-all duration-200 bg-white/95 hover:bg-white focus:bg-white focus:ring-[#E61A27] shadow-lg"
                 aria-label="Search agents"
                 role="searchbox"
               />
@@ -529,23 +462,12 @@ export default function CompanyAgentLibrary() {
         </div>
       </div>
 
-      {/* 2. FILTER BAR - Company Branded Design */}
-      <div 
-        className="border-b"
-        style={{
-          backgroundColor: companyId === 'coca-cola' ? '#FEF2F2' : '#F5F3FF',
-          borderColor: companyId === 'coca-cola' ? '#FECACA' : '#DDD6FE'
-        }}
-      >
+      {/* 2. FILTER BAR - Universal Design */}
+      <div className="bg-red-50 border-b border-red-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                         {/* Stats */}
-            <div 
-              className="flex items-center space-x-6 text-sm"
-              style={{
-                color: companyId === 'coca-cola' ? '#E61A27' : '#8B5CF6'
-              }}
-            >
+            <div className="flex items-center space-x-6 text-sm text-[#E61A27]">
               <div className="flex items-center space-x-2">
                 <StarIcon className="w-4 h-4" />
                 <span>{filteredAgents.length} agents</span>
@@ -562,20 +484,7 @@ export default function CompanyAgentLibrary() {
               <div className="lg:hidden w-full">
                               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="w-full px-3 py-2 border-2 rounded-lg text-sm transition-all duration-200 flex items-center justify-center space-x-2 bg-white/80 hover:bg-white"
-                style={{
-                  borderColor: companyId === 'coca-cola' ? '#E61A27' : '#8B5CF6',
-                  color: companyId === 'coca-cola' ? '#E61A27' : '#8B5CF6',
-                  '--tw-border-opacity': '1'
-                } as React.CSSProperties}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = companyId === 'coca-cola' ? '#D4141A' : '#7C3AED';
-                  e.currentTarget.style.color = companyId === 'coca-cola' ? '#D4141A' : '#7C3AED';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = companyId === 'coca-cola' ? '#E61A27' : '#8B5CF6';
-                  e.currentTarget.style.color = companyId === 'coca-cola' ? '#E61A27' : '#8B5CF6';
-                }}
+                className="w-full px-3 py-2 border-2 border-[#3B82F6] rounded-lg text-sm transition-all duration-200 flex items-center justify-center space-x-2 hover:border-[#1E40AF] text-[#3B82F6] hover:text-[#1E40AF] bg-white/80 hover:bg-white"
               >
                   <AdjustmentsHorizontalIcon className="w-4 h-4" />
                   <span>{showAdvancedFilters ? 'Hide' : 'Show'} Filters</span>
