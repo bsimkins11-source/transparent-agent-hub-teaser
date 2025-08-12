@@ -4,10 +4,10 @@ const app = express();
 
 console.log('🚀 Starting server...');
 console.log('📁 Current directory:', __dirname);
-console.log('📁 Build directory:', path.join(__dirname, 'build'));
+console.log('📁 Dist directory:', path.join(__dirname, 'dist'));
 
 // Simple static file serving
-app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(__dirname, 'dist')));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -16,7 +16,7 @@ app.get('/health', (req, res) => {
 
 // Serve index.html for all other routes (React routing)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
 // Start server

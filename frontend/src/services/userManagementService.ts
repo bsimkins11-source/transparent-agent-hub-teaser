@@ -1,550 +1,401 @@
-import { 
-  collection, 
-  doc, 
-  getDocs, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  where, 
-  addDoc,
-  serverTimestamp 
-} from 'firebase/firestore';
-import { db } from '../lib/firebase';
-import { addAgentToUserLibrary, removeAgentFromUserLibrary } from './userLibraryService';
-import { createAgentRequest, approveAgentRequest, denyAgentRequest } from './requestService';
-import toast from 'react-hot-toast';
+// Local user management service
+import { logger } from '../utils/logger';
 
-export interface CompanyUser {
+export interface UserProfile {
   id: string;
   email: string;
   displayName: string;
-  role: 'user' | 'network_admin' | 'company_admin';
-  networkId?: string;
-  networkName?: string;
-  status: 'active' | 'suspended' | 'pending';
   organizationId: string;
   organizationName: string;
+  role: 'user' | 'company_admin' | 'network_admin' | 'super_admin';
+  networkId?: string;
+  networkName?: string;
+  assignedAgents: string[];
   createdAt: string;
-  lastActive?: string;
-  agentLibraryCount: number;
+  updatedAt: string;
 }
 
-export interface UserAgentLibrary {
-  userId: string;
-  userEmail: string;
-  userName: string;
-  agents: Array<{
-    agentId: string;
-    agentName: string;
-    addedAt: string;
-    addedBy: string;
-    source: 'company' | 'network' | 'direct';
-  }>;
-  totalAgents: number;
-  lastUpdated: string;
-}
-
-export interface UserInvitation {
+export interface Organization {
   id: string;
-  email: string;
-  invitedBy: string;
-  invitedByName: string;
-  organizationId: string;
-  organizationName: string;
-  networkId?: string;
-  networkName?: string;
-  status: 'pending' | 'accepted' | 'expired';
-  expiresAt: string;
+  name: string;
+  type: 'company' | 'network';
+  parentId?: string;
+  adminUsers: string[];
+  memberUsers: string[];
   createdAt: string;
+  updatedAt: string;
 }
 
-export interface UserAgentRequest {
-  id: string;
-  userId: string;
-  userEmail: string;
-  userName: string;
-  agentId: string;
-  agentName: string;
-  organizationId: string;
-  organizationName: string;
-  networkId?: string;
-  networkName?: string;
-  status: 'pending' | 'approved' | 'denied';
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  requestReason?: string;
-  businessJustification?: string;
-  requestedAt: string;
-  processedAt?: string;
-  processedBy?: string;
-  processedByName?: string;
-  denialReason?: string;
-}
+// Local storage for users and organizations (in-memory for development)
+const localUsers: Map<string, UserProfile> = new Map();
+const localOrganizations: Map<string, Organization> = new Map();
 
-/**
- * Add a new user to the company portal
- * This creates a user account and initializes their dedicated agent library
- */
-export const addUserToCompany = async (
-  companyId: string,
-  companyName: string,
-  userData: {
-    email: string;
-    displayName: string;
-    role: 'user' | 'network_admin' | 'company_admin';
-    networkId?: string;
-    networkName?: string;
-  },
-  addedBy: string,
-  addedByName: string
+// Initialize with some default data for testing
+const initializeDefaultData = () => {
+  // Create default super admin user
+  const superAdmin: UserProfile = {
+    id: 'super-admin-1',
+    email: 'admin@transparent.ai',
+    displayName: 'Super Admin',
+    organizationId: 'transparent-ai',
+    organizationName: 'Transparent AI',
+    role: 'super_admin',
+    assignedAgents: ['gemini-chat-agent', 'imagen-agent'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  // Create default company admin user
+  const companyAdmin: UserProfile = {
+    id: 'company-admin-1',
+    email: 'company@example.com',
+    displayName: 'Company Admin',
+    organizationId: 'example-company',
+    organizationName: 'Example Company',
+    role: 'company_admin',
+    assignedAgents: ['gemini-chat-agent'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  // Create default regular user
+  const regularUser: UserProfile = {
+    id: 'user-1',
+    email: 'user@example.com',
+    displayName: 'Regular User',
+    organizationId: 'example-company',
+    organizationName: 'Example Company',
+    role: 'user',
+    assignedAgents: [],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  // Create organizations
+  const transparentOrg: Organization = {
+    id: 'transparent-ai',
+    name: 'Transparent AI',
+    type: 'company',
+    adminUsers: ['super-admin-1'],
+    memberUsers: ['super-admin-1'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  const exampleCompany: Organization = {
+    id: 'example-company',
+    name: 'Example Company',
+    type: 'company',
+    adminUsers: ['company-admin-1'],
+    memberUsers: ['company-admin-1', 'user-1'],
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  
+  // Store data
+  localUsers.set('super-admin-1', superAdmin);
+  localUsers.set('company-admin-1', companyAdmin);
+  localUsers.set('user-1', regularUser);
+  localOrganizations.set('transparent-ai', transparentOrg);
+  localOrganizations.set('example-company', exampleCompany);
+  
+  logger.info('Initialized default user management data', undefined, 'UserManagementService');
+};
+
+// Initialize default data
+initializeDefaultData();
+
+export const createUserProfile = async (
+  userData: Omit<UserProfile, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> => {
   try {
-    // Check if user already exists
-    const existingUser = await getUserByEmail(userData.email);
-    if (existingUser) {
-      throw new Error('User already exists in the system');
-    }
-
-    // Create user document
-    const userRef = await addDoc(collection(db, 'companyUsers'), {
+    logger.debug('Creating user profile', { email: userData.email }, 'UserManagementService');
+    
+    const userId = `user-${Date.now()}`;
+    const now = new Date().toISOString();
+    
+    const newUser: UserProfile = {
       ...userData,
-      organizationId: companyId,
-      organizationName: companyName,
-      status: 'pending',
-      createdAt: serverTimestamp(),
-      agentLibraryCount: 0
-    });
-
-    // Initialize user's dedicated agent library
-    await initializeUserAgentLibrary(userRef.id, userData.email, userData.displayName, companyId, companyName);
-
-    // Create user invitation
-    await createUserInvitation(
-      companyId,
-      companyName,
-      userData.email,
-      addedBy,
-      addedByName,
-      userData.networkId,
-      userData.networkName
-    );
-
-    toast.success(`User ${userData.displayName} added to company portal successfully`);
-    return userRef.id;
-
+      id: userId,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    localUsers.set(userId, newUser);
+    
+    logger.info('User profile created successfully', { id: userId, email: userData.email }, 'UserManagementService');
+    return userId;
+    
   } catch (error) {
-    console.error('Error adding user to company:', error);
-    toast.error(`Failed to add user: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    logger.error('Error creating user profile', error, 'UserManagementService');
     throw error;
   }
 };
 
-/**
- * Remove a user from the company portal
- * This removes their access and cleans up their data
- */
-export const removeUserFromCompany = async (
-  companyId: string,
-  userId: string,
-  removedBy: string,
-  removedByName: string,
-  reason?: string
-): Promise<void> => {
+export const getUserProfile = async (userId: string): Promise<UserProfile | null> => {
   try {
-    // Get user details
-    const user = await getUserById(userId);
+    logger.debug('Fetching user profile', { id: userId }, 'UserManagementService');
+    
+    const user = localUsers.get(userId);
     if (!user) {
-      throw new Error('User not found');
+      logger.info('User profile not found', { id: userId }, 'UserManagementService');
+      return null;
     }
-
-    // Update user status to suspended
-    await updateDoc(doc(db, 'companyUsers', userId), {
-      status: 'suspended',
-      suspendedAt: serverTimestamp(),
-      suspendedBy: removedBy,
-      suspendedByName: removedByName,
-      suspensionReason: reason || 'Removed by company admin'
-    });
-
-    // Archive user's agent library (don't delete, just mark as archived)
-    await updateDoc(doc(db, 'userAgentLibraries', userId), {
-      archived: true,
-      archivedAt: serverTimestamp(),
-      archivedBy: removedBy,
-      archivedByName: removedByName
-    });
-
-    toast.success(`User ${user.displayName} removed from company portal`);
+    
+    logger.info('User profile fetched successfully', { id: userId, email: user.email }, 'UserManagementService');
+    return user;
+    
   } catch (error) {
-    console.error('Error removing user from company:', error);
-    toast.error(`Failed to remove user: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    logger.error('Error fetching user profile', error, 'UserManagementService');
     throw error;
   }
 };
 
-/**
- * Initialize a user's dedicated agent library
- * Every new user gets their own agent library
- */
-export const initializeUserAgentLibrary = async (
-  userId: string,
-  userEmail: string,
-  userName: string,
-  organizationId: string,
-  organizationName: string
-): Promise<void> => {
+export const getUserProfileByEmail = async (email: string): Promise<UserProfile | null> => {
   try {
-    const libraryRef = doc(db, 'userAgentLibraries', userId);
+    logger.debug('Fetching user profile by email', { email }, 'UserManagementService');
     
-    await setDoc(libraryRef, {
-      userId,
-      userEmail,
-      userName,
-      organizationId,
-      organizationName,
-      agents: [],
-      totalAgents: 0,
-      createdAt: serverTimestamp(),
-      lastUpdated: serverTimestamp(),
-      archived: false
-    });
-
-    console.log(`Initialized agent library for user ${userName}`);
+    const users = Array.from(localUsers.values());
+    const user = users.find(u => u.email === email);
+    
+    if (!user) {
+      logger.info('User profile not found by email', { email }, 'UserManagementService');
+      return null;
+    }
+    
+    logger.info('User profile fetched successfully by email', { email, id: user.id }, 'UserManagementService');
+    return user;
+    
   } catch (error) {
-    console.error('Error initializing user agent library:', error);
+    logger.error('Error fetching user profile by email', error, 'UserManagementService');
     throw error;
   }
 };
 
-/**
- * Get a user's agent library
- */
-export const getUserAgentLibrary = async (userId: string): Promise<UserAgentLibrary | null> => {
+export const updateUserProfile = async (userId: string, updates: Partial<UserProfile>): Promise<void> => {
   try {
-    const libraryDoc = await getDoc(doc(db, 'userAgentLibraries', userId));
-    if (libraryDoc.exists()) {
-      return libraryDoc.data() as UserAgentLibrary;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error getting user agent library:', error);
-    return null;
-  }
-};
-
-/**
- * Add an agent to a user's library from the company agent library
- */
-export const addAgentToUserLibraryFromCompany = async (
-  userId: string,
-  agentId: string,
-  agentName: string,
-  companyId: string,
-  companyName: string,
-  addedBy: string,
-  addedByName: string,
-  source: 'company' | 'network' | 'direct' = 'company'
-): Promise<void> => {
-  try {
-    // Add to user's library
-    await addAgentToUserLibrary(
-      userId,
-      '', // userEmail - will be filled by the service
-      '', // userName - will be filled by the service
-      agentId,
-      agentName,
-      companyId,
-      companyName,
-      undefined, // networkId
-      undefined, // networkName
-      `Added from company library by ${addedByName}`
-    );
-
-    // Update the user's library document
-    const libraryRef = doc(db, 'userAgentLibraries', userId);
-    const libraryDoc = await getDoc(libraryRef);
+    logger.debug('Updating user profile', { id: userId }, 'UserManagementService');
     
-    if (libraryDoc.exists()) {
-      const library = libraryDoc.data() as UserAgentLibrary;
-      const newAgent = {
-        agentId,
-        agentName,
-        addedAt: new Date().toISOString(),
-        addedBy,
-        source
-      };
-
-      await updateDoc(libraryRef, {
-        agents: [...library.agents, newAgent],
-        totalAgents: library.totalAgents + 1,
-        lastUpdated: serverTimestamp()
-      });
+    const user = localUsers.get(userId);
+    if (!user) {
+      throw new Error(`User with id ${userId} not found`);
     }
-
-    toast.success(`Agent ${agentName} added to user's library`);
+    
+    const updatedUser: UserProfile = {
+      ...user,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    localUsers.set(userId, updatedUser);
+    
+    logger.info('User profile updated successfully', { id: userId }, 'UserManagementService');
+    
   } catch (error) {
-    console.error('Error adding agent to user library:', error);
-    toast.error(`Failed to add agent: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    logger.error('Error updating user profile', error, 'UserManagementService');
     throw error;
   }
 };
 
-/**
- * Handle agent requests that require approval
- * Requests go to company admin if no network, network admin if network exists
- */
-export const handleAgentRequest = async (
-  userId: string,
-  userEmail: string,
-  userName: string,
-  agentId: string,
-  agentName: string,
-  companyId: string,
-  companyName: string,
-  networkId?: string,
-  networkName?: string,
-  requestReason?: string,
-  businessJustification?: string,
-  priority: 'low' | 'normal' | 'high' | 'urgent' = 'normal'
-): Promise<string> => {
+export const deleteUserProfile = async (userId: string): Promise<void> => {
   try {
-    // Determine approval level based on user's context
-    let approvalLevel: 'network_admin' | 'company_admin' | 'super_admin' = 'company_admin';
+    logger.debug('Deleting user profile', { id: userId }, 'UserManagementService');
     
-    if (networkId && networkName) {
-      // User is in a network, request goes to network admin first
-      approvalLevel = 'network_admin';
-    } else {
-      // User is company-wide, request goes to company admin
-      approvalLevel = 'company_admin';
+    const deleted = localUsers.delete(userId);
+    if (!deleted) {
+      throw new Error(`User with id ${userId} not found`);
     }
-
-    // Create the agent request
-    const requestId = await createAgentRequest(
-      agentId,
-      agentName,
-      userId,
-      userEmail,
-      userName,
-      companyId,
-      companyName,
-      networkId,
-      networkName,
-      approvalLevel,
-      priority,
-      requestReason || `User requesting access to ${agentName}`,
-      {
-        businessJustification: businessJustification || `Access requested for ${agentName} to enhance productivity`,
-        expectedUsage: 'Regular use for business tasks',
-        userRole: 'user'
-      }
-    );
-
-    toast.success(`Access request submitted for ${agentName}! Your administrator will review it.`);
-    return requestId;
-
+    
+    logger.info('User profile deleted successfully', { id: userId }, 'UserManagementService');
+    
   } catch (error) {
-    console.error('Failed to create agent request:', error);
-    toast.error('Failed to submit access request. Please try again.');
+    logger.error('Error deleting user profile', error, 'UserManagementService');
     throw error;
   }
 };
 
-/**
- * Get all users in a company
- */
-export const getCompanyUsers = async (companyId: string): Promise<CompanyUser[]> => {
+export const getAllUsers = async (): Promise<UserProfile[]> => {
   try {
-    const usersQuery = query(
-      collection(db, 'companyUsers'),
-      where('organizationId', '==', companyId)
-    );
+    logger.debug('Fetching all users', undefined, 'UserManagementService');
     
-    const querySnapshot = await getDocs(usersQuery);
-    const users: CompanyUser[] = [];
+    const users = Array.from(localUsers.values());
     
-    querySnapshot.forEach((doc) => {
-      users.push({
-        id: doc.id,
-        ...doc.data()
-      } as CompanyUser);
-    });
-
+    logger.info(`Fetched ${users.length} users`, undefined, 'UserManagementService');
     return users;
-  } catch (error) {
-    console.error('Error getting company users:', error);
-    return [];
-  }
-};
-
-/**
- * Get user by ID
- */
-export const getUserById = async (userId: string): Promise<CompanyUser | null> => {
-  try {
-    const userDoc = await getDoc(doc(db, 'companyUsers', userId));
-    if (userDoc.exists()) {
-      return { id: userDoc.id, ...userDoc.data() } as CompanyUser;
-    }
-    return null;
-  } catch (error) {
-    console.error('Error getting user by ID:', error);
-    return null;
-  }
-};
-
-/**
- * Get user by email
- */
-export const getUserByEmail = async (email: string): Promise<CompanyUser | null> => {
-  try {
-    const usersQuery = query(
-      collection(db, 'companyUsers'),
-      where('email', '==', email)
-    );
     
-    const querySnapshot = await getDocs(usersQuery);
-    if (!querySnapshot.empty) {
-      const doc = querySnapshot.docs[0];
-      return { id: doc.id, ...doc.data() } as CompanyUser;
-    }
-    return null;
   } catch (error) {
-    console.error('Error getting user by email:', error);
-    return null;
+    logger.error('Error fetching all users', error, 'UserManagementService');
+    throw error;
   }
 };
 
-/**
- * Create a user invitation
- */
-export const createUserInvitation = async (
-  companyId: string,
-  companyName: string,
-  email: string,
-  invitedBy: string,
-  invitedByName: string,
-  networkId?: string,
-  networkName?: string
+export const getUsersByOrganization = async (organizationId: string): Promise<UserProfile[]> => {
+  try {
+    logger.debug('Fetching users by organization', { organizationId }, 'UserManagementService');
+    
+    const users = Array.from(localUsers.values());
+    const orgUsers = users.filter(user => user.organizationId === organizationId);
+    
+    logger.info(`Found ${orgUsers.length} users in organization`, { organizationId }, 'UserManagementService');
+    return orgUsers;
+    
+  } catch (error) {
+    logger.error('Error fetching users by organization', error, 'UserManagementService');
+    throw error;
+  }
+};
+
+export const getUsersByRole = async (role: UserProfile['role']): Promise<UserProfile[]> => {
+  try {
+    logger.debug('Fetching users by role', { role }, 'UserManagementService');
+    
+    const users = Array.from(localUsers.values());
+    const roleUsers = users.filter(user => user.role === role);
+    
+    logger.info(`Found ${roleUsers.length} users with role ${role}`, undefined, 'UserManagementService');
+    return roleUsers;
+    
+  } catch (error) {
+    logger.error('Error fetching users by role', error, 'UserManagementService');
+    throw error;
+  }
+};
+
+export const createOrganization = async (
+  orgData: Omit<Organization, 'id' | 'createdAt' | 'updatedAt'>
 ): Promise<string> => {
   try {
-    const invitationRef = await addDoc(collection(db, 'userInvitations'), {
-      email,
-      invitedBy,
-      invitedByName,
-      organizationId: companyId,
-      organizationName: companyName,
-      networkId,
-      networkName,
-      status: 'pending',
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-      createdAt: serverTimestamp()
-    });
-
-    // In a real app, you would send an email invitation here
-    console.log(`Created invitation for ${email} in ${companyName}`);
+    logger.debug('Creating organization', { name: orgData.name }, 'UserManagementService');
     
-    return invitationRef.id;
+    const orgId = `org-${Date.now()}`;
+    const now = new Date().toISOString();
+    
+    const newOrg: Organization = {
+      ...orgData,
+      id: orgId,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    localOrganizations.set(orgId, newOrg);
+    
+    logger.info('Organization created successfully', { id: orgId, name: orgData.name }, 'UserManagementService');
+    return orgId;
+    
   } catch (error) {
-    console.error('Error creating user invitation:', error);
+    logger.error('Error creating organization', error, 'UserManagementService');
     throw error;
   }
 };
 
-/**
- * Get pending agent requests for a company
- */
-export const getCompanyPendingRequests = async (companyId: string): Promise<UserAgentRequest[]> => {
+export const getOrganization = async (orgId: string): Promise<Organization | null> => {
   try {
-    const requestsQuery = query(
-      collection(db, 'agentRequests'),
-      where('organizationId', '==', companyId),
-      where('status', '==', 'pending')
-    );
+    logger.debug('Fetching organization', { id: orgId }, 'UserManagementService');
     
-    const querySnapshot = await getDocs(requestsQuery);
-    const requests: UserAgentRequest[] = [];
-    
-    querySnapshot.forEach((doc) => {
-      requests.push({
-        id: doc.id,
-        ...doc.data()
-      } as UserAgentRequest);
-    });
-
-    return requests;
-  } catch (error) {
-    console.error('Error getting company pending requests:', error);
-    return [];
-  }
-};
-
-/**
- * Approve an agent request
- */
-export const approveUserAgentRequest = async (
-  requestId: string,
-  approvedBy: string,
-  approvedByName: string,
-  reason?: string
-): Promise<void> => {
-  try {
-    // Approve the request
-    await approveAgentRequest(
-      requestId,
-      approvedBy,
-      approvedByName,
-      reason || 'Request approved by company admin'
-    );
-
-    // Get the request details to add agent to user's library
-    const requestDoc = await getDoc(doc(db, 'agentRequests', requestId));
-    if (requestDoc.exists()) {
-      const request = requestDoc.data() as UserAgentRequest;
-      
-      // Add agent to user's library
-      await addAgentToUserLibraryFromCompany(
-        request.userId,
-        request.agentId,
-        request.agentName,
-        request.organizationId,
-        request.organizationName,
-        approvedBy,
-        approvedByName,
-        'company'
-      );
+    const org = localOrganizations.get(orgId);
+    if (!org) {
+      logger.info('Organization not found', { id: orgId }, 'UserManagementService');
+      return null;
     }
-
-    toast.success('Request approved successfully');
+    
+    logger.info('Organization fetched successfully', { id: orgId, name: org.name }, 'UserManagementService');
+    return org;
+    
   } catch (error) {
-    console.error('Error approving request:', error);
-    toast.error('Failed to approve request');
+    logger.error('Error fetching organization', error, 'UserManagementService');
     throw error;
   }
 };
 
-/**
- * Deny an agent request
- */
-export const denyUserAgentRequest = async (
-  requestId: string,
-  deniedBy: string,
-  deniedByName: string,
-  reason: string
-): Promise<void> => {
+export const getAllOrganizations = async (): Promise<Organization[]> => {
   try {
-    await denyAgentRequest(
-      requestId,
-      deniedBy,
-      deniedByName,
-      reason
-    );
-
-    toast.success('Request denied');
+    logger.debug('Fetching all organizations', undefined, 'UserManagementService');
+    
+    const orgs = Array.from(localOrganizations.values());
+    
+    logger.info(`Fetched ${orgs.length} organizations`, undefined, 'UserManagementService');
+    return orgs;
+    
   } catch (error) {
-    console.error('Error denying request:', error);
-    toast.error('Failed to deny request');
+    logger.error('Error fetching all organizations', error, 'UserManagementService');
+    throw error;
+  }
+};
+
+export const updateOrganization = async (orgId: string, updates: Partial<Organization>): Promise<void> => {
+  try {
+    logger.debug('Updating organization', { id: orgId }, 'UserManagementService');
+    
+    const org = localOrganizations.get(orgId);
+    if (!org) {
+      throw new Error(`Organization with id ${orgId} not found`);
+    }
+    
+    const updatedOrg: Organization = {
+      ...org,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    };
+    
+    localOrganizations.set(orgId, updatedOrg);
+    
+    logger.info('Organization updated successfully', { id: orgId }, 'UserManagementService');
+    
+  } catch (error) {
+    logger.error('Error updating organization', error, 'UserManagementService');
+    throw error;
+  }
+};
+
+export const deleteOrganization = async (orgId: string): Promise<void> => {
+  try {
+    logger.debug('Deleting organization', { id: orgId }, 'UserManagementService');
+    
+    const deleted = localOrganizations.delete(orgId);
+    if (!deleted) {
+      throw new Error(`Organization with id ${orgId} not found`);
+    }
+    
+    logger.info('Organization deleted successfully', { id: orgId }, 'UserManagementService');
+    
+  } catch (error) {
+    logger.error('Error deleting organization', error, 'UserManagementService');
+    throw error;
+  }
+};
+
+export const getUserManagementStats = async (): Promise<{
+  totalUsers: number;
+  totalOrganizations: number;
+  usersByRole: { [role: string]: number };
+  usersByOrganization: { [orgId: string]: number };
+}> => {
+  try {
+    logger.debug('Fetching user management statistics', undefined, 'UserManagementService');
+    
+    const users = Array.from(localUsers.values());
+    const orgs = Array.from(localOrganizations.values());
+    
+    const stats = {
+      totalUsers: users.length,
+      totalOrganizations: orgs.length,
+      usersByRole: {} as { [role: string]: number },
+      usersByOrganization: {} as { [orgId: string]: number }
+    };
+    
+    users.forEach(user => {
+      // Count by role
+      stats.usersByRole[user.role] = (stats.usersByRole[user.role] || 0) + 1;
+      
+      // Count by organization
+      stats.usersByOrganization[user.organizationId] = (stats.usersByOrganization[user.organizationId] || 0) + 1;
+    });
+    
+    logger.info('User management statistics calculated', { totalUsers: stats.totalUsers }, 'UserManagementService');
+    return stats;
+    
+  } catch (error) {
+    logger.error('Error calculating user management statistics', error, 'UserManagementService');
     throw error;
   }
 };

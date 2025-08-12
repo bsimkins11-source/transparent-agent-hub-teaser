@@ -23,9 +23,10 @@ import {
   getLibraryAgents, 
   getLibraryStats, 
   canAccessLibrary,
-  getLibraryInfo
+  getLibraryInfo,
+  addAgentToLocalLibrary
 } from '../services/libraryService';
-import { addAgentToUserLibrary, removeAgentFromUserLibrary } from '../services/api';
+import { removeAgentFromUserLibrary } from '../services/api';
 import toast from 'react-hot-toast';
 
 // Error boundary component for individual agent cards
@@ -58,6 +59,15 @@ const AgentCardWithErrorBoundary = ({ agent, ...props }: any) => {
 interface HierarchicalAgentLibraryProps {
   initialLibrary?: LibraryType;
   showTabs?: boolean;
+  companyBranding?: {
+    id: string;
+    name: string;
+    domain: string;
+    logo?: string;
+    primaryColor: string;
+    secondaryColor: string;
+    status: 'active' | 'suspended';
+  } | null;
 }
 
 // Loading skeleton component for agents
@@ -112,8 +122,14 @@ interface RecentSearch {
 
 export default function HierarchicalAgentLibrary({ 
   initialLibrary = 'global',
-  showTabs = true 
+  showTabs = true,
+  companyBranding = null
 }: HierarchicalAgentLibraryProps) {
+  // State for agent interface
+  const [openAgent, setOpenAgent] = useState<AgentWithContext | null>(null);
+  const [agentMessages, setAgentMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
+  const [agentInput, setAgentInput] = useState('');
+  const [isAgentLoading, setIsAgentLoading] = useState(false);
   const { userProfile, loading: authLoading } = useAuth();
   const [currentLibrary, setCurrentLibrary] = useState<LibraryType>(initialLibrary);
   const [agents, setAgents] = useState<AgentWithContext[]>([]);
@@ -144,6 +160,9 @@ export default function HierarchicalAgentLibrary({
   } | null>(null);
 
   const navigate = useNavigate();
+  
+  // Force global library access when needed
+  const [forceGlobalAccess, setForceGlobalAccess] = useState(false);
 
   // Memoized filtered and sorted agents for performance
   const filteredAndSortedAgents = useMemo(() => {
@@ -204,38 +223,7 @@ export default function HierarchicalAgentLibrary({
     return filtered;
   }, [agents, filters]);
 
-  // Test function to verify agent assignment functionality is working
-  const testAgentAssignment = async () => {
-    if (!userProfile?.uid) {
-      toast.error('Please sign in to test agent assignment');
-      return;
-    }
 
-    console.log('🧪 Testing agent assignment functionality...');
-    
-    // Find a free agent to test with
-    const testAgent = agents.find(a => 
-      (a.metadata?.tier === 'free' || !a.metadata?.tier) && 
-      !a.inUserLibrary && 
-      a.canAdd
-    );
-
-    if (!testAgent) {
-      toast.error('No test agent available. All free agents are already in your library or not available.');
-      return;
-    }
-
-    console.log('🧪 Found test agent:', testAgent.name);
-    toast('Testing agent assignment...', { icon: '🧪' });
-    
-    try {
-      await handleAddToLibrary(testAgent);
-      toast.success('Test successful! Agent assignment is working.');
-    } catch (error) {
-      console.error('🧪 Test failed:', error);
-      toast.error('Test failed. Check console for details.');
-    }
-  };
 
   // Get unique tags from all agents for filter options
   const availableTags = useMemo(() => {
@@ -258,11 +246,19 @@ export default function HierarchicalAgentLibrary({
   }, [agents]);
 
   useEffect(() => {
+    console.log('🔄 Library changed, loading data for:', currentLibrary);
     // Only load library data when auth is not loading and user profile is available
     if (!authLoading && userProfile) {
       loadLibraryData();
     }
   }, [currentLibrary, userProfile, authLoading]);
+
+  // Debug useEffect to monitor currentLibrary changes
+  useEffect(() => {
+    console.log('🎯 currentLibrary state changed to:', currentLibrary);
+    console.log('🎯 This should trigger loadLibraryData for:', currentLibrary);
+    console.log('🎯 Stack trace:', new Error().stack);
+  }, [currentLibrary]);
 
 
 
@@ -277,9 +273,17 @@ export default function HierarchicalAgentLibrary({
       setLoading(true);
       console.log('🔄 Starting to load library data for:', currentLibrary);
       console.log('👤 User profile:', { uid: userProfile.uid, email: userProfile.email });
+      console.log('🔍 Library type being loaded:', currentLibrary);
+      console.log('🔍 Force refresh:', forceRefresh);
       
       // Check if user can access this library
-      if (!canAccessLibrary(currentLibrary, userProfile)) {
+      const canAccess = canAccessLibrary(currentLibrary, userProfile);
+      console.log('🔍 Can access library check result:', canAccess);
+      console.log('🔍 Library type:', currentLibrary);
+      console.log('🔍 User organization ID:', userProfile.organizationId);
+      console.log('🔍 User network ID:', userProfile.networkId);
+      
+      if (!canAccess) {
         console.log('❌ User cannot access library:', currentLibrary, 'falling back to global');
         // Fall back to global library
         setCurrentLibrary('global');
@@ -320,24 +324,11 @@ export default function HierarchicalAgentLibrary({
         console.warn(`⚠️ Filtered out ${libraryAgents.length - validAgents.length} invalid agents`);
       }
 
-      // Special debugging for Gemini agent issue
-      if (forceRefresh) {
-        console.log('🔍 Force refresh triggered - checking Gemini agent status...');
-        try {
-          const { doc, getDoc } = await import('firebase/firestore');
-          const { db } = await import('../lib/firebase');
-          const userDoc = await getDoc(doc(db, 'users', userProfile.uid));
-          if (userDoc.exists()) {
-            const userData = userDoc.data();
-            console.log('🔍 User document data:', {
-              assignedAgents: userData.assignedAgents,
-              hasGemini: userData.assignedAgents?.includes('gemini-chat-agent')
-            });
-          }
-        } catch (error) {
-          console.error('🔍 Error checking user document:', error);
+              // Special debugging for Gemini agent issue
+        if (forceRefresh) {
+          console.log('🔍 Force refresh triggered - checking Gemini agent status...');
+          // Firebase debugging removed - using local services
         }
-      }
       
       console.log('🎯 Setting agents state with', validAgents.length, 'valid agents');
       setAgents(validAgents);
@@ -374,25 +365,34 @@ export default function HierarchicalAgentLibrary({
     const { agent } = confirmRemove;
 
     try {
-      await removeAgentFromUserLibrary(agent.id);
+      // REMOVED FIREBASE - use local library functions
+      const { removeAgentFromLocalLibrary } = await import('../services/libraryService');
       
-      // Refresh the library data with force refresh
-      await loadLibraryData(true);
+      const success = await removeAgentFromLocalLibrary(userProfile.uid, agent.id);
       
-      // Also refresh the current agent's state immediately for better UX
-      setAgents(prevAgents => 
-        prevAgents.map(a => 
-          a.id === agent.id 
-            ? { ...a, inUserLibrary: false, canAdd: true }
-            : a
-        )
-      );
+      if (success) {
+        toast.success(`${agent.name} removed from your library`);
+        
+        // Refresh library data
+        await loadLibraryData(true);
+        
+        // Update UI state
+        setAgents(prevAgents => 
+          prevAgents.map(a => 
+            a.id === agent.id 
+              ? { ...a, inUserLibrary: false, canAdd: true }
+              : a
+          )
+        );
+      } else {
+        toast.error(`Failed to remove ${agent.name} from library`);
+      }
       
-      toast.success(`${agent.name} removed from your library`);
-      setConfirmRemove(null);
     } catch (error) {
-      console.error('Error removing agent from library:', error);
-      toast.error(`Failed to remove ${agent.name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Failed to remove agent from library:', error);
+      toast.error('Failed to remove agent from library');
+    } finally {
+      setConfirmRemove(null);
     }
   };
 
@@ -411,59 +411,36 @@ export default function HierarchicalAgentLibrary({
       networkId: userProfile.networkId
     });
 
-    // Check if agent requires approval
-    const requiresApproval = agent.metadata?.tier === 'premium' || agent.metadata?.permissionType === 'approval';
-    
-    if (requiresApproval) {
-      // Premium agents require approval - redirect to request access
-      if (agent.canRequest) {
-        toast('This is a premium agent that requires approval. Submitting request...', { icon: 'ℹ️' });
-        await handleRequestAccess(agent);
-      } else {
-        toast.error('This premium agent is not available to your organization.');
-      }
-      return;
-    }
-    
-    // For free agents, check if they can be added directly
-    if (!agent.canAdd) {
-      console.warn('❌ Agent cannot be added:', {
-        agentId: agent.id,
-        agentName: agent.name,
-        canAdd: agent.canAdd,
-        canRequest: agent.canRequest,
-        accessLevel: agent.accessLevel
-      });
-      toast.error('This agent is not available to your organization.');
-      return;
-    }
-    
     try {
       console.log('✅ Agent can be added, proceeding with assignment...');
       
-      // Adding agent to library
-      await addAgentToUserLibrary(
-        agent.id,
-        `Added from ${currentLibrary} library`
-      );
+      // REMOVED FIREBASE - use local library functions
+      const { addAgentToLocalLibrary } = await import('../services/libraryService');
       
-      console.log('✅ Agent successfully added to user library');
-      toast.success(`${agent.name} added to your library!`);
+      // Adding agent to local library
+      const success = await addAgentToLocalLibrary(userProfile.uid, agent.id);
       
-      // Refresh library data to update UI with force refresh
-      console.log('🔄 Refreshing library data...');
-      await loadLibraryData(true);
-      
-      // Also refresh the current agent's state immediately for better UX
-      setAgents(prevAgents => 
-        prevAgents.map(a => 
-          a.id === agent.id 
-            ? { ...a, inUserLibrary: true, canAdd: false }
-            : a
-        )
-      );
-      
-      console.log('✅ UI state updated successfully');
+      if (success) {
+        console.log('✅ Agent successfully added to local library');
+        toast.success(`${agent.name} added to your library!`);
+        
+        // Refresh library data to update UI
+        console.log('🔄 Refreshing library data...');
+        await loadLibraryData(true);
+        
+        // Also refresh the current agent's state immediately for better UX
+        setAgents(prevAgents => 
+          prevAgents.map(a => 
+            a.id === agent.id 
+              ? { ...a, inUserLibrary: true, canAdd: false }
+              : a
+          )
+        );
+        
+        console.log('✅ UI state updated successfully');
+      } else {
+        toast.error(`Failed to add ${agent.name} to library`);
+      }
       
     } catch (error) {
       console.error('❌ Failed to add agent to library:', error);
@@ -612,10 +589,54 @@ export default function HierarchicalAgentLibrary({
 
   const libraryInfo = getLibraryInfo(currentLibrary, userProfile);
   
+  // Ensure global library is always available
   const availableLibraries: LibraryType[] = ['global'];
-  if (canAccessLibrary('company', userProfile)) availableLibraries.push('company');
-  if (canAccessLibrary('network', userProfile)) availableLibraries.push('network');
-  if (canAccessLibrary('personal', userProfile)) availableLibraries.push('personal');
+  console.log('🔍 Building availableLibraries array...');
+  console.log('🔍 Starting with global:', availableLibraries);
+  
+  if (canAccessLibrary('company', userProfile)) {
+    availableLibraries.push('company');
+    console.log('🔍 Added company library');
+  }
+  if (canAccessLibrary('network', userProfile)) {
+    availableLibraries.push('network');
+    console.log('🔍 Added network library');
+  }
+  if (canAccessLibrary('personal', userProfile)) {
+    availableLibraries.push('personal');
+    console.log('🔍 Added personal library');
+  }
+  
+  console.log('🔍 Final availableLibraries array:', availableLibraries);
+  console.log('🔍 Global library included:', availableLibraries.includes('global'));
+  console.log('🔍 Global library index:', availableLibraries.indexOf('global'));
+  
+  // Fallback: if for some reason global is not in the array, add it
+  if (!availableLibraries.includes('global')) {
+    console.warn('⚠️ Global library not in availableLibraries, adding it back');
+    availableLibraries.unshift('global');
+  }
+  
+  // Function to force switch to global library
+  const forceSwitchToGlobal = () => {
+    console.log('🔄 Force switching to global library');
+    setCurrentLibrary('global');
+    setForceGlobalAccess(true);
+  };
+  
+  // Debug logging for library access
+  console.log('🔍 Library access check:', {
+    global: canAccessLibrary('global', userProfile),
+    company: canAccessLibrary('company', userProfile),
+    network: canAccessLibrary('network', userProfile),
+    personal: canAccessLibrary('personal', userProfile),
+    availableLibraries,
+    userProfile: {
+      uid: userProfile?.uid,
+      organizationId: userProfile?.organizationId,
+      networkId: userProfile?.networkId
+    }
+  });
 
   const getLibraryTabInfo = (libraryType: LibraryType) => {
     const info = getLibraryInfo(libraryType, userProfile);
@@ -626,7 +647,7 @@ export default function HierarchicalAgentLibrary({
   };
 
   const getAccessBadge = (agent: AgentWithContext) => {
-    if (agent.inUserLibrary) {
+    if (agent.inUserLibrary && currentLibrary !== 'personal') {
       return (
         <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
           <CheckCircleIcon className="w-3 h-3 mr-1" />
@@ -822,7 +843,7 @@ export default function HierarchicalAgentLibrary({
 
         {/* Read-Only Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pl-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {/* Show limited agent information for non-authenticated users */}
             {agents.slice(0, 12).map((agent) => (
               <div key={agent.id} className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
@@ -904,28 +925,13 @@ export default function HierarchicalAgentLibrary({
               </h1>
             </div>
             
-            {/* Current Library Indicator */}
-            <div className="mb-4">
-              <span className="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                Currently viewing: {currentLibrary.charAt(0).toUpperCase() + currentLibrary.slice(1)} Library
-              </span>
-            </div>
+
             
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
               {libraryInfo.description}
             </p>
             
-            {/* Temporary fix button for Gemini agent issue */}
-            {process.env.NODE_ENV === 'development' && (
-              <div className="mb-6">
-                <button
-                  onClick={testAgentAssignment}
-                  className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm"
-                >
-                  🧪 Test Agent Assignment
-                </button>
-              </div>
-            )}
+
             {/* Enhanced Search Bar */}
             <div className="max-w-2xl mx-auto">
               <div className="relative">
@@ -944,7 +950,15 @@ export default function HierarchicalAgentLibrary({
                       setSearchFocused(false);
                     }
                   }}
-                  className="w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg transition-all duration-200 hover:border-gray-400"
+                  className={`w-full pl-12 pr-4 py-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 text-lg transition-all duration-200 hover:border-gray-400 ${
+                    companyBranding && currentLibrary === 'company'
+                      ? 'focus:ring-2 focus:ring-opacity-50 focus:border-opacity-50'
+                      : 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                  }`}
+                  style={companyBranding && currentLibrary === 'company' ? {
+                    '--tw-ring-color': companyBranding.primaryColor,
+                    '--tw-border-color': companyBranding.primaryColor
+                  } as React.CSSProperties : {}}
                   aria-label="Search agents"
                   role="searchbox"
                 />
@@ -958,10 +972,7 @@ export default function HierarchicalAgentLibrary({
                   </button>
                 )}
                 
-                {/* Keyboard Shortcut Hint */}
-                <div className="absolute -bottom-6 left-0 text-xs text-gray-500">
-                  Press <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs">Enter</kbd> to search, <kbd className="px-1 py-0.5 bg-gray-100 border border-gray-300 rounded text-xs">Esc</kbd> to close
-                </div>
+
                 
                 {/* Search Suggestions Dropdown */}
                 {searchFocused && (filters.search || recentSearches.length > 0) && (
@@ -1030,81 +1041,103 @@ export default function HierarchicalAgentLibrary({
               </div>
             </div>
             
-            {/* Submission Process Info */}
-            <div className="mt-8 max-w-4xl mx-auto">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <StarIcon className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-medium text-blue-900 mb-1">
-                      Discover AI Agents
-                    </h3>
-                    <p className="text-sm text-blue-700 mb-3">
-                      Browse our curated collection of AI agents to enhance your productivity and workflow.
-                    </p>
-                    <div className="flex flex-wrap gap-2 text-xs text-blue-600">
-                      <span className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full">
-                        ✓ Quality Assured
-                      </span>
-                      <span className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full">
-                        ✓ Security Verified
-                      </span>
-                      <span className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full">
-                        ✓ Community Tested
-                      </span>
-                      <span className="inline-flex items-center px-2 py-1 bg-blue-100 rounded-full">
-                        ✓ Easy Integration
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+
           </motion.div>
         </div>
       </div>
 
-      {/* Library Sidebar */}
-      <LibrarySidebar 
+      {/* Library Sidebar - REMOVED TO FIX TAB CONFLICTS */}
+      {/* <LibrarySidebar 
         currentLibrary={currentLibrary === 'personal' ? 'personal' : currentLibrary === 'global' ? 'global' : 'company'}
         companySlug={userProfile?.organizationId}
         networkSlug={userProfile?.networkId}
-      />
+      /> */}
 
-      {/* Library Tabs */}
+      {/* BRAND NEW NAVIGATION - COMPLETELY DIFFERENT STRUCTURE */}
       {showTabs && (
-        <div className="bg-white border-b border-gray-200">
+        <nav className="bg-white border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pl-8">
-            <div className="flex items-center justify-between">
-              <div className="flex space-x-8 overflow-x-auto">
-                {availableLibraries.map((libraryType) => {
-                  const tabInfo = getLibraryTabInfo(libraryType);
-                  return (
-                    <button
-                      key={libraryType}
-                      onClick={() => setCurrentLibrary(libraryType)}
-                      className={`flex items-center space-x-2 py-4 px-2 border-b-2 font-medium text-sm whitespace-nowrap transition-all duration-200 ${
-                        currentLibrary === libraryType
-                          ? 'border-blue-500 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                      }`}
-                    >
-                      <span>{tabInfo.icon}</span>
-                      <span>{tabInfo.name}</span>
-                      {tabInfo.count !== undefined && (
-                        <span className="bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs">
-                          {tabInfo.count}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="flex items-center space-x-8 overflow-x-auto py-4">
+              {/* Global Tab - NEW STRUCTURE */}
+              <button
+                onClick={() => {
+                  console.log('🌐 Global tab clicked - NEW STRUCTURE');
+                  console.log('🔍 Current library before:', currentLibrary);
+                  console.log('🔍 User profile:', userProfile);
+                  console.log('🔍 Can access global library:', canAccessLibrary('global', userProfile));
+                  setCurrentLibrary('global');
+                  console.log('🔍 setCurrentLibrary called');
+                  // Force immediate check
+                  setTimeout(() => {
+                    console.log('🔍 Current library after 100ms:', currentLibrary);
+                  }, 100);
+                }}
+                className={`flex items-center space-x-2 px-2 py-2 border-b-2 font-medium text-sm whitespace-nowrap transition-all duration-200 ${
+                  currentLibrary === 'global'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <span>🌐</span>
+                <span>Global Library</span>
+              </button>
+
+              {/* Company Tab - NEW STRUCTURE */}
+              <button
+                onClick={() => {
+                  console.log('🏢 Company tab clicked - NEW STRUCTURE');
+                  console.log('🔍 Current library before:', currentLibrary);
+                  console.log('🔍 User profile:', userProfile);
+                  console.log('🔍 Can access company library:', canAccessLibrary('company', userProfile));
+                  setCurrentLibrary('company');
+                  console.log('🔍 setCurrentLibrary called');
+                  // Force immediate check
+                  setTimeout(() => {
+                    console.log('🔍 Current library after 100ms:', currentLibrary);
+                  }, 100);
+                }}
+                className={`flex items-center space-x-2 px-2 py-2 border-b-2 font-medium text-sm whitespace-nowrap transition-all duration-200 ${
+                  currentLibrary === 'company'
+                    ? companyBranding 
+                      ? 'text-white'
+                      : 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+                style={currentLibrary === 'company' && companyBranding ? {
+                  borderColor: companyBranding.primaryColor,
+                  color: companyBranding.primaryColor
+                } : {}}
+              >
+                <span>🏢</span>
+                <span>Transparent Partners</span>
+              </button>
+
+              {/* Personal Tab - NEW STRUCTURE */}
+              <button
+                onClick={() => {
+                  console.log('👤 Personal tab clicked - NEW STRUCTURE');
+                  console.log('🔍 Current library before:', currentLibrary);
+                  console.log('🔍 User profile:', userProfile);
+                  console.log('🔍 Can access personal library:', canAccessLibrary('personal', userProfile));
+                  setCurrentLibrary('personal');
+                  console.log('🔍 setCurrentLibrary called');
+                  // Force immediate check
+                  setTimeout(() => {
+                    console.log('🔍 Current library after 100ms:', currentLibrary);
+                  }, 100);
+                }}
+                className={`flex items-center space-x-2 px-2 py-2 border-b-2 font-medium text-sm whitespace-nowrap transition-all duration-200 ${
+                  currentLibrary === 'personal'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                <span>👤</span>
+                <span>My Library</span>
+              </button>
             </div>
           </div>
-        </div>
+        </nav>
       )}
 
       {/* Enhanced Filters and Stats */}
@@ -1123,15 +1156,27 @@ export default function HierarchicalAgentLibrary({
                     <StarIcon className="w-4 h-4" />
                     <span>{stats.available} available</span>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <CheckCircleIcon className="w-4 h-4" />
-                    <span>{stats.inUserLibrary} in your library</span>
-                  </div>
+                  {currentLibrary !== 'personal' && (
+                    <div className="flex items-center space-x-2">
+                      <CheckCircleIcon className="w-4 h-4" />
+                      <span>{stats.inUserLibrary} in your library</span>
+                    </div>
+                  )}
                 </>
               )}
               {loading && (
-                <div className="flex items-center space-x-2 text-blue-600">
-                  <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className={`flex items-center space-x-2 ${
+                  companyBranding && currentLibrary === 'company'
+                    ? 'text-white'
+                    : 'text-blue-600'
+                }`}>
+                  <div 
+                    className={`w-4 h-4 border-2 border-t-transparent rounded-full animate-spin ${
+                      companyBranding && currentLibrary === 'company'
+                        ? 'border-white border-opacity-30'
+                        : 'border-blue-600'
+                    }`}
+                  ></div>
                   <span>Loading...</span>
                 </div>
               )}
@@ -1145,9 +1190,15 @@ export default function HierarchicalAgentLibrary({
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                   className={`w-full px-3 py-2 border rounded-lg text-sm transition-all duration-200 flex items-center justify-center space-x-2 ${
                     showAdvancedFilters 
-                      ? 'border-blue-500 text-blue-600 bg-blue-50' 
+                      ? companyBranding && currentLibrary === 'company'
+                        ? 'text-white'
+                        : 'border-blue-500 text-blue-600 bg-blue-50'
                       : 'border-gray-300 text-gray-600 hover:border-gray-400'
                   }`}
+                  style={showAdvancedFilters && companyBranding && currentLibrary === 'company' ? {
+                    borderColor: companyBranding.primaryColor,
+                    backgroundColor: companyBranding.primaryColor
+                  } : {}}
                 >
                   <AdjustmentsHorizontalIcon className="w-4 h-4" />
                   <span>{showAdvancedFilters ? 'Hide' : 'Show'} Filters</span>
@@ -1159,7 +1210,14 @@ export default function HierarchicalAgentLibrary({
                 <select
                   value={filters.tier}
                   onChange={(e) => setFilters({ ...filters, tier: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-colors hover:border-gray-400"
+                  className={`px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-sm transition-colors hover:border-gray-400 ${
+                    companyBranding && currentLibrary === 'company'
+                      ? 'focus:ring-opacity-50'
+                      : 'focus:ring-blue-500'
+                  }`}
+                  style={companyBranding && currentLibrary === 'company' ? {
+                    '--tw-ring-color': companyBranding.primaryColor
+                  } as React.CSSProperties : {}}
                 >
                   <option value="">All Tiers</option>
                   <option value="free">Free</option>
@@ -1170,18 +1228,34 @@ export default function HierarchicalAgentLibrary({
                 <select
                   value={filters.access}
                   onChange={(e) => setFilters({ ...filters, access: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-colors hover:border-gray-400"
+                  className={`px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-sm transition-colors hover:border-gray-400 ${
+                    companyBranding && currentLibrary === 'company'
+                      ? 'focus:ring-opacity-50'
+                      : 'focus:ring-blue-500'
+                  }`}
+                  style={companyBranding && currentLibrary === 'company' ? {
+                    '--tw-ring-color': companyBranding.primaryColor
+                  } as React.CSSProperties : {}}
                 >
                   <option value="">All Access</option>
                   <option value="available">Available</option>
-                  <option value="in-library">In Your Library</option>
+                  {currentLibrary !== 'personal' && (
+                    <option value="in-library">In Your Library</option>
+                  )}
                   <option value="restricted">Restricted</option>
                 </select>
 
                 <select
                   value={filters.provider}
                   onChange={(e) => setFilters({ ...filters, provider: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-colors hover:border-gray-400"
+                  className={`px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-sm transition-colors hover:border-gray-400 ${
+                    companyBranding && currentLibrary === 'company'
+                      ? 'focus:ring-opacity-50'
+                      : 'focus:ring-blue-500'
+                  }`}
+                  style={companyBranding && currentLibrary === 'company' ? {
+                    '--tw-ring-color': companyBranding.primaryColor
+                  } as React.CSSProperties : {}}
                 >
                   <option value="">All Providers</option>
                   <option value="openai">OpenAI</option>
@@ -1192,7 +1266,14 @@ export default function HierarchicalAgentLibrary({
                 <select
                   value={filters.category}
                   onChange={(e) => setFilters({ ...filters, category: e.target.value })}
-                  className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-colors hover:border-gray-400"
+                  className={`px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-sm transition-colors hover:border-gray-400 ${
+                    companyBranding && currentLibrary === 'company'
+                      ? 'focus:ring-opacity-50'
+                      : 'focus:ring-blue-500'
+                  }`}
+                  style={companyBranding && currentLibrary === 'company' ? {
+                    '--tw-ring-color': companyBranding.primaryColor
+                  } as React.CSSProperties : {}}
                 >
                   <option value="">All Categories</option>
                   {availableCategories.map(category => (
@@ -1206,9 +1287,15 @@ export default function HierarchicalAgentLibrary({
                     onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                     className={`px-3 py-2 border rounded-lg text-sm transition-all duration-200 flex items-center space-x-2 ${
                       showAdvancedFilters 
-                        ? 'border-blue-500 text-blue-600 bg-blue-50' 
+                        ? companyBranding && currentLibrary === 'company'
+                          ? 'text-white'
+                          : 'border-blue-500 text-blue-600 bg-blue-50'
                         : 'border-gray-300 text-gray-600 hover:border-gray-400'
                     }`}
+                    style={showAdvancedFilters && companyBranding && currentLibrary === 'company' ? {
+                      borderColor: companyBranding.primaryColor,
+                      backgroundColor: companyBranding.primaryColor
+                    } : {}}
                   >
                     <AdjustmentsHorizontalIcon className="w-4 h-4" />
                     <span>Advanced</span>
@@ -1220,7 +1307,14 @@ export default function HierarchicalAgentLibrary({
                   <select
                     value={filters.sortBy}
                     onChange={(e) => setFilters({ ...filters, sortBy: e.target.value as any })}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm transition-colors hover:border-gray-400"
+                    className={`px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 text-sm transition-colors hover:border-gray-400 ${
+                      companyBranding && currentLibrary === 'company'
+                        ? 'focus:ring-opacity-50'
+                        : 'focus:ring-blue-500'
+                    }`}
+                    style={companyBranding && currentLibrary === 'company' ? {
+                      '--tw-ring-color': companyBranding.primaryColor
+                    } as React.CSSProperties : {}}
                   >
                     <option value="relevance">Relevance</option>
                     <option value="name">Name</option>
@@ -1247,7 +1341,14 @@ export default function HierarchicalAgentLibrary({
                   </button>
                   <button
                     onClick={resetFiltersToDefault}
-                    className="px-3 py-2 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                    className={`px-3 py-2 text-sm rounded-lg transition-colors ${
+                      companyBranding && currentLibrary === 'company'
+                        ? 'text-white hover:text-white hover:bg-opacity-80'
+                        : 'text-blue-600 hover:text-blue-800 hover:bg-blue-50'
+                    }`}
+                    style={companyBranding && currentLibrary === 'company' ? {
+                      backgroundColor: companyBranding.primaryColor
+                    } : {}}
                     title="Reset to default filters"
                   >
                     Reset
@@ -1274,41 +1375,14 @@ export default function HierarchicalAgentLibrary({
                     <button
                       onClick={async () => {
                         try {
-                          const { doc, getDoc } = await import('firebase/firestore');
-                          const { db } = await import('../lib/firebase');
-                          
                           if (!userProfile?.uid) {
                             toast.error('No user profile found');
                             return;
                           }
                           
-                          const userDoc = await getDoc(doc(db, 'users', userProfile.uid));
-                          if (userDoc.exists()) {
-                            const userData = userDoc.data();
-                            const geminiAgent = agents.find(a => a.name.includes('Gemini'));
-                            
-                            if (geminiAgent) {
-                              const hasGemini = userData.assignedAgents?.includes(geminiAgent.id);
-                              console.log('🔍 Gemini Status Check:', {
-                                agentId: geminiAgent.id,
-                                agentName: geminiAgent.name,
-                                inUserLibrary: geminiAgent.inUserLibrary,
-                                userAssignedAgents: userData.assignedAgents,
-                                hasGeminiInUserDoc: hasGemini,
-                                mismatch: geminiAgent.inUserLibrary !== hasGemini
-                              });
-                              
-                              if (geminiAgent.inUserLibrary !== hasGemini) {
-                                toast.error(`🔍 MISMATCH DETECTED! UI shows ${geminiAgent.inUserLibrary}, but user doc has ${hasGemini}`);
-                              } else {
-                                toast.success(`🔍 Status match: UI and user doc both show ${geminiAgent.inUserLibrary}`);
-                              }
-                            } else {
-                              toast.error('No Gemini agent found in current agents list');
-                            }
-                          } else {
-                            toast.error('User document not found');
-                          }
+                          // Firebase debugging removed - using local services
+                          toast.info('Firebase debugging removed - using local services');
+                          
                         } catch (error) {
                           console.error('Error checking Gemini status:', error);
                           toast.error(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -1340,10 +1414,7 @@ export default function HierarchicalAgentLibrary({
                           toast('🔄 Force adding Gemini agent to your library...', { icon: '⏳' });
                           
                           // Force add the agent using the API
-                          await addAgentToUserLibrary(
-                            geminiAgent.id,
-                            'Force add for debugging'
-                          );
+                          await addAgentToLocalLibrary(userProfile.uid, geminiAgent.id);
                           
                           toast.success('✅ Gemini agent force-added to your library!');
                           
@@ -1548,7 +1619,7 @@ export default function HierarchicalAgentLibrary({
       {/* Agent Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {Array.from({ length: 8 }).map((_, index) => (
               <AgentSkeleton key={index} index={index} />
             ))}
@@ -1631,7 +1702,7 @@ export default function HierarchicalAgentLibrary({
             )}
 
             {/* Agent Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredAndSortedAgents.map((agent, index) => (
                 <motion.div
                   key={agent.id}
@@ -1664,34 +1735,192 @@ export default function HierarchicalAgentLibrary({
                     onAddToLibrary={() => handleAddToLibrary(agent)}
                     onRequestAccess={() => handleRequestAccess(agent)}
                     onRemoveFromLibrary={() => handleRemoveFromLibrary(agent)}
+                    onOpenAgent={() => {
+                      setOpenAgent(agent);
+                      // Initialize with welcome message for Gemini
+                      if (agent.id === 'gemini-chat-agent') {
+                        setAgentMessages([
+                          {
+                            role: 'assistant',
+                            content: `Hello! I'm Gemini, your AI assistant. I can help you with various tasks, answer questions, and engage in meaningful conversations. What would you like to know?`
+                          }
+                        ]);
+                      } else {
+                        setAgentMessages([
+                          {
+                            role: 'assistant',
+                            content: `Hello! I'm ${agent.name}. How can I help you today?`
+                          }
+                        ]);
+                      }
+                    }}
                   />
                   
-                  {/* Debug info */}
-                  {process.env.NODE_ENV === 'development' && (
-                    <div className="mt-2 px-4 text-xs text-gray-400">
-                      Debug: libraryType={currentLibrary}, canAdd={agent.canAdd}, canRequest={agent.canRequest}, inUserLibrary={agent.inUserLibrary}, assignmentType={agent.assignmentType}
-                      {agent.name.includes('Gemini') && (
-                        <div className="mt-1 text-red-400">
-                          🔍 Gemini Debug: ID={agent.id}, inUserLibrary={agent.inUserLibrary}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
 
-                  
-                  {/* Additional context info */}
-                  <div className="mt-2 px-4">
-                    <div className="flex items-center justify-between text-xs text-gray-500">
-                      <span>Available in: {agent.availableIn.join(', ')}</span>
-                    </div>
-                  </div>
+
                 </motion.div>
               ))}
             </div>
           </>
         )}
       </div>
+
+      {/* Agent Interface Modal */}
+      {openAgent && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+              <div className="flex items-center space-x-4">
+                {openAgent.id === 'gemini-chat-agent' ? (
+                  <img 
+                    src="/Google-Gemini-Logo.png" 
+                    alt="Gemini Logo" 
+                    className="w-12 h-12 object-contain"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <span className="text-2xl">🤖</span>
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{openAgent.name}</h2>
+                  <p className="text-gray-600 capitalize">{openAgent.provider}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setOpenAgent(null);
+                  setAgentMessages([]);
+                  setAgentInput('');
+                }}
+                className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Chat Interface */}
+            <div className="flex flex-col h-[70vh]">
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                {agentMessages.map((message, index) => (
+                  <div
+                    key={index}
+                    className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  >
+                    <div
+                      className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+                        message.role === 'user'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      <p className="text-sm leading-relaxed">{message.content}</p>
+                    </div>
+                  </div>
+                ))}
+                {isAgentLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-gray-100 text-gray-800 rounded-2xl px-4 py-3">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Input */}
+              <div className="border-t border-gray-200 p-6">
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    if (!agentInput.trim() || isAgentLoading) return;
+
+                    const userMessage = agentInput.trim();
+                    setAgentInput('');
+                    
+                    // Add user message
+                    setAgentMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+                    
+                    setIsAgentLoading(true);
+                    
+                    try {
+                      // Simulate AI response (in real app, this would call the actual Gemini API)
+                      await new Promise(resolve => setTimeout(resolve, 1000));
+                      
+                      let aiResponse = '';
+                      if (openAgent.id === 'gemini-chat-agent') {
+                        // Gemini-specific responses
+                        const responses = [
+                          "That's an interesting question! Let me help you with that. I have access to a wide range of information and can assist with creative tasks, research, coding, and general knowledge.",
+                          "I'm here to help! Whether you need assistance with writing, analysis, problem-solving, or just want to chat, I'm ready to engage. What's on your mind?",
+                          "Great question! I'm designed to be helpful, informative, and engaging. I can assist with everything from simple queries to complex problem-solving tasks.",
+                          "I appreciate your message! I'm here to provide helpful, accurate, and engaging responses. How can I assist you today?",
+                          "That's a thoughtful question. I can help you explore this topic further, provide insights, or assist with any related tasks you have in mind."
+                        ];
+                        aiResponse = responses[Math.floor(Math.random() * responses.length)];
+                      } else {
+                        // Generic AI response
+                        aiResponse = `Thank you for your message: "${userMessage}". I'm here to help you with your request. How can I assist you further?`;
+                      }
+                      
+                      setAgentMessages(prev => [...prev, { role: 'assistant', content: aiResponse }]);
+                    } catch (error) {
+                      console.error('Error getting AI response:', error);
+                      setAgentMessages(prev => [...prev, { 
+                        role: 'assistant', 
+                        content: 'I apologize, but I encountered an error. Please try again.' 
+                      }]);
+                    } finally {
+                      setIsAgentLoading(false);
+                    }
+                  }}
+                  className="flex space-x-4"
+                >
+                  <input
+                    type="text"
+                    value={agentInput}
+                    onChange={(e) => setAgentInput(e.target.value)}
+                    placeholder="Type your message..."
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                    disabled={isAgentLoading}
+                  />
+                  <button
+                    type="submit"
+                    disabled={!agentInput.trim() || isAgentLoading}
+                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                  >
+                    {isAgentLoading ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Thinking...</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                        </svg>
+                        <span>Send</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Confirmation Dialog for Removing Agent */}
       {confirmRemove && (

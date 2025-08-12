@@ -1,16 +1,4 @@
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  doc, 
-  query, 
-  where, 
-  getDocs, 
-  orderBy, 
-  serverTimestamp,
-  Timestamp 
-} from 'firebase/firestore';
-import { db } from '../lib/firebase';
+// Local request service
 import { logger } from '../utils/logger';
 
 export interface AgentRequest {
@@ -20,387 +8,236 @@ export interface AgentRequest {
   userName: string;
   agentId: string;
   agentName: string;
-  organizationId: string;
-  organizationName: string;
-  networkId?: string;
-  networkName?: string;
-  status: 'pending' | 'approved' | 'denied' | 'escalated';
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  requestedAt: string;
-  requestReason?: string;
+  requestType: 'access' | 'upgrade' | 'custom';
+  status: 'pending' | 'approved' | 'rejected';
+  requestReason: string;
   businessJustification?: string;
   expectedUsage?: string;
-  userRole?: string;
-  approvalLevel: 'super_admin' | 'company_admin' | 'network_admin';
-  approvedBy?: string;
-  approvedByEmail?: string;
-  approvedByName?: string;
-  approvedAt?: string;
-  approvalReason?: string;
-  deniedBy?: string;
-  deniedByEmail?: string;
-  deniedByName?: string;
-  deniedAt?: string;
-  denialReason?: string;
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  reviewerEmail?: string;
+  reviewerName?: string;
+  reviewNotes?: string;
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface ApprovalAction {
-  adminId: string;
-  adminEmail: string;
-  adminName: string;
-  action: 'approved' | 'denied' | 'escalated';
-  reason?: string;
-  timestamp: string;
-}
+// Local storage for agent requests (in-memory for development)
+const localAgentRequests: Map<string, AgentRequest> = new Map();
 
-/**
- * Create a new agent access request
- */
-export async function createAgentRequest(
-  userId: string,
-  userEmail: string,
-  userName: string,
-  agentId: string,
-  agentName: string,
-  organizationId: string,
-  organizationName: string,
-  networkId: string | undefined,
-  networkName: string | undefined,
-  approvalLevel: 'super_admin' | 'company_admin' | 'network_admin',
-  priority: 'low' | 'normal' | 'high' | 'urgent' = 'normal',
-  requestReason?: string,
-  additionalInfo?: {
-    businessJustification?: string;
-    expectedUsage?: string;
-    userRole?: string;
-  }
-): Promise<string> {
+export const createAgentRequest = async (
+  requestData: Omit<AgentRequest, 'id' | 'status' | 'submittedAt' | 'createdAt' | 'updatedAt'>
+): Promise<string> => {
   try {
-    logger.debug('Creating agent request', {
-      userId,
-      agentId,
-      organizationId,
-      networkId,
-      approvalLevel
-    }, 'RequestService');
-
-    const requestData = {
-      userId,
-      userEmail,
-      userName,
-      agentId,
-      agentName,
-      organizationId,
-      organizationName,
-      networkId: networkId || null,
-      networkName: networkName || null,
-      status: 'pending' as const,
-      priority,
-      requestedAt: serverTimestamp(),
-      requestReason: requestReason || '',
-      businessJustification: additionalInfo?.businessJustification || '',
-      expectedUsage: additionalInfo?.expectedUsage || '',
-      userRole: additionalInfo?.userRole || 'user',
-      approvalLevel,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-
-    const docRef = await addDoc(collection(db, 'agentRequests'), requestData);
+    logger.debug('Creating agent request', { userId: requestData.userId, agentId: requestData.agentId }, 'RequestService');
     
-    logger.info('Agent request created successfully', {
-      requestId: docRef.id,
-      userId,
-      agentId,
-      approvalLevel
-    }, 'RequestService');
-
-    return docRef.id;
+    const requestId = `req-${Date.now()}`;
+    const now = new Date().toISOString();
+    
+    const newRequest: AgentRequest = {
+      ...requestData,
+      id: requestId,
+      status: 'pending',
+      submittedAt: now,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    localAgentRequests.set(requestId, newRequest);
+    
+    logger.info('Agent request created successfully', { id: requestId, userId: requestData.userId }, 'RequestService');
+    return requestId;
+    
   } catch (error) {
-    logger.error('Failed to create agent request', error, 'RequestService');
-    throw new Error('Failed to create agent request');
+    logger.error('Error creating agent request', error, 'RequestService');
+    throw error;
   }
-}
+};
 
-/**
- * Get agent requests for a specific approval level
- */
-export async function getAgentRequests(
-  approvalLevel: 'super_admin' | 'company_admin' | 'network_admin',
-  organizationId?: string,
-  networkId?: string
-): Promise<AgentRequest[]> {
+export const getAgentRequest = async (requestId: string): Promise<AgentRequest | null> => {
   try {
-    logger.debug('Fetching agent requests', {
-      approvalLevel,
-      organizationId,
-      networkId
-    }, 'RequestService');
-
-    let q = query(
-      collection(db, 'agentRequests'),
-      where('approvalLevel', '==', approvalLevel),
-      orderBy('requestedAt', 'desc')
-    );
-
-    // Add organization filter for company and network admins
-    if (approvalLevel === 'company_admin' && organizationId) {
-      q = query(
-        collection(db, 'agentRequests'),
-        where('approvalLevel', '==', approvalLevel),
-        where('organizationId', '==', organizationId),
-        orderBy('requestedAt', 'desc')
-      );
+    logger.debug('Fetching agent request', { id: requestId }, 'RequestService');
+    
+    const request = localAgentRequests.get(requestId);
+    if (!request) {
+      logger.info('Agent request not found', { id: requestId }, 'RequestService');
+      return null;
     }
-
-    // Add network filter for network admins
-    if (approvalLevel === 'network_admin' && organizationId && networkId) {
-      q = query(
-        collection(db, 'agentRequests'),
-        where('approvalLevel', '==', approvalLevel),
-        where('organizationId', '==', organizationId),
-        where('networkId', '==', networkId),
-        orderBy('requestedAt', 'desc')
-      );
-    }
-
-    const querySnapshot = await getDocs(q);
-    const requests: AgentRequest[] = [];
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      requests.push({
-        id: doc.id,
-        userId: data.userId,
-        userEmail: data.userEmail,
-        userName: data.userName,
-        agentId: data.agentId,
-        agentName: data.agentName,
-        organizationId: data.organizationId,
-        organizationName: data.organizationName,
-        networkId: data.networkId,
-        networkName: data.networkName,
-        status: data.status,
-        priority: data.priority,
-        requestedAt: data.requestedAt instanceof Timestamp 
-          ? data.requestedAt.toDate().toISOString()
-          : data.requestedAt,
-        requestReason: data.requestReason,
-        businessJustification: data.businessJustification,
-        expectedUsage: data.expectedUsage,
-        userRole: data.userRole,
-        approvalLevel: data.approvalLevel,
-        approvedBy: data.approvedBy,
-        approvedByEmail: data.approvedByEmail,
-        approvedByName: data.approvedByName,
-        approvedAt: data.approvedAt instanceof Timestamp 
-          ? data.approvedAt.toDate().toISOString()
-          : data.approvedAt,
-        approvalReason: data.approvalReason,
-        deniedBy: data.deniedBy,
-        deniedByEmail: data.deniedByEmail,
-        deniedByName: data.deniedByName,
-        deniedAt: data.deniedAt instanceof Timestamp 
-          ? data.deniedAt.toDate().toISOString()
-          : data.deniedAt,
-        denialReason: data.denialReason
-      });
-    });
-
-    logger.info('Agent requests fetched successfully', {
-      count: requests.length,
-      approvalLevel
-    }, 'RequestService');
-
-    return requests;
+    
+    logger.info('Agent request fetched successfully', { id: requestId }, 'RequestService');
+    return request;
+    
   } catch (error) {
-    logger.error('Failed to fetch agent requests', error, 'RequestService');
-    throw new Error('Failed to fetch agent requests');
+    logger.error('Error fetching agent request', error, 'RequestService');
+    throw error;
   }
-}
+};
 
-/**
- * Approve an agent request
- */
-export async function approveAgentRequest(
-  requestId: string,
-  adminId: string,
-  adminEmail: string,
-  adminName: string,
-  reason?: string
-): Promise<void> {
-  try {
-    logger.debug('Approving agent request', {
-      requestId,
-      adminId,
-      reason
-    }, 'RequestService');
-
-    const requestRef = doc(db, 'agentRequests', requestId);
-    await updateDoc(requestRef, {
-      status: 'approved',
-      approvedBy: adminId,
-      approvedByEmail: adminEmail,
-      approvedByName: adminName,
-      approvedAt: serverTimestamp(),
-      approvalReason: reason || 'Request approved by admin',
-      updatedAt: serverTimestamp()
-    });
-
-    logger.info('Agent request approved successfully', {
-      requestId,
-      adminId
-    }, 'RequestService');
-  } catch (error) {
-    logger.error('Failed to approve agent request', error, 'RequestService');
-    throw new Error('Failed to approve agent request');
-  }
-}
-
-/**
- * Deny an agent request
- */
-export async function denyAgentRequest(
-  requestId: string,
-  adminId: string,
-  adminEmail: string,
-  adminName: string,
-  reason?: string
-): Promise<void> {
-  try {
-    logger.debug('Denying agent request', {
-      requestId,
-      adminId,
-      reason
-    }, 'RequestService');
-
-    const requestRef = doc(db, 'agentRequests', requestId);
-    await updateDoc(requestRef, {
-      status: 'denied',
-      deniedBy: adminId,
-      deniedByEmail: adminEmail,
-      deniedByName: adminName,
-      deniedAt: serverTimestamp(),
-      denialReason: reason || 'Request denied by admin',
-      updatedAt: serverTimestamp()
-    });
-
-    logger.info('Agent request denied successfully', {
-      requestId,
-      adminId
-    }, 'RequestService');
-  } catch (error) {
-    logger.error('Failed to deny agent request', error, 'RequestService');
-    throw new Error('Failed to deny agent request');
-  }
-}
-
-/**
- * Escalate an agent request to a higher approval level
- */
-export async function escalateAgentRequest(
-  requestId: string,
-  newApprovalLevel: 'super_admin' | 'company_admin',
-  adminId: string,
-  adminEmail: string,
-  adminName: string,
-  reason?: string
-): Promise<void> {
-  try {
-    logger.debug('Escalating agent request', {
-      requestId,
-      newApprovalLevel,
-      adminId,
-      reason
-    }, 'RequestService');
-
-    const requestRef = doc(db, 'agentRequests', requestId);
-    await updateDoc(requestRef, {
-      status: 'escalated',
-      approvalLevel: newApprovalLevel,
-      escalatedBy: adminId,
-      escalatedByEmail: adminEmail,
-      escalatedByName: adminName,
-      escalatedAt: serverTimestamp(),
-      escalationReason: reason || 'Request escalated for higher level approval',
-      updatedAt: serverTimestamp()
-    });
-
-    logger.info('Agent request escalated successfully', {
-      requestId,
-      newApprovalLevel,
-      adminId
-    }, 'RequestService');
-  } catch (error) {
-    logger.error('Failed to escalate agent request', error, 'RequestService');
-    throw new Error('Failed to escalate agent request');
-  }
-}
-
-/**
- * Get requests for a specific user
- */
-export async function getUserAgentRequests(userId: string): Promise<AgentRequest[]> {
+export const getUserAgentRequests = async (userId: string): Promise<AgentRequest[]> => {
   try {
     logger.debug('Fetching user agent requests', { userId }, 'RequestService');
-
-    const q = query(
-      collection(db, 'agentRequests'),
-      where('userId', '==', userId),
-      orderBy('requestedAt', 'desc')
-    );
-
-    const querySnapshot = await getDocs(q);
-    const requests: AgentRequest[] = [];
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      requests.push({
-        id: doc.id,
-        userId: data.userId,
-        userEmail: data.userEmail,
-        userName: data.userName,
-        agentId: data.agentId,
-        agentName: data.agentName,
-        organizationId: data.organizationId,
-        organizationName: data.organizationName,
-        networkId: data.networkId,
-        networkName: data.networkName,
-        status: data.status,
-        priority: data.priority,
-        requestedAt: data.requestedAt instanceof Timestamp 
-          ? data.requestedAt.toDate().toISOString()
-          : data.requestedAt,
-        requestReason: data.requestReason,
-        businessJustification: data.businessJustification,
-        expectedUsage: data.expectedUsage,
-        userRole: data.userRole,
-        approvalLevel: data.approvalLevel,
-        approvedBy: data.approvedBy,
-        approvedByEmail: data.approvedByEmail,
-        approvedByName: data.approvedByName,
-        approvedAt: data.approvedAt instanceof Timestamp 
-          ? data.approvedAt.toDate().toISOString()
-          : data.approvedAt,
-        approvalReason: data.approvalReason,
-        deniedBy: data.deniedBy,
-        deniedByEmail: data.deniedByEmail,
-        deniedByName: data.deniedByName,
-        deniedAt: data.deniedAt instanceof Timestamp 
-          ? data.deniedAt.toDate().toISOString()
-          : data.deniedAt,
-        denialReason: data.denialReason
-      });
-    });
-
-    logger.info('User agent requests fetched successfully', {
-      userId,
-      count: requests.length
-    }, 'RequestService');
-
-    return requests;
+    
+    const requests = Array.from(localAgentRequests.values());
+    const userRequests = requests.filter(request => request.userId === userId);
+    
+    logger.info(`Found ${userRequests.length} requests for user`, { userId }, 'RequestService');
+    return userRequests;
+    
   } catch (error) {
-    logger.error('Failed to fetch user agent requests', error, 'RequestService');
-    throw new Error('Failed to fetch user agent requests');
+    logger.error('Error fetching user agent requests', error, 'RequestService');
+    throw error;
   }
-}
+};
+
+export const getAllAgentRequests = async (): Promise<AgentRequest[]> => {
+  try {
+    logger.debug('Fetching all agent requests', undefined, 'RequestService');
+    
+    const requests = Array.from(localAgentRequests.values());
+    
+    logger.info(`Fetched ${requests.length} agent requests`, undefined, 'RequestService');
+    return requests;
+    
+  } catch (error) {
+    logger.error('Error fetching all agent requests', error, 'RequestService');
+    throw error;
+  }
+};
+
+export const getAgentRequestsByStatus = async (status: AgentRequest['status']): Promise<AgentRequest[]> => {
+  try {
+    logger.debug('Fetching agent requests by status', { status }, 'RequestService');
+    
+    const requests = Array.from(localAgentRequests.values());
+    const filteredRequests = requests.filter(request => request.status === status);
+    
+    logger.info(`Found ${filteredRequests.length} requests with status ${status}`, undefined, 'RequestService');
+    return filteredRequests;
+    
+  } catch (error) {
+    logger.error('Error fetching agent requests by status', error, 'RequestService');
+    throw error;
+  }
+};
+
+export const updateAgentRequestStatus = async (
+  requestId: string,
+  status: AgentRequest['status'],
+  reviewerId: string,
+  reviewerEmail: string,
+  reviewerName: string,
+  reviewNotes?: string,
+  rejectionReason?: string
+): Promise<void> => {
+  try {
+    logger.debug('Updating agent request status', { id: requestId, status }, 'RequestService');
+    
+    const request = localAgentRequests.get(requestId);
+    if (!request) {
+      throw new Error(`Agent request with id ${requestId} not found`);
+    }
+    
+    const updatedRequest: AgentRequest = {
+      ...request,
+      status,
+      reviewedAt: new Date().toISOString(),
+      reviewedBy: reviewerId,
+      reviewerEmail,
+      reviewerName,
+      reviewNotes,
+      rejectionReason,
+      updatedAt: new Date().toISOString()
+    };
+    
+    localAgentRequests.set(requestId, updatedRequest);
+    
+    logger.info('Agent request status updated successfully', { id: requestId, status }, 'RequestService');
+    
+  } catch (error) {
+    logger.error('Error updating agent request status', error, 'RequestService');
+    throw error;
+  }
+};
+
+export const deleteAgentRequest = async (requestId: string): Promise<void> => {
+  try {
+    logger.debug('Deleting agent request', { id: requestId }, 'RequestService');
+    
+    const deleted = localAgentRequests.delete(requestId);
+    if (!deleted) {
+      throw new Error(`Agent request with id ${requestId} not found`);
+    }
+    
+    logger.info('Agent request deleted successfully', { id: requestId }, 'RequestService');
+    
+  } catch (error) {
+    logger.error('Error deleting agent request', error, 'RequestService');
+    throw error;
+  }
+};
+
+export const getAgentRequestStatistics = async (): Promise<{
+  total: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  byType: { [type: string]: number };
+  byPriority: { [priority: string]: number };
+}> => {
+  try {
+    logger.debug('Fetching agent request statistics', undefined, 'RequestService');
+    
+    const requests = Array.from(localAgentRequests.values());
+    
+    const stats = {
+      total: requests.length,
+      pending: requests.filter(r => r.status === 'pending').length,
+      approved: requests.filter(r => r.status === 'approved').length,
+      rejected: requests.filter(r => r.status === 'rejected').length,
+      byType: {} as { [type: string]: number },
+      byPriority: {} as { [priority: string]: number }
+    };
+    
+    requests.forEach(request => {
+      // Count by type
+      stats.byType[request.requestType] = (stats.byType[request.requestType] || 0) + 1;
+      
+      // Count by priority
+      stats.byPriority[request.priority] = (stats.byPriority[request.priority] || 0) + 1;
+    });
+    
+    logger.info('Agent request statistics calculated', { total: stats.total }, 'RequestService');
+    return stats;
+    
+  } catch (error) {
+    logger.error('Error calculating agent request statistics', error, 'RequestService');
+    throw error;
+  }
+};
+
+export const searchAgentRequests = async (query: string): Promise<AgentRequest[]> => {
+  try {
+    logger.debug('Searching agent requests', { query }, 'RequestService');
+    
+    const requests = Array.from(localAgentRequests.values());
+    const searchTerm = query.toLowerCase();
+    
+    const results = requests.filter(request => 
+      request.userName.toLowerCase().includes(searchTerm) ||
+      request.agentName.toLowerCase().includes(searchTerm) ||
+      request.requestReason.toLowerCase().includes(searchTerm) ||
+      request.businessJustification?.toLowerCase().includes(searchTerm) ||
+      request.expectedUsage?.toLowerCase().includes(searchTerm)
+    );
+    
+    logger.info(`Found ${results.length} requests matching query`, { query }, 'RequestService');
+    return results;
+    
+  } catch (error) {
+    logger.error('Error searching agent requests', error, 'RequestService');
+    throw error;
+  }
+};

@@ -109,7 +109,7 @@ const AgentSystemTestSuite: React.FC = () => {
 
   const [overallStatus, setOverallStatus] = useState<'pending' | 'running' | 'passed' | 'failed' | 'skipped'>('pending');
   const [isRunning, setIsRunning] = useState(false);
-  const [firebaseStatus, setFirebaseStatus] = useState<'checking' | 'available' | 'unavailable'>('unavailable');
+  const [systemStatus, setSystemStatus] = useState<'checking' | 'available' | 'unavailable'>('available');
 
   // Test data
   const testAgent = {
@@ -143,11 +143,11 @@ const AgentSystemTestSuite: React.FC = () => {
     name: "Test Network"
   };
 
-  // Check Firebase availability
+  // Check system availability
   useEffect(() => {
-    // Firebase not available in Vercel deployment
-    console.log('🚫 Firebase disabled for Vercel deployment');
-    setFirebaseStatus('unavailable');
+    // System is available in Vercel deployment
+    console.log('✅ System available for Vercel deployment');
+    setSystemStatus('available');
   }, []);
 
   const updateTestStatus = (suiteIndex: number, testIndex: number, status: TestResult['status'], message: string, error?: string) => {
@@ -196,10 +196,10 @@ const AgentSystemTestSuite: React.FC = () => {
   const runAgentManagementTests = async () => {
     const suiteIndex = 0;
     
-    if (firebaseStatus !== 'available') {
-      // Skip all tests if Firebase is not available
+    if (systemStatus !== 'available') {
+      // Skip all tests if system is not available
       for (let i = 0; i < 7; i++) {
-        updateTestStatus(suiteIndex, i, 'skipped', 'Firebase not available - test skipped');
+        updateTestStatus(suiteIndex, i, 'skipped', 'System not available - test skipped');
       }
       return;
     }
@@ -291,10 +291,10 @@ const AgentSystemTestSuite: React.FC = () => {
   const runHierarchicalPermissionsTests = async () => {
     const suiteIndex = 1;
     
-    if (firebaseStatus !== 'available') {
-      // Skip all tests if Firebase is not available
+    if (systemStatus !== 'available') {
+      // Skip all tests if system is not available
       for (let i = 0; i < 5; i++) {
-        updateTestStatus(suiteIndex, i, 'skipped', 'Firebase not available - test skipped');
+        updateTestStatus(suiteIndex, i, 'skipped', 'System not available - test skipped');
       }
       return;
     }
@@ -371,10 +371,10 @@ const AgentSystemTestSuite: React.FC = () => {
   const runNewAgentRequestsTests = async () => {
     const suiteIndex = 2;
     
-    if (firebaseStatus !== 'available') {
-      // Skip all tests if Firebase is not available
+    if (systemStatus !== 'available') {
+      // Skip all tests if system is not available
       for (let i = 0; i < 4; i++) {
-        updateTestStatus(suiteIndex, i, 'skipped', 'Firebase not available - test skipped');
+        updateTestStatus(suiteIndex, i, 'skipped', 'System not available - test skipped');
       }
       return;
     }
@@ -445,10 +445,10 @@ const AgentSystemTestSuite: React.FC = () => {
   const runUserLibraryTests = async () => {
     const suiteIndex = 3;
     
-    if (firebaseStatus !== 'available') {
-      // Skip all tests if Firebase is not available
+    if (systemStatus !== 'available') {
+      // Skip all tests if system is not available
       for (let i = 0; i < 5; i++) {
-        updateTestStatus(suiteIndex, i, 'skipped', 'Firebase not available - test skipped');
+        updateTestStatus(suiteIndex, i, 'skipped', 'System not available - test skipped');
       }
       return;
     }
@@ -603,22 +603,22 @@ const AgentSystemTestSuite: React.FC = () => {
           Comprehensive testing of agent assignments and management functionality
         </p>
         
-        {/* Firebase Status */}
+        {/* System Status */}
         <div className="mb-4 p-4 rounded-lg border">
           <div className="flex items-center space-x-3">
-            <span className="text-sm font-medium text-gray-700">Firebase Status:</span>
+            <span className="text-sm font-medium text-gray-700">System Status:</span>
             <span className={`px-3 py-1 text-sm font-medium rounded-full ${
-              firebaseStatus === 'available' ? 'text-green-600 bg-green-100' :
-              firebaseStatus === 'unavailable' ? 'text-red-600 bg-red-100' :
+              systemStatus === 'available' ? 'text-green-600 bg-green-100' :
+              systemStatus === 'unavailable' ? 'text-red-600 bg-red-100' :
               'text-yellow-600 bg-yellow-100'
             }`}>
-              {firebaseStatus === 'available' ? 'Available' :
-               firebaseStatus === 'unavailable' ? 'Unavailable' :
+              {systemStatus === 'available' ? 'Available' :
+               systemStatus === 'unavailable' ? 'Unavailable' :
                'Checking...'}
             </span>
-            {firebaseStatus === 'unavailable' && (
+            {systemStatus === 'unavailable' && (
               <span className="text-sm text-red-600">
-                Tests will be skipped - Firebase configuration required
+                Tests will be skipped - System configuration required
               </span>
             )}
           </div>

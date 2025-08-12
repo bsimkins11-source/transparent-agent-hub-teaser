@@ -4,7 +4,7 @@ import { XMarkIcon, PaperAirplaneIcon, ChatBubbleLeftRightIcon } from '@heroicon
 import { useAuth } from '../contexts/AuthContext';
 import { useCompanyBrandingFromRoute } from '../contexts/CompanyBrandingContext';
 import { sendAgentRequestEmail, sendRequestConfirmationEmail } from '../services/emailService';
-import { createNewAgentRequest } from '../services/newAgentRequestService';
+import { submitNewAgentRequest } from '../services/newAgentRequestService';
 import toast from 'react-hot-toast';
 
 interface NewAgentRequestFormProps {
@@ -133,7 +133,7 @@ export default function NewAgentRequestForm({
       };
 
       // Create database record first
-      const requestId = await createNewAgentRequest({
+      const requestId = await submitNewAgentRequest({
         userId: currentUser?.uid || '',
         userEmail: currentUser?.email || '',
         userName: userProfile?.displayName || currentUser?.email || 'Unknown User',

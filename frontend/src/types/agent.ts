@@ -4,6 +4,7 @@ export interface Agent {
   description: string
   provider: 'openai' | 'google' | 'anthropic'
   route: string
+  icon?: string
   metadata: {
     tags: string[]
     category: string
@@ -58,6 +59,7 @@ export interface AgentSubmission {
   provider: 'openai' | 'google' | 'anthropic'
   route: string
   category: string
+  icon?: string
   tags: string[]
   tier: 'free' | 'premium' | 'enterprise'
   visibility: 'global' | 'private' | 'company' | 'network'

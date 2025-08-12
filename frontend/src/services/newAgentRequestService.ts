@@ -1,284 +1,199 @@
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  doc, 
-  query, 
-  where, 
-  getDocs, 
-  orderBy, 
-  serverTimestamp,
-  Timestamp 
-} from 'firebase/firestore';
-import { db } from '../lib/firebase';
+// Local new agent request service
 import { logger } from '../utils/logger';
 
 export interface NewAgentRequest {
-  id?: string;
-  userId: string;
-  userEmail: string;
-  userName: string;
-  agentName: string;
-  agentDescription: string;
-  useCase: string;
-  businessJustification: string;
-  expectedUsage: string;
-  priority: 'low' | 'normal' | 'high' | 'urgent';
+  id: string;
+  name: string;
+  description: string;
+  provider: string;
   category: string;
-  targetUsers: string;
-  libraryType: 'personal' | 'global' | 'company' | 'network';
-  organizationId?: string; // company ID
-  networkId?: string; // network ID
-  status: 'pending' | 'under_review' | 'approved' | 'denied' | 'implemented';
-  requestedAt: string;
-  reviewedAt?: string;
-  reviewedBy?: string;
-  reviewNotes?: string;
-  adminContactEmail: string;
-  adminContactName: string;
-  adminContactTitle: string;
+  tags: string[];
+  tier: 'free' | 'premium' | 'enterprise';
+  submitterId: string;
+  submitterEmail: string;
+  submitterName: string;
+  status: 'pending' | 'approved' | 'rejected';
+  submissionDate: string;
+  reviewDate?: string;
+  reviewerId?: string;
+  reviewerEmail?: string;
+  reviewerName?: string;
+  rejectionReason?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
-/**
- * Create a new agent request record in the database
- */
-export async function createNewAgentRequest(requestData: Omit<NewAgentRequest, 'id' | 'requestedAt'>): Promise<string> {
-  try {
-    logger.debug('Creating new agent request', {
-      userId: requestData.userId,
-      agentName: requestData.agentName,
-      libraryType: requestData.libraryType
-    }, 'NewAgentRequestService');
+// Local storage for agent requests (in-memory for development)
+const localAgentRequests: Map<string, NewAgentRequest> = new Map();
 
-    const requestRecord = {
+export const submitNewAgentRequest = async (
+  requestData: Omit<NewAgentRequest, 'id' | 'status' | 'submissionDate' | 'createdAt' | 'updatedAt'>
+): Promise<string> => {
+  try {
+    logger.debug('Submitting new agent request', { name: requestData.name }, 'NewAgentRequestService');
+    
+    const requestId = `request-${Date.now()}`;
+    const now = new Date().toISOString();
+    
+    const newRequest: NewAgentRequest = {
       ...requestData,
-      requestedAt: serverTimestamp(),
-      status: 'pending' as const
+      id: requestId,
+      status: 'pending',
+      submissionDate: now,
+      createdAt: now,
+      updatedAt: now
     };
-
-    const docRef = await addDoc(collection(db, 'newAgentRequests'), requestRecord);
     
-    logger.info('New agent request created successfully', {
-      requestId: docRef.id,
-      agentName: requestData.agentName
-    }, 'NewAgentRequestService');
-
-    return docRef.id;
-  } catch (error) {
-    logger.error('Failed to create new agent request', { error, requestData }, 'NewAgentRequestService');
-    throw error;
-  }
-}
-
-/**
- * Get all new agent requests for a specific organization
- */
-export async function getOrganizationNewAgentRequests(organizationId: string): Promise<NewAgentRequest[]> {
-  try {
-    const q = query(
-      collection(db, 'newAgentRequests'),
-      where('organizationId', '==', organizationId),
-      orderBy('requestedAt', 'desc')
-    );
-
-    const querySnapshot = await getDocs(q);
-    const requests: NewAgentRequest[] = [];
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      requests.push({
-        id: doc.id,
-        ...data,
-        requestedAt: data.requestedAt instanceof Timestamp ? data.requestedAt.toDate().toISOString() : data.requestedAt,
-        reviewedAt: data.reviewedAt instanceof Timestamp ? data.reviewedAt.toDate().toISOString() : data.reviewedAt
-      } as NewAgentRequest);
-    });
-
-    return requests;
-  } catch (error) {
-    logger.error('Failed to get organization new agent requests', { error, organizationId }, 'NewAgentRequestService');
-    throw error;
-  }
-}
-
-/**
- * Get all new agent requests for a specific network
- */
-export async function getNetworkNewAgentRequests(organizationId: string, networkId: string): Promise<NewAgentRequest[]> {
-  try {
-    const q = query(
-      collection(db, 'newAgentRequests'),
-      where('organizationId', '==', organizationId),
-      where('networkId', '==', networkId),
-      orderBy('requestedAt', 'desc')
-    );
-
-    const querySnapshot = await getDocs(q);
-    const requests: NewAgentRequest[] = [];
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      requests.push({
-        id: doc.id,
-        ...data,
-        requestedAt: data.requestedAt instanceof Timestamp ? data.requestedAt.toDate().toISOString() : data.requestedAt,
-        reviewedAt: data.reviewedAt instanceof Timestamp ? data.reviewedAt.toDate().toISOString() : data.reviewedAt
-      } as NewAgentRequest);
-    });
-
-    return requests;
-  } catch (error) {
-    logger.error('Failed to get network new agent requests', { error, organizationId, networkId }, 'NewAgentRequestService');
-    throw error;
-  }
-}
-
-/**
- * Get all new agent requests for global library
- */
-export async function getGlobalNewAgentRequests(): Promise<NewAgentRequest[]> {
-  try {
-    const q = query(
-      collection(db, 'newAgentRequests'),
-      where('libraryType', '==', 'global'),
-      orderBy('requestedAt', 'desc')
-    );
-
-    const querySnapshot = await getDocs(q);
-    const requests: NewAgentRequest[] = [];
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      requests.push({
-        id: doc.id,
-        ...data,
-        requestedAt: data.requestedAt instanceof Timestamp ? data.requestedAt.toDate().toISOString() : data.requestedAt,
-        reviewedAt: data.reviewedAt instanceof Timestamp ? data.reviewedAt.toDate().toISOString() : data.reviewedAt
-      } as NewAgentRequest);
-    });
-
-    return requests;
-  } catch (error) {
-    logger.error('Failed to get global new agent requests', { error }, 'NewAgentRequestService');
-    throw error;
-  }
-}
-
-/**
- * Update the status of a new agent request
- */
-export async function updateNewAgentRequestStatus(
-  requestId: string, 
-  status: NewAgentRequest['status'],
-  adminId: string,
-  adminEmail: string,
-  adminName: string,
-  reviewNotes?: string
-): Promise<void> {
-  try {
-    const requestRef = doc(db, 'newAgentRequests', requestId);
+    localAgentRequests.set(requestId, newRequest);
     
-    const updateData: Partial<NewAgentRequest> = {
-      status,
-      reviewedAt: serverTimestamp(),
-      reviewedBy: adminId,
-      reviewNotes: reviewNotes || ''
-    };
-
-    await updateDoc(requestRef, updateData);
+    logger.info('New agent request submitted successfully', { id: requestId, name: requestData.name }, 'NewAgentRequestService');
+    return requestId;
     
-    logger.info('New agent request status updated', {
-      requestId,
-      status,
-      adminId
-    }, 'NewAgentRequestService');
   } catch (error) {
-    logger.error('Failed to update new agent request status', { error, requestId, status }, 'NewAgentRequestService');
+    logger.error('Error submitting new agent request', error, 'NewAgentRequestService');
     throw error;
   }
-}
+};
 
-/**
- * Get new agent requests by status
- */
-export async function getNewAgentRequestsByStatus(
-  status: NewAgentRequest['status'],
-  organizationId?: string,
-  networkId?: string
-): Promise<NewAgentRequest[]> {
+export const getNewAgentRequest = async (requestId: string): Promise<NewAgentRequest | null> => {
   try {
-    let q;
+    logger.debug('Fetching new agent request', { id: requestId }, 'NewAgentRequestService');
     
-    if (organizationId && networkId) {
-      q = query(
-        collection(db, 'newAgentRequests'),
-        where('organizationId', '==', organizationId),
-        where('networkId', '==', networkId),
-        where('status', '==', status),
-        orderBy('requestedAt', 'desc')
-      );
-    } else if (organizationId) {
-      q = query(
-        collection(db, 'newAgentRequests'),
-        where('organizationId', '==', organizationId),
-        where('status', '==', status),
-        orderBy('requestedAt', 'desc')
-      );
-    } else {
-      q = query(
-        collection(db, 'newAgentRequests'),
-        where('status', '==', status),
-        orderBy('requestedAt', 'desc')
-      );
+    const request = localAgentRequests.get(requestId);
+    if (!request) {
+      logger.info('New agent request not found', { id: requestId }, 'NewAgentRequestService');
+      return null;
     }
-
-    const querySnapshot = await getDocs(q);
-    const requests: NewAgentRequest[] = [];
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      requests.push({
-        id: doc.id,
-        ...data,
-        requestedAt: data.requestedAt instanceof Timestamp ? data.requestedAt.toDate().toISOString() : data.requestedAt,
-        reviewedAt: data.reviewedAt instanceof Timestamp ? data.reviewedAt.toDate().toISOString() : data.reviewedAt
-      } as NewAgentRequest);
-    });
-
-    return requests;
+    
+    logger.info('New agent request fetched successfully', { id: requestId }, 'NewAgentRequestService');
+    return request;
+    
   } catch (error) {
-    logger.error('Failed to get new agent requests by status', { error, status, organizationId, networkId }, 'NewAgentRequestService');
+    logger.error('Error fetching new agent request', error, 'NewAgentRequestService');
     throw error;
   }
-}
+};
 
-/**
- * Get new agent requests for a specific user
- */
-export async function getUserNewAgentRequests(userId: string): Promise<NewAgentRequest[]> {
+export const getAllNewAgentRequests = async (): Promise<NewAgentRequest[]> => {
   try {
-    const q = query(
-      collection(db, 'newAgentRequests'),
-      where('userId', '==', userId),
-      orderBy('requestedAt', 'desc')
-    );
-
-    const querySnapshot = await getDocs(q);
-    const requests: NewAgentRequest[] = [];
-
-    querySnapshot.forEach((doc) => {
-      const data = doc.data();
-      requests.push({
-        id: doc.id,
-        ...data,
-        requestedAt: data.requestedAt instanceof Timestamp ? data.requestedAt.toDate().toISOString() : data.requestedAt,
-        reviewedAt: data.reviewedAt instanceof Timestamp ? data.reviewedAt.toDate().toISOString() : data.reviewedAt
-      } as NewAgentRequest);
-    });
-
+    logger.debug('Fetching all new agent requests', undefined, 'NewAgentRequestService');
+    
+    const requests = Array.from(localAgentRequests.values());
+    
+    logger.info(`Fetched ${requests.length} new agent requests`, undefined, 'NewAgentRequestService');
     return requests;
+    
   } catch (error) {
-    logger.error('Failed to get user new agent requests', { error, userId }, 'NewAgentRequestService');
+    logger.error('Error fetching all new agent requests', error, 'NewAgentRequestService');
     throw error;
   }
-}
+};
+
+export const getNewAgentRequestsByStatus = async (status: NewAgentRequest['status']): Promise<NewAgentRequest[]> => {
+  try {
+    logger.debug('Fetching new agent requests by status', { status }, 'NewAgentRequestService');
+    
+    const requests = Array.from(localAgentRequests.values());
+    const filteredRequests = requests.filter(request => request.status === status);
+    
+    logger.info(`Found ${filteredRequests.length} requests with status ${status}`, undefined, 'NewAgentRequestService');
+    return filteredRequests;
+    
+  } catch (error) {
+    logger.error('Error fetching new agent requests by status', error, 'NewAgentRequestService');
+    throw error;
+  }
+};
+
+export const updateNewAgentRequestStatus = async (
+  requestId: string,
+  status: NewAgentRequest['status'],
+  reviewerId: string,
+  reviewerEmail: string,
+  reviewerName: string,
+  rejectionReason?: string
+): Promise<void> => {
+  try {
+    logger.debug('Updating new agent request status', { id: requestId, status }, 'NewAgentRequestService');
+    
+    const request = localAgentRequests.get(requestId);
+    if (!request) {
+      throw new Error(`New agent request with id ${requestId} not found`);
+    }
+    
+    const updatedRequest: NewAgentRequest = {
+      ...request,
+      status,
+      reviewDate: new Date().toISOString(),
+      reviewerId,
+      reviewerEmail,
+      reviewerName,
+      rejectionReason,
+      updatedAt: new Date().toISOString()
+    };
+    
+    localAgentRequests.set(requestId, updatedRequest);
+    
+    logger.info('New agent request status updated successfully', { id: requestId, status }, 'NewAgentRequestService');
+    
+  } catch (error) {
+    logger.error('Error updating new agent request status', error, 'NewAgentRequestService');
+    throw error;
+  }
+};
+
+export const deleteNewAgentRequest = async (requestId: string): Promise<void> => {
+  try {
+    logger.debug('Deleting new agent request', { id: requestId }, 'NewAgentRequestService');
+    
+    const deleted = localAgentRequests.delete(requestId);
+    if (!deleted) {
+      throw new Error(`New agent request with id ${requestId} not found`);
+    }
+    
+    logger.info('New agent request deleted successfully', { id: requestId }, 'NewAgentRequestService');
+    
+  } catch (error) {
+    logger.error('Error deleting new agent request', error, 'NewAgentRequestService');
+    throw error;
+  }
+};
+
+export const getNewAgentRequestStatistics = async (): Promise<{
+  total: number;
+  pending: number;
+  approved: number;
+  rejected: number;
+  byTier: { [tier: string]: number };
+  byCategory: { [category: string]: number };
+}> => {
+  try {
+    logger.debug('Fetching new agent request statistics', undefined, 'NewAgentRequestService');
+    
+    const requests = Array.from(localAgentRequests.values());
+    
+    const stats = {
+      total: requests.length,
+      pending: requests.filter(r => r.status === 'pending').length,
+      approved: requests.filter(r => r.status === 'approved').length,
+      rejected: requests.filter(r => r.status === 'rejected').length,
+      byTier: {} as { [tier: string]: number },
+      byCategory: {} as { [category: string]: number }
+    };
+    
+    requests.forEach(request => {
+      // Count by tier
+      stats.byTier[request.tier] = (stats.byTier[request.tier] || 0) + 1;
+      
+      // Count by category
+      stats.byCategory[request.category] = (stats.byCategory[request.category] || 0) + 1;
+    });
+    
+    logger.info('New agent request statistics calculated', { total: stats.total }, 'NewAgentRequestService');
+    return stats;
+    
+  } catch (error) {
+    logger.error('Error calculating new agent request statistics', error, 'NewAgentRequestService');
+    throw error;
+  }
+};

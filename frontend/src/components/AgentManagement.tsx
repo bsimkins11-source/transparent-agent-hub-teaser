@@ -17,7 +17,7 @@ import {
   createAgent,
   updateAgent,
   deleteAgent,
-  getAgentStats,
+  getAgentStatistics,
   CreateAgentRequest,
   UpdateAgentRequest
 } from '../services/agentManagementService';

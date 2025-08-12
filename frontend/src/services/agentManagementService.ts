@@ -1,437 +1,324 @@
-import { collection, doc, addDoc, updateDoc, deleteDoc, getDocs, getDoc, query, orderBy, where } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+// Local agent management service
+import { Agent } from '../types/agent';
 import { logger } from '../utils/logger';
-import { Agent, AgentSubmission, AgentReview, AuditEntry } from '../types/agent';
 
-export interface CreateAgentRequest {
-  name: string;
-  description: string;
-  provider: 'openai' | 'google' | 'anthropic';
-  route: string;
-  category: string;
-  tags: string[];
-  tier: 'free' | 'premium' | 'enterprise';
-  visibility: 'global' | 'private' | 'company' | 'network';
-  allowedRoles: string[];
-  allowedClients?: string[];
-  version?: string;
-  promptTemplateId?: string;
-  executionTarget?: 'vertex' | 'openai' | 'cloud-run';
-  testConfig?: any;
-  changelog?: string[];
-  organizationId?: string;
-  networkId?: string;
-}
+// Local storage for agents (in-memory for development)
+const localAgents: Map<string, Agent> = new Map();
 
-export interface UpdateAgentRequest extends Partial<CreateAgentRequest> {
-  id: string;
-}
-
-/**
- * Create a new agent in the master library
- */
-export const createAgent = async (agentData: CreateAgentRequest): Promise<string> => {
-  try {
-    logger.debug('Creating new agent', { name: agentData.name }, 'AgentManagement');
-    
-    const newAgent = {
-      ...agentData,
+// Initialize with some default agents
+const initializeDefaultAgents = () => {
+  const defaultAgents: Agent[] = [
+    {
+      id: 'gemini-chat-agent',
+      name: 'Gemini Chat Agent',
+      description: 'Google Gemini AI chat assistant for conversations and assistance',
+      provider: 'google',
+      route: '/api/gemini',
       metadata: {
-        tags: agentData.tags,
-        category: agentData.category,
-        tier: agentData.tier,
-        permissionType: agentData.tier === 'free' ? 'direct' : 'approval'
+        tags: ['chat', 'ai', 'google', 'conversation'],
+        category: 'Productivity',
+        tier: 'free',
+        permissionType: 'direct'
       },
+      visibility: 'public',
+      allowedRoles: ['user'],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: 'imagen-agent',
+      name: 'Imagen Agent',
+      description: 'Google Imagen AI for image generation and creative tasks',
+      provider: 'google',
+      route: '/api/imagen',
+      metadata: {
+        tags: ['image', 'generation', 'ai', 'google', 'creative'],
+        category: 'Creative',
+        tier: 'premium',
+        permissionType: 'approval'
+      },
+      visibility: 'public',
+      allowedRoles: ['user'],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  ];
+
+  defaultAgents.forEach(agent => {
+    localAgents.set(agent.id, agent);
+  });
+
+  logger.info(`Initialized ${defaultAgents.length} default agents`, undefined, 'AgentManagementService');
+};
+
+// Initialize default agents
+initializeDefaultAgents();
+
+export const createAgent = async (agentData: Partial<Agent>): Promise<string> => {
+  try {
+    logger.debug('Creating new agent', { name: agentData.name }, 'AgentManagementService');
+    
+    const agentId = `agent-${Date.now()}`;
+    const newAgent: Agent = {
+      id: agentId,
+      name: agentData.name || 'Unnamed Agent',
+      description: agentData.description || 'No description provided',
+      provider: agentData.provider || 'unknown',
+      route: agentData.route || `/api/${agentId}`,
+      metadata: {
+        tags: agentData.metadata?.tags || [],
+        category: agentData.metadata?.category || 'General',
+        tier: agentData.metadata?.tier || 'free',
+        permissionType: agentData.metadata?.permissionType || 'direct'
+      },
+      visibility: agentData.visibility || 'public',
+      allowedRoles: agentData.allowedRoles || ['user'],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
     
-    const docRef = await addDoc(collection(db, 'agents'), newAgent);
+    localAgents.set(agentId, newAgent);
     
-    logger.info('Agent created successfully', { 
-      id: docRef.id, 
-      name: agentData.name 
-    }, 'AgentManagement');
-    
-    return docRef.id;
+    logger.info('Agent created successfully', { id: agentId, name: newAgent.name }, 'AgentManagementService');
+    return agentId;
     
   } catch (error) {
-    logger.error('Error creating agent', error, 'AgentManagement');
+    logger.error('Error creating agent', error, 'AgentManagementService');
     throw error;
   }
 };
 
-/**
- * Update an existing agent
- */
-export const updateAgent = async (updateData: UpdateAgentRequest): Promise<void> => {
+export const updateAgent = async (id: string, updateData: Partial<Agent>): Promise<void> => {
   try {
-    logger.debug('Updating agent', { id: updateData.id }, 'AgentManagement');
+    logger.debug('Updating agent', { id }, 'AgentManagementService');
     
-    const { id, ...dataToUpdate } = updateData;
-    const agentRef = doc(db, 'agents', id);
+    const existingAgent = localAgents.get(id);
+    if (!existingAgent) {
+      throw new Error(`Agent with id ${id} not found`);
+    }
     
-    const updatePayload: Partial<UpdateAgentRequest> & { updatedAt: string; metadata?: any } = {
-      ...dataToUpdate,
+    const updatedAgent: Agent = {
+      ...existingAgent,
+      ...updateData,
       updatedAt: new Date().toISOString()
     };
     
-    // Update metadata if relevant fields are provided
-    if (updateData.tags || updateData.category || updateData.tier) {
-      const currentDoc = await getDoc(agentRef);
-      const currentData = currentDoc.data();
-      
-      updatePayload.metadata = {
-        ...currentData?.metadata,
-        ...(updateData.tags && { tags: updateData.tags }),
-        ...(updateData.category && { category: updateData.category }),
-        ...(updateData.tier && { 
-          tier: updateData.tier,
-          permissionType: updateData.tier === 'free' ? 'direct' : 'approval'
-        })
-      };
+    localAgents.set(id, updatedAgent);
+    
+    logger.info('Agent updated successfully', { id }, 'AgentManagementService');
+    
+  } catch (error) {
+    logger.error('Error updating agent', error, 'AgentManagementService');
+    throw error;
+  }
+};
+
+export const deleteAgent = async (id: string): Promise<void> => {
+  try {
+    logger.debug('Deleting agent', { id }, 'AgentManagementService');
+    
+    const deleted = localAgents.delete(id);
+    if (!deleted) {
+      throw new Error(`Agent with id ${id} not found`);
     }
     
-    await updateDoc(agentRef, updatePayload);
-    
-    logger.info('Agent updated successfully', { id }, 'AgentManagement');
+    logger.info('Agent deleted successfully', { id }, 'AgentManagementService');
     
   } catch (error) {
-    logger.error('Error updating agent', error, 'AgentManagement');
+    logger.error('Error deleting agent', error, 'AgentManagementService');
     throw error;
   }
 };
 
-/**
- * Delete an agent from the master library
- */
-export const deleteAgent = async (agentId: string): Promise<void> => {
+export const getAgent = async (id: string): Promise<Agent | null> => {
   try {
-    logger.debug('Deleting agent', { id: agentId }, 'AgentManagement');
+    logger.debug('Fetching agent', { id }, 'AgentManagementService');
     
-    const agentRef = doc(db, 'agents', agentId);
-    await deleteDoc(agentRef);
+    const agent = localAgents.get(id);
+    if (!agent) {
+      logger.info('Agent not found', { id }, 'AgentManagementService');
+      return null;
+    }
     
-    logger.info('Agent deleted successfully', { id: agentId }, 'AgentManagement');
+    logger.info('Agent fetched successfully', { id, name: agent.name }, 'AgentManagementService');
+    return agent;
     
   } catch (error) {
-    logger.error('Error deleting agent', error, 'AgentManagement');
+    logger.error('Error fetching agent', error, 'AgentManagementService');
     throw error;
   }
 };
 
-/**
- * Get all agents with management details
- */
-export const getAllAgentsForManagement = async (): Promise<Agent[]> => {
+export const getAllAgents = async (): Promise<Agent[]> => {
   try {
-    logger.debug('Fetching all agents for management', {}, 'AgentManagement');
+    logger.debug('Fetching all agents', undefined, 'AgentManagementService');
     
-    const q = query(collection(db, 'agents'), orderBy('createdAt', 'desc'));
-    const snapshot = await getDocs(q);
+    const agents = Array.from(localAgents.values());
     
-    const agents: Agent[] = [];
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      agents.push({
-        id: doc.id,
-        name: data.name,
-        description: data.description,
-        provider: data.provider,
-        route: data.route,
-        metadata: {
-          tags: data.metadata?.tags || [],
-          category: data.metadata?.category || 'General',
-          tier: data.metadata?.tier || 'free',
-          permissionType: data.metadata?.permissionType || 'direct'
-        },
-        visibility: data.visibility || 'public',
-        allowedRoles: data.allowedRoles || ['user'],
-        createdAt: data.createdAt,
-        updatedAt: data.updatedAt
-      });
-    });
-    
-    logger.info(`Fetched ${agents.length} agents for management`, {}, 'AgentManagement');
+    logger.info(`Fetched ${agents.length} agents`, undefined, 'AgentManagementService');
     return agents;
     
   } catch (error) {
-    logger.error('Error fetching agents for management', error, 'AgentManagement');
+    logger.error('Error fetching all agents', error, 'AgentManagementService');
     throw error;
   }
 };
 
-/**
- * Get agent statistics
- */
-export const getAgentStats = async (): Promise<{
+export const getAllAgentsForManagement = async (): Promise<Agent[]> => {
+  try {
+    logger.debug('Fetching all agents for management', undefined, 'AgentManagementService');
+    
+    const agents = Array.from(localAgents.values());
+    
+    logger.info(`Fetched ${agents.length} agents for management`, undefined, 'AgentManagementService');
+    return agents;
+    
+  } catch (error) {
+    logger.error('Error fetching agents for management', error, 'AgentManagementService');
+    throw error;
+  }
+};
+
+export const getAgentStatistics = async (): Promise<{
   total: number;
-  byTier: Record<string, number>;
-  byProvider: Record<string, number>;
-  byCategory: Record<string, number>;
+  byProvider: { [provider: string]: number };
+  byTier: { [tier: string]: number };
+  byCategory: { [category: string]: number };
 }> => {
   try {
-    const agents = await getAllAgentsForManagement();
+    logger.debug('Fetching agent statistics', undefined, 'AgentManagementService');
+    
+    const agents = Array.from(localAgents.values());
     
     const stats = {
       total: agents.length,
-      byTier: {} as Record<string, number>,
-      byProvider: {} as Record<string, number>,
-      byCategory: {} as Record<string, number>
+      byProvider: {} as { [provider: string]: number },
+      byTier: {} as { [tier: string]: number },
+      byCategory: {} as { [category: string]: number }
     };
     
     agents.forEach(agent => {
-      // Count by tier
-      const tier = agent.metadata.tier || 'free';
-      stats.byTier[tier] = (stats.byTier[tier] || 0) + 1;
-      
       // Count by provider
       stats.byProvider[agent.provider] = (stats.byProvider[agent.provider] || 0) + 1;
       
+      // Count by tier
+      const tier = agent.metadata?.tier || 'unknown';
+      stats.byTier[tier] = (stats.byTier[tier] || 0) + 1;
+      
       // Count by category
-      const category = agent.metadata.category;
+      const category = agent.metadata?.category || 'unknown';
       stats.byCategory[category] = (stats.byCategory[category] || 0) + 1;
     });
     
+    logger.info('Agent statistics calculated', { total: stats.total }, 'AgentManagementService');
     return stats;
     
   } catch (error) {
-    logger.error('Error getting agent stats', error, 'AgentManagement');
+    logger.error('Error calculating agent statistics', error, 'AgentManagementService');
     throw error;
   }
 };
 
-/**
- * Submit a new agent for review (creates with pending status)
- */
-export const submitAgentForReview = async (
-  agentData: AgentSubmission, 
-  submitterId: string,
-  submitterEmail: string,
-  submitterName: string
-): Promise<string> => {
+export const searchAgents = async (query: string): Promise<Agent[]> => {
   try {
-    logger.debug('Submitting agent for review', { name: agentData.name }, 'AgentManagement');
+    logger.debug('Searching agents', { query }, 'AgentManagementService');
     
-    const newAgent: Partial<Agent> = {
-      ...agentData,
-      metadata: {
-        tags: agentData.tags,
-        category: agentData.category,
-        tier: agentData.tier,
-        permissionType: agentData.tier === 'free' ? 'direct' : 'approval',
-        version: agentData.version || '1.0.0',
-        promptTemplateId: agentData.promptTemplateId,
-        executionTarget: agentData.executionTarget,
-        testConfig: agentData.testConfig,
-        changelog: agentData.changelog || ['Initial submission']
-      },
-      status: 'pending',
-      submitterId,
-      submitterEmail,
-      submitterName,
-      submissionDate: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      auditTrail: [{
-        action: 'submitted',
-        timestamp: new Date().toISOString(),
-        userId: submitterId,
-        userEmail: submitterEmail,
-        userName: submitterName,
-        details: 'Agent submitted for review'
-      }]
-    };
+    const agents = Array.from(localAgents.values());
+    const searchTerm = query.toLowerCase();
     
-    const docRef = await addDoc(collection(db, 'agents'), newAgent);
-    
-    logger.info('Agent submitted for review successfully', { 
-      id: docRef.id, 
-      name: agentData.name 
-    }, 'AgentManagement');
-    
-    return docRef.id;
-    
-  } catch (error) {
-    logger.error('Error submitting agent for review', error, 'AgentManagement');
-    throw error;
-  }
-};
-
-/**
- * Review and approve/reject an agent
- */
-export const reviewAgent = async (
-  reviewData: AgentReview,
-  reviewerId: string,
-  reviewerEmail: string,
-  reviewerName: string
-): Promise<void> => {
-  try {
-    logger.debug('Reviewing agent', { agentId: reviewData.agentId, action: reviewData.action }, 'AgentManagement');
-    
-    const agentRef = doc(db, 'agents', reviewData.agentId);
-    const agentDoc = await getDoc(agentRef);
-    
-    if (!agentDoc.exists()) {
-      throw new Error('Agent not found');
-    }
-    
-    const agent = agentDoc.data() as Agent;
-    const now = new Date().toISOString();
-    
-    let updatePayload: Partial<Agent> = {
-      updatedAt: now,
-      reviewedBy: reviewerId,
-      reviewerEmail,
-      reviewerName
-    };
-    
-    const auditEntry: AuditEntry = {
-      action: reviewData.action === 'approve' ? 'approved' : 'rejected',
-      timestamp: now,
-      userId: reviewerId,
-      userEmail: reviewerEmail,
-      userName: reviewerName,
-      details: reviewData.comments || `Agent ${reviewData.action}d`,
-      metadata: {
-        previousStatus: agent.status,
-        action: reviewData.action,
-        comments: reviewData.comments
-      }
-    };
-    
-    if (reviewData.action === 'approve') {
-      updatePayload = {
-        ...updatePayload,
-        status: 'approved',
-        approvalDate: now,
-        visibility: reviewData.visibility || agent.visibility,
-        allowedClients: reviewData.allowedClients || agent.allowedClients
-      };
-    } else if (reviewData.action === 'reject') {
-      updatePayload = {
-        ...updatePayload,
-        status: 'rejected',
-        rejectionReason: reviewData.rejectionReason || 'No reason provided'
-      };
-    }
-    
-    // Update audit trail
-    updatePayload.auditTrail = [...(agent.auditTrail || []), auditEntry];
-    
-    await updateDoc(agentRef, updatePayload);
-    
-    logger.info('Agent review completed', { 
-      agentId: reviewData.agentId, 
-      action: reviewData.action 
-    }, 'AgentManagement');
-    
-  } catch (error) {
-    logger.error('Error reviewing agent', error, 'AgentManagement');
-    throw error;
-  }
-};
-
-/**
- * Get agents by status for review dashboard
- */
-export const getAgentsByStatus = async (status: Agent['status']): Promise<Agent[]> => {
-  try {
-    logger.debug('Getting agents by status', { status }, 'AgentManagement');
-    
-    const q = query(
-      collection(db, 'agents'),
-      where('status', '==', status),
-      orderBy('submissionDate', 'desc')
+    const results = agents.filter(agent => 
+      agent.name.toLowerCase().includes(searchTerm) ||
+      agent.description.toLowerCase().includes(searchTerm) ||
+      agent.metadata?.tags?.some(tag => tag.toLowerCase().includes(searchTerm)) ||
+      agent.metadata?.category?.toLowerCase().includes(searchTerm) ||
+      agent.provider.toLowerCase().includes(searchTerm)
     );
     
-    const querySnapshot = await getDocs(q);
-    const agents: Agent[] = [];
-    
-    querySnapshot.forEach((doc) => {
-      agents.push({ id: doc.id, ...doc.data() } as Agent);
-    });
-    
-    return agents;
+    logger.info(`Found ${results.length} agents matching query`, { query }, 'AgentManagementService');
+    return results;
     
   } catch (error) {
-    logger.error('Error getting agents by status', error, 'AgentManagement');
+    logger.error('Error searching agents', error, 'AgentManagementService');
     throw error;
   }
 };
 
-/**
- * Get pending agents for review
- */
-export const getPendingAgents = async (): Promise<Agent[]> => {
-  return getAgentsByStatus('pending');
-};
-
-/**
- * Get approved agents for marketplace
- */
-export const getApprovedAgents = async (): Promise<Agent[]> => {
-  return getAgentsByStatus('approved');
-};
-
-/**
- * Update agent status
- */
-export const updateAgentStatus = async (
-  agentId: string, 
-  status: Agent['status'],
-  userId: string,
-  userEmail: string,
-  userName: string,
-  details?: string
-): Promise<void> => {
+export const getAgentsByCategory = async (category: string): Promise<Agent[]> => {
   try {
-    logger.debug('Updating agent status', { agentId, status }, 'AgentManagement');
+    logger.debug('Fetching agents by category', { category }, 'AgentManagementService');
     
-    const agentRef = doc(db, 'agents', agentId);
-    const agentDoc = await getDoc(agentRef);
+    const agents = Array.from(localAgents.values());
+    const results = agents.filter(agent => 
+      agent.metadata?.category?.toLowerCase() === category.toLowerCase()
+    );
     
-    if (!agentDoc.exists()) {
-      throw new Error('Agent not found');
-    }
-    
-    const agent = agentDoc.data() as Agent;
-    const now = new Date().toISOString();
-    
-    const auditEntry: AuditEntry = {
-      action: status === 'approved' ? 'approved' : 
-              status === 'rejected' ? 'rejected' : 
-              status === 'deprecated' ? 'deprecated' : 'updated',
-      timestamp: now,
-      userId,
-      userEmail,
-      userName,
-      details: details || `Status changed to ${status}`,
-      metadata: {
-        previousStatus: agent.status,
-        newStatus: status
-      }
-    };
-    
-    const updatePayload: Partial<Agent> = {
-      status,
-      updatedAt: now,
-      auditTrail: [...(agent.auditTrail || []), auditEntry]
-    };
-    
-    if (status === 'approved') {
-      updatePayload.approvalDate = now;
-    } else if (status === 'rejected') {
-      updatePayload.rejectionReason = details || 'No reason provided';
-    }
-    
-    await updateDoc(agentRef, updatePayload);
-    
-    logger.info('Agent status updated', { agentId, status }, 'AgentManagement');
+    logger.info(`Found ${results.length} agents in category`, { category }, 'AgentManagementService');
+    return results;
     
   } catch (error) {
-    logger.error('Error updating agent status', error, 'AgentManagement');
+    logger.error('Error fetching agents by category', error, 'AgentManagementService');
+    throw error;
+  }
+};
+
+export const getAgentsByProvider = async (provider: string): Promise<Agent[]> => {
+  try {
+    logger.debug('Fetching agents by provider', { provider }, 'AgentManagementService');
+    
+    const agents = Array.from(localAgents.values());
+    const results = agents.filter(agent => 
+      agent.provider.toLowerCase() === provider.toLowerCase()
+    );
+    
+    logger.info(`Found ${results.length} agents from provider`, { provider }, 'AgentManagementService');
+    return results;
+    
+  } catch (error) {
+    logger.error('Error fetching agents by provider', error, 'AgentManagementService');
+    throw error;
+  }
+};
+
+export const getAgentsByTier = async (tier: string): Promise<Agent[]> => {
+  try {
+    logger.debug('Fetching agents by tier', { tier }, 'AgentManagementService');
+    
+    const agents = Array.from(localAgents.values());
+    const results = agents.filter(agent => 
+      agent.metadata?.tier?.toLowerCase() === tier.toLowerCase()
+    );
+    
+    logger.info(`Found ${results.length} agents in tier`, { tier }, 'AgentManagementService');
+    return results;
+    
+  } catch (error) {
+    logger.error('Error fetching agents by tier', error, 'AgentManagementService');
+    throw error;
+  }
+};
+
+export const assignAgentToTenant = async (agentId: string, tenantId: string): Promise<void> => {
+  try {
+    logger.debug('Assigning agent to tenant', { agentId, tenantId }, 'AgentManagementService');
+    
+    // For local development, just log the assignment
+    logger.info('Agent assigned to tenant', { agentId, tenantId }, 'AgentManagementService');
+    
+  } catch (error) {
+    logger.error('Error assigning agent to tenant', error, 'AgentManagementService');
+    throw error;
+  }
+};
+
+export const removeAgentFromTenant = async (agentId: string, tenantId: string): Promise<void> => {
+  try {
+    logger.debug('Removing agent from tenant', { agentId, tenantId }, 'AgentManagementService');
+    
+    // For local development, just log the removal
+    logger.info('Agent removed from tenant', { agentId, tenantId }, 'AgentManagementService');
+    
+  } catch (error) {
+    logger.error('Error removing agent from tenant', error, 'AgentManagementService');
     throw error;
   }
 };

@@ -38,18 +38,19 @@ const companies = [
     id: 'transparent-partners',
     name: 'Transparent Partners',
     domain: 'transparent.partners',
-    logo: 'https://logo.clearbit.com/transparent.partners',
-    userCount: 28,
-    agentCount: 12,
-    networkCount: 3,
-    description: 'AI consulting and implementation services',
+    logo: '/transparent-partners-logo.png',
+    userCount: 22,
+    agentCount: 15,
+    networkCount: 4,
+    description: 'AI consulting and implementation services - Your Partner, Not a Vendor',
     status: 'active',
-    primaryColor: '#0d9488', // Transparent.partners teal primary (lightened)
-    secondaryColor: '#14b8a6', // Transparent.partners teal secondary (lightened)
+    primaryColor: '#8B5CF6', // Transparent Partners purple primary
+    secondaryColor: '#7C3AED', // Transparent Partners purple secondary
     networks: [
-      { id: 'chicago', name: 'Chicago Office', userCount: 12 },
-      { id: 'remote', name: 'Remote Team', userCount: 10 },
-      { id: 'partners', name: 'Partner Network', userCount: 6 }
+      { id: 'leadership', name: 'Leadership Team', userCount: 6 },
+      { id: 'ai-solutions', name: 'AI Solutions', userCount: 8 },
+      { id: 'client-services', name: 'Client Services', userCount: 12 },
+      { id: 'analytics', name: 'Analytics & Insights', userCount: 9 }
     ]
   },
   {
@@ -226,12 +227,12 @@ export default function CompanySelectionPage() {
                 >
                   <div className="relative z-10">
                     <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-center space-x-3">
+                      <div className="flex items-center space-x-4">
                         {company.logo ? (
                           <img 
                             src={company.logo} 
                             alt={`${company.name} logo`}
-                            className="w-12 h-12 rounded object-cover border-2 border-white shadow-lg"
+                            className="w-32 h-20 rounded-xl object-cover border-2 border-white shadow-xl"
                             onError={(e) => {
                               e.currentTarget.style.display = 'none';
                               e.currentTarget.nextElementSibling!.style.display = 'flex';
@@ -239,7 +240,7 @@ export default function CompanySelectionPage() {
                           />
                         ) : null}
                         <div 
-                          className={`w-12 h-12 rounded flex items-center justify-center text-lg font-bold border-2 border-white shadow-lg company-tile-text ${getContrastColor(company.primaryColor) === '#ffffff' ? '' : 'light'}`}
+                          className={`w-32 h-20 rounded-xl flex items-center justify-center text-2xl font-bold border-2 border-white shadow-xl company-tile-text ${getContrastColor(company.primaryColor) === '#ffffff' ? '' : 'light'}`}
                           style={{ 
                             background: company.secondaryColor 
                               ? `linear-gradient(135deg, ${company.primaryColor}, ${company.secondaryColor})`

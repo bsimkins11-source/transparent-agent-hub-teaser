@@ -1,7 +1,6 @@
-# Use Node.js 18 for better compatibility
-FROM node:18
+# Build stage
+FROM node:18-alpine AS build
 
-# Set working directory
 WORKDIR /app
 
 # Copy package files
@@ -13,17 +12,20 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the React app
+# Build the app
 RUN npm run build
 
-# Install Express for serving
-RUN npm install express
+# Production stage
+FROM nginx:alpine
 
-# Copy server file
-COPY server.js ./
+# Copy built files from build stage
+COPY --from=build /app/dist /usr/share/nginx/html
 
-# Expose port
-EXPOSE 8080
+# Copy nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Start the server
-CMD ["node", "server.js"]
+# Expose port 80
+EXPOSE 80
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

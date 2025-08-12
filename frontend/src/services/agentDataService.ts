@@ -3,6 +3,8 @@ import { logger } from '../utils/logger';
 
 // Import local agents data
 import localAgentsData from '../data/agents.json';
+// Import fake agents data
+import fakeAgentsData from '../data/fakeAgents.json';
 
 /**
  * Service for loading agent data from local sources
@@ -24,6 +26,7 @@ export class AgentDataService {
         description: agentData.description,
         provider: agentData.provider,
         route: agentData.route,
+        icon: agentData.icon,
         metadata: {
           tags: agentData.metadata.tags || [],
           category: agentData.metadata.category || 'General',
@@ -67,6 +70,94 @@ export class AgentDataService {
     } catch (error) {
       logger.error('Error loading local agents', error, 'AgentDataService');
       throw error;
+    }
+  }
+
+  /**
+   * Load fake agents for demonstration purposes
+   */
+  static async loadFakeAgents(): Promise<Agent[]> {
+    try {
+      logger.info('Loading fake agents data', { count: fakeAgentsData.length }, 'AgentDataService');
+      
+      // Transform the fake data to match the Agent interface
+      const fakeAgents: Agent[] = fakeAgentsData.map((agentData: any) => ({
+        id: agentData.id,
+        name: agentData.name,
+        description: agentData.description,
+        provider: agentData.provider,
+        route: `/fake/${agentData.id}`,
+        icon: agentData.icon,
+        metadata: {
+          tags: agentData.metadata.tags || [],
+          category: agentData.metadata.category || 'General',
+          tier: agentData.metadata.tier || 'free',
+          permissionType: 'direct',
+          version: '1.0.0',
+          promptTemplateId: `fake-${agentData.id}`,
+          executionTarget: 'local',
+          testConfig: {},
+          changelog: []
+        },
+        visibility: 'public',
+        allowedClients: [],
+        allowedRoles: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        status: 'approved',
+        submitterId: 'fake-system',
+        submitterEmail: 'fake@example.com',
+        submitterName: 'Fake System',
+        submissionDate: new Date().toISOString(),
+        reviewedBy: 'fake-system',
+        reviewerEmail: 'fake@example.com',
+        reviewerName: 'Fake System',
+        approvalDate: new Date().toISOString(),
+        rejectionReason: '',
+        auditTrail: [],
+        organizationId: '',
+        organizationName: '',
+        networkId: '',
+        networkName: ''
+      }));
+      
+      logger.info('Successfully loaded fake agents', { 
+        count: fakeAgents.length,
+        agentNames: fakeAgents.map(a => a.name)
+      }, 'AgentDataService');
+      
+      return fakeAgents;
+      
+    } catch (error) {
+      logger.error('Error loading fake agents', error, 'AgentDataService');
+      return [];
+    }
+  }
+
+  /**
+   * Load all agents (local + fake) for the global library
+   */
+  static async loadAllAgents(): Promise<Agent[]> {
+    try {
+      const [localAgents, fakeAgents] = await Promise.all([
+        this.loadLocalAgents(),
+        this.loadFakeAgents()
+      ]);
+      
+      const allAgents = [...localAgents, ...fakeAgents];
+      
+      logger.info('Successfully loaded all agents', { 
+        totalCount: allAgents.length,
+        localCount: localAgents.length,
+        fakeCount: fakeAgents.length
+      }, 'AgentDataService');
+      
+      return allAgents;
+      
+    } catch (error) {
+      logger.error('Error loading all agents', error, 'AgentDataService');
+      // Fallback to just local agents if fake agents fail to load
+      return await this.loadLocalAgents();
     }
   }
   

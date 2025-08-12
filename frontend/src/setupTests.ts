@@ -69,8 +69,8 @@ afterAll(() => {
   console.warn = originalConsoleWarn;
 });
 
-// Mock Firebase
-jest.mock('./config/firebase', () => ({
+// Mock services
+jest.mock('./config/services', () => ({
   auth: {
     onAuthStateChanged: jest.fn(),
     signInWithEmailAndPassword: jest.fn(),

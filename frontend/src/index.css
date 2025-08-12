@@ -22,6 +22,30 @@
     --transparent-orange: #EA7732;
     --transparent-orange-light: #f5954a;
     --transparent-orange-dark: #d65a1a;
+    
+    /* Company branding color system - will be dynamically set by CompanyBrandingContext */
+    --company-primary: #3B82F6;
+    --company-secondary: #1E40AF;
+    --company-primary-50: #3B82F60D;
+    --company-primary-100: #3B82F61A;
+    --company-primary-200: #3B82F633;
+    --company-primary-300: #3B82F64D;
+    --company-primary-400: #3B82F666;
+    --company-primary-500: #3B82F6;
+    --company-primary-600: #3B82F6CC;
+    --company-primary-700: #3B82F6E6;
+    --company-primary-800: #3B82F6F0;
+    --company-primary-900: #3B82F6FA;
+    --company-secondary-50: #1E40AF0D;
+    --company-secondary-100: #1E40AF1A;
+    --company-secondary-200: #1E40AF33;
+    --company-secondary-300: #1E40AF4D;
+    --company-secondary-400: #1E40AF66;
+    --company-secondary-500: #1E40AF;
+    --company-secondary-600: #1E40AFCC;
+    --company-secondary-700: #1E40AFE6;
+    --company-secondary-800: #1E40AFF0;
+    --company-secondary-900: #1E40AFFA;
   }
 }
 
@@ -363,5 +387,40 @@
   .sidebar-nav {
     scrollbar-width: thin;
     scrollbar-color: #c1c1c1 #f1f1f1;
+  }
+  
+  /* Company library specific styles */
+  .company-library-header {
+    background: linear-gradient(135deg, var(--company-primary), var(--company-secondary));
+    color: white;
+  }
+  
+  .company-library-tab-active {
+    border-color: var(--company-primary);
+    color: var(--company-primary);
+  }
+  
+  .company-library-button {
+    background: var(--company-primary);
+    color: white;
+    border-color: var(--company-primary);
+  }
+  
+  .company-library-button:hover {
+    background: var(--company-primary-600);
+    border-color: var(--company-primary-600);
+  }
+  
+  .company-library-focus {
+    --tw-ring-color: var(--company-primary);
+    --tw-border-color: var(--company-primary);
+  }
+  
+  .company-library-accent {
+    color: var(--company-primary);
+  }
+  
+  .company-library-accent-bg {
+    background-color: var(--company-primary-50);
   }
 }

@@ -15,10 +15,10 @@ import {
   XMarkIcon,
   BuildingLibraryIcon,
   GlobeAltIcon,
-  SparklesIcon,
   ShieldCheckIcon,
   UserGroupIcon,
   CogIcon,
+  SparklesIcon,
   ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
 
@@ -157,7 +157,7 @@ export default function Sidebar() {
     {
       name: 'Creator Portal',
       href: '/creator-portal',
-      icon: SparklesIcon,
+      icon: UserIcon, // Using UserIcon as a more appropriate icon for creator portal
       current: location.pathname === '/creator-portal',
       description: 'Submit and manage your agents',
       requiresRole: ['creator', 'super_admin'],
@@ -305,7 +305,7 @@ export default function Sidebar() {
                     <UserIcon className="w-5 h-5 text-white" />
                   </div>
                   <span className="text-lg font-semibold text-gray-900">
-                    Account
+                    Navigation
                   </span>
                 </div>
                 <button
@@ -322,7 +322,7 @@ export default function Sidebar() {
                 </button>
               </motion.div>
 
-              {/* User Info */}
+              {/* User Info - Simplified */}
               <motion.div 
                 className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50"
                 initial={{ opacity: 0, y: -10 }}
@@ -330,20 +330,24 @@ export default function Sidebar() {
                 transition={{ delay: 0.2, duration: 0.3 }}
               >
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                    <UserIcon className="w-6 h-6 text-white" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <UserIcon className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {currentUser?.displayName || currentUser?.email?.split('@')[0] || 'User'}
                     </p>
                     <p className="text-xs text-gray-500 truncate">
-                      {currentUser?.email}
-                    </p>
-                    <p className="text-xs text-blue-600 font-medium capitalize mt-1">
-                      {userProfile.role.replace('_', ' ')}
+                      {userProfile?.role?.replace('_', ' ') || 'User'}
                     </p>
                   </div>
+                  <Link
+                    to="/user-settings"
+                    className="p-1 rounded hover:bg-blue-100 transition-colors"
+                    title="User Settings"
+                  >
+                    <Cog6ToothIcon className="w-4 h-4 text-blue-600" />
+                  </Link>
                 </div>
               </motion.div>
 
@@ -466,6 +470,7 @@ export default function Sidebar() {
                     </Link>
                   </div>
                 </motion.div>
+
               </motion.nav>
 
               {/* Logout */}

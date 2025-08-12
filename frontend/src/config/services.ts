@@ -1,4 +1,4 @@
-export type ServiceProvider = 'firebase' | 'cloudrun';
+export type ServiceProvider = 'local' | 'cloudrun';
 
 export interface ServiceConfig {
   provider: ServiceProvider;
@@ -8,7 +8,7 @@ export interface ServiceConfig {
 
 // Environment-based configuration
 export const getServiceConfig = (): ServiceConfig => {
-  const provider = (import.meta.env.VITE_SERVICE_PROVIDER as ServiceProvider) || 'firebase';
+  const provider = (import.meta.env.VITE_SERVICE_PROVIDER as ServiceProvider) || 'local';
   const baseUrl = import.meta.env.VITE_CLOUD_RUN_BASE_URL;
   const apiKey = import.meta.env.VITE_CLOUD_RUN_API_KEY;
 
@@ -21,11 +21,11 @@ export const getServiceConfig = (): ServiceConfig => {
 
 // Service provider constants
 export const SERVICE_PROVIDERS = {
-  FIREBASE: 'firebase' as const,
+  LOCAL: 'local' as const,
   CLOUD_RUN: 'cloudrun' as const,
 } as const;
 
 // Default configuration
 export const DEFAULT_SERVICE_CONFIG: ServiceConfig = {
-  provider: 'firebase'
+  provider: 'local'
 };

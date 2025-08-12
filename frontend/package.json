@@ -2,11 +2,12 @@
   "name": "transparent-agent-hub-frontend",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "dependencies": {
     "@heroicons/react": "^2.0.18",
     "autoprefixer": "^10.4.16",
     "axios": "^1.6.2",
-    "firebase": "^10.7.1",
+
     "framer-motion": "^10.16.16",
     "postcss": "^8.4.32",
     "react": "^18.2.0",

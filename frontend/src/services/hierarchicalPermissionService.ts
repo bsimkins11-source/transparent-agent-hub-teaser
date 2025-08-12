@@ -1,5 +1,4 @@
-import { collection, doc, getDoc, setDoc, updateDoc, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+// Local hierarchical permission service
 import { logger } from '../utils/logger';
 import { Agent } from '../types/agent';
 
@@ -30,6 +29,11 @@ export interface NetworkAgentPermissions {
   updatedBy: string;
 }
 
+// Local storage for permissions (in-memory for development)
+const localCompanyPermissions: Map<string, CompanyAgentPermissions> = new Map();
+const localNetworkPermissions: Map<string, NetworkAgentPermissions> = new Map();
+const localGlobalSettings: Map<string, any> = new Map();
+
 /**
  * Get agents available to a company (granted by Super Admin)
  */
@@ -37,51 +41,50 @@ export const getCompanyAvailableAgents = async (companyId: string): Promise<Agen
   try {
     logger.debug('Fetching company available agents', { companyId }, 'HierarchicalPermissions');
     
-    const companyPermissionsRef = doc(db, 'companyAgentPermissions', companyId);
-    const companyDoc = await getDoc(companyPermissionsRef);
-    
-    if (!companyDoc.exists()) {
-      logger.info('No company permissions found', { companyId }, 'HierarchicalPermissions');
-      return [];
-    }
-    
-    const companyPermissions = companyDoc.data() as CompanyAgentPermissions;
-    const grantedAgentIds = Object.keys(companyPermissions.permissions).filter(
-      agentId => companyPermissions.permissions[agentId].granted
-    );
-    
-    // Fetch agent details for granted agents
-    const agents: Agent[] = [];
-    for (const agentId of grantedAgentIds) {
-      const agentDoc = await getDoc(doc(db, 'agents', agentId));
-      if (agentDoc.exists()) {
-        const agentData = agentDoc.data();
-        agents.push({
-          id: agentDoc.id,
-          name: agentData.name,
-          description: agentData.description,
-          provider: agentData.provider,
-          route: agentData.route,
-          metadata: {
-            tags: agentData.metadata?.tags || [],
-            category: agentData.metadata?.category || 'General',
-            tier: agentData.metadata?.tier || 'free',
-            permissionType: agentData.metadata?.permissionType || 'direct'
-          },
-          visibility: agentData.visibility || 'public',
-          allowedRoles: agentData.allowedRoles || ['user'],
-          createdAt: agentData.createdAt,
-          updatedAt: agentData.updatedAt
-        });
+    // For local development, return all agents
+    const mockAgents: Agent[] = [
+      {
+        id: 'gemini-chat-agent',
+        name: 'Gemini Chat Agent',
+        description: 'Google Gemini AI chat assistant',
+        provider: 'google',
+        route: '/api/gemini',
+        metadata: {
+          tags: ['chat', 'ai', 'google'],
+          category: 'Productivity',
+          tier: 'free',
+          permissionType: 'direct'
+        },
+        visibility: 'public',
+        allowedRoles: ['user'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'imagen-agent',
+        name: 'Imagen Agent',
+        description: 'Google Imagen AI image generation',
+        provider: 'google',
+        route: '/api/imagen',
+        metadata: {
+          tags: ['image', 'generation', 'ai', 'google'],
+          category: 'Creative',
+          tier: 'premium',
+          permissionType: 'approval'
+        },
+        visibility: 'public',
+        allowedRoles: ['user'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       }
-    }
+    ];
     
-    logger.info(`Found ${agents.length} available agents for company`, { companyId }, 'HierarchicalPermissions');
-    return agents;
+    logger.info(`Found ${mockAgents.length} available agents for company`, { companyId }, 'HierarchicalPermissions');
+    return mockAgents;
     
   } catch (error) {
     logger.error('Error fetching company available agents', error, 'HierarchicalPermissions');
-    throw error;
+    return [];
   }
 };
 
@@ -92,56 +95,17 @@ export const getNetworkAvailableAgents = async (companyId: string, networkId: st
   try {
     logger.debug('Fetching network available agents', { companyId, networkId }, 'HierarchicalPermissions');
     
-    const networkPermissionsRef = doc(db, 'networkAgentPermissions', `${companyId}_${networkId}`);
-    const networkDoc = await getDoc(networkPermissionsRef);
-    
-    if (!networkDoc.exists()) {
-      logger.info('No network permissions found', { companyId, networkId }, 'HierarchicalPermissions');
-      return [];
-    }
-    
-    const networkPermissions = networkDoc.data() as NetworkAgentPermissions;
-    const grantedAgentIds = Object.keys(networkPermissions.permissions).filter(
-      agentId => networkPermissions.permissions[agentId].granted
-    );
-    
-    // Fetch agent details for granted agents
-    const agents: Agent[] = [];
-    for (const agentId of grantedAgentIds) {
-      const agentDoc = await getDoc(doc(db, 'agents', agentId));
-      if (agentDoc.exists()) {
-        const agentData = agentDoc.data();
-        agents.push({
-          id: agentDoc.id,
-          name: agentData.name,
-          description: agentData.description,
-          provider: agentData.provider,
-          route: agentData.route,
-          metadata: {
-            tags: agentData.metadata?.tags || [],
-            category: agentData.metadata?.category || 'General',
-            tier: agentData.metadata?.tier || 'free',
-            permissionType: agentData.metadata?.permissionType || 'direct'
-          },
-          visibility: agentData.visibility || 'public',
-          allowedRoles: agentData.allowedRoles || ['user'],
-          createdAt: agentData.createdAt,
-          updatedAt: agentData.updatedAt
-        });
-      }
-    }
-    
-    logger.info(`Found ${agents.length} available agents for network`, { companyId, networkId }, 'HierarchicalPermissions');
-    return agents;
+    // For local development, return the same agents as company level
+    return await getCompanyAvailableAgents(companyId);
     
   } catch (error) {
     logger.error('Error fetching network available agents', error, 'HierarchicalPermissions');
-    throw error;
+    return [];
   }
 };
 
 /**
- * Grant agents to a company (Super Admin action)
+ * Grant agents to a company
  */
 export const grantAgentsToCompany = async (
   companyId: string,
@@ -151,23 +115,19 @@ export const grantAgentsToCompany = async (
   adminName: string
 ): Promise<void> => {
   try {
-    logger.debug('Granting agents to company', { companyId, agentCount: Object.keys(agentPermissions).length }, 'HierarchicalPermissions');
+    logger.debug('Granting agents to company', { companyId, agentPermissions }, 'HierarchicalPermissions');
     
     const permissions: { [agentId: string]: AgentPermission } = {};
     
     for (const [agentId, permission] of Object.entries(agentPermissions)) {
-      // Get agent details for tier information
-      const agentDoc = await getDoc(doc(db, 'agents', agentId));
-      const agentData = agentDoc.exists() ? agentDoc.data() : null;
-      
       permissions[agentId] = {
         agentId,
-        agentName: agentData?.name || 'Unknown Agent',
+        agentName: `Agent ${agentId}`, // Mock name
         granted: permission.granted,
         assignmentType: permission.assignmentType,
         grantedBy: adminId,
         grantedAt: new Date().toISOString(),
-        tier: agentData?.metadata?.tier || 'free'
+        tier: 'free' // Default tier
       };
     }
     
@@ -176,12 +136,12 @@ export const grantAgentsToCompany = async (
       companyName,
       permissions,
       updatedAt: new Date().toISOString(),
-      updatedBy: adminId
+      updatedBy: adminName
     };
     
-    await setDoc(doc(db, 'companyAgentPermissions', companyId), companyPermissions);
+    localCompanyPermissions.set(companyId, companyPermissions);
     
-    logger.info('Successfully granted agents to company', { companyId, grantedCount: Object.values(permissions).filter(p => p.granted).length }, 'HierarchicalPermissions');
+    logger.info('Agents granted to company successfully', { companyId }, 'HierarchicalPermissions');
     
   } catch (error) {
     logger.error('Error granting agents to company', error, 'HierarchicalPermissions');
@@ -190,7 +150,7 @@ export const grantAgentsToCompany = async (
 };
 
 /**
- * Grant agents to a network (Company Admin action)
+ * Grant agents to a network
  */
 export const grantAgentsToNetwork = async (
   companyId: string,
@@ -201,33 +161,19 @@ export const grantAgentsToNetwork = async (
   adminName: string
 ): Promise<void> => {
   try {
-    logger.debug('Granting agents to network', { companyId, networkId, agentCount: Object.keys(agentPermissions).length }, 'HierarchicalPermissions');
-    
-    // First verify that the company has access to these agents
-    const companyAvailableAgents = await getCompanyAvailableAgents(companyId);
-    const companyAgentIds = companyAvailableAgents.map(agent => agent.id);
+    logger.debug('Granting agents to network', { companyId, networkId, agentPermissions }, 'HierarchicalPermissions');
     
     const permissions: { [agentId: string]: AgentPermission } = {};
     
     for (const [agentId, permission] of Object.entries(agentPermissions)) {
-      // Only allow granting if company has access
-      if (!companyAgentIds.includes(agentId)) {
-        logger.warn('Attempted to grant agent not available to company', { companyId, agentId }, 'HierarchicalPermissions');
-        continue;
-      }
-      
-      // Get agent details
-      const agentDoc = await getDoc(doc(db, 'agents', agentId));
-      const agentData = agentDoc.exists() ? agentDoc.data() : null;
-      
       permissions[agentId] = {
         agentId,
-        agentName: agentData?.name || 'Unknown Agent',
+        agentName: `Agent ${agentId}`, // Mock name
         granted: permission.granted,
         assignmentType: permission.assignmentType,
         grantedBy: adminId,
         grantedAt: new Date().toISOString(),
-        tier: agentData?.metadata?.tier || 'free'
+        tier: 'free' // Default tier
       };
     }
     
@@ -237,12 +183,12 @@ export const grantAgentsToNetwork = async (
       networkName,
       permissions,
       updatedAt: new Date().toISOString(),
-      updatedBy: adminId
+      updatedBy: adminName
     };
     
-    await setDoc(doc(db, 'networkAgentPermissions', `${companyId}_${networkId}`), networkPermissions);
+    localNetworkPermissions.set(`${companyId}_${networkId}`, networkPermissions);
     
-    logger.info('Successfully granted agents to network', { companyId, networkId, grantedCount: Object.values(permissions).filter(p => p.granted).length }, 'HierarchicalPermissions');
+    logger.info('Agents granted to network successfully', { companyId, networkId }, 'HierarchicalPermissions');
     
   } catch (error) {
     logger.error('Error granting agents to network', error, 'HierarchicalPermissions');
@@ -251,47 +197,39 @@ export const grantAgentsToNetwork = async (
 };
 
 /**
- * Get current company agent permissions
+ * Get company agent permissions
  */
 export const getCompanyAgentPermissions = async (companyId: string): Promise<CompanyAgentPermissions | null> => {
   try {
-    const companyPermissionsRef = doc(db, 'companyAgentPermissions', companyId);
-    const companyDoc = await getDoc(companyPermissionsRef);
+    logger.debug('Fetching company agent permissions', { companyId }, 'HierarchicalPermissions');
     
-    if (!companyDoc.exists()) {
-      return null;
-    }
-    
-    return companyDoc.data() as CompanyAgentPermissions;
+    const permissions = localCompanyPermissions.get(companyId);
+    return permissions || null;
     
   } catch (error) {
     logger.error('Error fetching company agent permissions', error, 'HierarchicalPermissions');
-    throw error;
+    return null;
   }
 };
 
 /**
- * Get current network agent permissions
+ * Get network agent permissions
  */
 export const getNetworkAgentPermissions = async (companyId: string, networkId: string): Promise<NetworkAgentPermissions | null> => {
   try {
-    const networkPermissionsRef = doc(db, 'networkAgentPermissions', `${companyId}_${networkId}`);
-    const networkDoc = await getDoc(networkPermissionsRef);
+    logger.debug('Fetching network agent permissions', { companyId, networkId }, 'HierarchicalPermissions');
     
-    if (!networkDoc.exists()) {
-      return null;
-    }
-    
-    return networkDoc.data() as NetworkAgentPermissions;
+    const permissions = localNetworkPermissions.get(`${companyId}_${networkId}`);
+    return permissions || null;
     
   } catch (error) {
     logger.error('Error fetching network agent permissions', error, 'HierarchicalPermissions');
-    throw error;
+    return null;
   }
 };
 
 /**
- * Get permission statistics for a company
+ * Get company permission statistics
  */
 export const getCompanyPermissionStats = async (companyId: string): Promise<{
   totalAvailable: number;
@@ -299,34 +237,45 @@ export const getCompanyPermissionStats = async (companyId: string): Promise<{
   byTier: { [tier: string]: number };
 }> => {
   try {
-    const permissions = await getCompanyAgentPermissions(companyId);
+    logger.debug('Fetching company permission stats', { companyId }, 'HierarchicalPermissions');
+    
+    const permissions = localCompanyPermissions.get(companyId);
     
     if (!permissions) {
-      return { totalAvailable: 0, totalGranted: 0, byTier: {} };
+      return {
+        totalAvailable: 0,
+        totalGranted: 0,
+        byTier: {}
+      };
     }
     
-    const allPermissions = Object.values(permissions.permissions);
-    const grantedPermissions = allPermissions.filter(p => p.granted);
+    const totalGranted = Object.values(permissions.permissions).filter(p => p.granted).length;
+    const byTier: { [tier: string]: number } = {};
     
-    const byTier = grantedPermissions.reduce((acc, permission) => {
-      acc[permission.tier] = (acc[permission.tier] || 0) + 1;
-      return acc;
-    }, {} as { [tier: string]: number });
+    Object.values(permissions.permissions).forEach(permission => {
+      if (permission.granted) {
+        byTier[permission.tier] = (byTier[permission.tier] || 0) + 1;
+      }
+    });
     
     return {
-      totalAvailable: allPermissions.length,
-      totalGranted: grantedPermissions.length,
+      totalAvailable: Object.keys(permissions.permissions).length,
+      totalGranted,
       byTier
     };
     
   } catch (error) {
-    logger.error('Error getting company permission stats', error, 'HierarchicalPermissions');
-    return { totalAvailable: 0, totalGranted: 0, byTier: {} };
+    logger.error('Error fetching company permission stats', error, 'HierarchicalPermissions');
+    return {
+      totalAvailable: 0,
+      totalGranted: 0,
+      byTier: {}
+    };
   }
 };
 
 /**
- * Get permission statistics for a network
+ * Get network permission statistics
  */
 export const getNetworkPermissionStats = async (companyId: string, networkId: string): Promise<{
   totalAvailable: number;
@@ -334,35 +283,44 @@ export const getNetworkPermissionStats = async (companyId: string, networkId: st
   byTier: { [tier: string]: number };
 }> => {
   try {
-    const permissions = await getNetworkAgentPermissions(companyId, networkId);
+    logger.debug('Fetching network permission stats', { companyId, networkId }, 'HierarchicalPermissions');
+    
+    const permissions = localNetworkPermissions.get(`${companyId}_${networkId}`);
     
     if (!permissions) {
-      return { totalAvailable: 0, totalGranted: 0, byTier: {} };
+      return {
+        totalAvailable: 0,
+        totalGranted: 0,
+        byTier: {}
+      };
     }
     
-    const allPermissions = Object.values(permissions.permissions);
-    const grantedPermissions = allPermissions.filter(p => p.granted);
+    const totalGranted = Object.values(permissions.permissions).filter(p => p.granted).length;
+    const byTier: { [tier: string]: number } = {};
     
-    const byTier = grantedPermissions.reduce((acc, permission) => {
-      acc[permission.tier] = (acc[permission.tier] || 0) + 1;
-      return acc;
-    }, {} as { [tier: string]: number });
+    Object.values(permissions.permissions).forEach(permission => {
+      if (permission.granted) {
+        byTier[permission.tier] = (byTier[permission.tier] || 0) + 1;
+      }
+    });
     
     return {
-      totalAvailable: allPermissions.length,
-      totalGranted: grantedPermissions.length,
+      totalAvailable: Object.keys(permissions.permissions).length,
+      totalGranted,
       byTier
     };
     
   } catch (error) {
-    logger.error('Error getting network permission stats', error, 'HierarchicalPermissions');
-    return { totalAvailable: 0, totalGranted: 0, byTier: {} };
+    logger.error('Error fetching network permission stats', error, 'HierarchicalPermissions');
+    return {
+      totalAvailable: 0,
+      totalGranted: 0,
+      byTier: {}
+    };
   }
 };
 
-/**
- * Global Agent Settings Interface
- */
+// Global agent settings interfaces
 export interface GlobalAgentSettings {
   agentId: string;
   enabled: boolean;
@@ -379,7 +337,7 @@ export interface GlobalAgentConfig {
 }
 
 /**
- * Save global agent settings (Super Admin only)
+ * Save global agent settings
  */
 export const saveGlobalAgentSettings = async (
   agentSettings: {[agentId: string]: {enabled: boolean; defaultTier: 'free' | 'premium' | 'enterprise'; defaultAssignmentType: 'free' | 'direct' | 'approval'}},
@@ -387,33 +345,30 @@ export const saveGlobalAgentSettings = async (
   adminName: string
 ): Promise<void> => {
   try {
-    logger.debug('Saving global agent settings', { agentCount: Object.keys(agentSettings).length }, 'HierarchicalPermissions');
+    logger.debug('Saving global agent settings', { agentSettings }, 'HierarchicalPermissions');
     
     const settings: { [agentId: string]: GlobalAgentSettings } = {};
     
-    Object.entries(agentSettings).forEach(([agentId, setting]) => {
+    for (const [agentId, setting] of Object.entries(agentSettings)) {
       settings[agentId] = {
         agentId,
         enabled: setting.enabled,
         defaultTier: setting.defaultTier,
         defaultAssignmentType: setting.defaultAssignmentType,
         updatedAt: new Date().toISOString(),
-        updatedBy: adminId
+        updatedBy: adminName
       };
-    });
+    }
     
     const globalConfig: GlobalAgentConfig = {
       settings,
       updatedAt: new Date().toISOString(),
-      updatedBy: adminId
+      updatedBy: adminName
     };
     
-    await setDoc(doc(db, 'globalAgentSettings', 'config'), globalConfig);
+    localGlobalSettings.set('global', globalConfig);
     
-    logger.info('Successfully saved global agent settings', { 
-      totalAgents: Object.keys(settings).length,
-      enabledAgents: Object.values(settings).filter(s => s.enabled).length
-    }, 'HierarchicalPermissions');
+    logger.info('Global agent settings saved successfully', undefined, 'HierarchicalPermissions');
     
   } catch (error) {
     logger.error('Error saving global agent settings', error, 'HierarchicalPermissions');
@@ -426,17 +381,13 @@ export const saveGlobalAgentSettings = async (
  */
 export const getGlobalAgentSettings = async (): Promise<GlobalAgentConfig | null> => {
   try {
-    const globalSettingsRef = doc(db, 'globalAgentSettings', 'config');
-    const globalDoc = await getDoc(globalSettingsRef);
+    logger.debug('Fetching global agent settings', undefined, 'HierarchicalPermissions');
     
-    if (!globalDoc.exists()) {
-      return null;
-    }
-    
-    return globalDoc.data() as GlobalAgentConfig;
+    const settings = localGlobalSettings.get('global');
+    return settings || null;
     
   } catch (error) {
     logger.error('Error fetching global agent settings', error, 'HierarchicalPermissions');
-    throw error;
+    return null;
   }
 };

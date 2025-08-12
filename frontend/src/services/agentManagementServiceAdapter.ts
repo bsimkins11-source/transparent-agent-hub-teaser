@@ -6,10 +6,10 @@ import { logger } from '../utils/logger';
  * Agent Management Service Adapter
  * 
  * This adapter provides the same interface as the old agentManagementService.ts
- * but uses the new service factory for easy migration between Firebase and Cloud Run.
+ * but uses the new service factory for easy migration between different backends.
  * 
  * Usage:
- * - For POC: Uses Firebase (fast development)
+ * - For POC: Uses local services (fast development)
  * - For Production: Can easily switch to Cloud Run (scalable)
  */
 
