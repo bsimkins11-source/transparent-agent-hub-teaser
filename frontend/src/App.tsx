@@ -13,7 +13,7 @@ import CompanyAgentLibrary from './pages/CompanyAgentLibrary'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
 // import AgentAdmin from './pages/AgentAdmin'
 import CreatorPortal from './pages/CreatorPortal'
-import AgentSubmissionPage from './pages/AgentSubmissionPage'
+import AgentSubmissionPage from './pages/AgentSubmission'
 import NewAgentRequest from './pages/NewAgentRequest'
 import UserSettingsPage from './pages/UserSettingsPage'
 
