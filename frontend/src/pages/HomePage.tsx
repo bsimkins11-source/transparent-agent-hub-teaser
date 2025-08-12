@@ -32,47 +32,25 @@ export default function HomePage() {
   console.log('🚀 HomePage component rendering - Vercel deployment test');
   const [searchParams] = useSearchParams();
   const isAuthRedirect = searchParams.get('auth_required') === 'true';
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
-  const ensureVideoSound = () => {
-    if (videoRef.current) {
-      videoRef.current.muted = false;
-      videoRef.current.volume = 1;
-      console.log('🔊 Ensuring video sound is enabled, volume:', videoRef.current.volume, 'muted:', videoRef.current.muted);
-    }
+
+
+
+  const showSlide = (index: number) => {
+    setCurrentSlideIndex(index);
   };
 
-  const showVideoSlide = (index: number) => {
-    if (videoRef.current && !videoRef.current.paused) {
-      videoRef.current.pause();
-      console.log('⏸️ Video paused due to carousel navigation');
-    }
-    
-    setCurrentVideoIndex(index);
-    if (index === 0) {
-      setTimeout(ensureVideoSound, 100);
-    }
+  const nextSlide = () => {
+    const nextIndex = (currentSlideIndex + 1) % 5;
+    setCurrentSlideIndex(nextIndex);
   };
 
-  const nextVideo = () => {
-    if (videoRef.current && !videoRef.current.paused) {
-      videoRef.current.pause();
-      console.log('⏸️ Video paused due to next navigation');
-    }
-    
-    const nextIndex = (currentVideoIndex + 1) % 5;
-    setCurrentVideoIndex(nextIndex);
-  };
+  const previousSlide = () => {
 
-  const previousVideo = () => {
-    if (videoRef.current && !videoRef.current.paused) {
-      videoRef.current.pause();
-      console.log('⏸️ Video paused due to previous navigation');
-    }
     
-    const prevIndex = (currentVideoIndex - 1 + 5) % 5;
-    setCurrentVideoIndex(prevIndex);
+    const prevIndex = (currentSlideIndex - 1 + 5) % 5;
+    setCurrentSlideIndex(prevIndex);
   };
   
   return (
@@ -127,7 +105,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Video Carousel Section */}
+        {/* Demo Carousel Section */}
         <section className="py-16 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
@@ -141,26 +119,17 @@ export default function HomePage() {
             
             {/* Carousel Container */}
             <div className="relative max-w-4xl mx-auto">
-              {/* Video Slides */}
+              {/* Demo Slides */}
               <div className="relative overflow-hidden rounded-2xl shadow-2xl">
-                {currentVideoIndex === 0 && (
-                  <div className="video-slide">
-                    <video
-                      ref={videoRef}
-                      className="w-full h-auto"
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      onLoadedMetadata={ensureVideoSound}
-                    >
-                      <source src="/TMDQA.mp4" type="video/mp4" />
-                      Your browser does not support the video tag.
-                    </video>
+                {currentSlideIndex === 0 && (
+                  <div className="video-slide bg-gradient-to-br from-teal-50 to-blue-100 p-12 text-center">
+                    <div className="text-6xl mb-6">🎯</div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4">AI Agent Hub</h3>
+                    <p className="text-gray-600">Your central platform for discovering and managing intelligent AI agents.</p>
                   </div>
                 )}
                 
-                {currentVideoIndex === 1 && (
+                {currentSlideIndex === 1 && (
                   <div className="video-slide bg-gradient-to-br from-blue-50 to-indigo-100 p-12 text-center">
                     <div className="text-6xl mb-6">🚀</div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">AI Agent Marketplace</h3>
@@ -168,7 +137,7 @@ export default function HomePage() {
                   </div>
                 )}
                 
-                {currentVideoIndex === 2 && (
+                {currentSlideIndex === 2 && (
                   <div className="video-slide bg-gradient-to-br from-green-50 to-emerald-100 p-12 text-center">
                     <div className="text-6xl mb-6">🔒</div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">Enterprise Security</h3>
@@ -176,7 +145,7 @@ export default function HomePage() {
                   </div>
                 )}
                 
-                {currentVideoIndex === 3 && (
+                {currentSlideIndex === 3 && (
                   <div className="video-slide bg-gradient-to-br from-purple-50 to-violet-100 p-12 text-center">
                     <div className="text-6xl mb-6">📊</div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">Analytics & Insights</h3>
@@ -184,7 +153,7 @@ export default function HomePage() {
                   </div>
                 )}
                 
-                {currentVideoIndex === 4 && (
+                {currentSlideIndex === 4 && (
                   <div className="video-slide bg-gradient-to-br from-orange-50 to-amber-100 p-12 text-center">
                     <div className="text-6xl mb-6">🤝</div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-4">Team Collaboration</h3>
@@ -195,7 +164,7 @@ export default function HomePage() {
               
               {/* Navigation Arrows */}
               <button
-                onClick={previousVideo}
+                onClick={previousSlide}
                 className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
                 aria-label="Previous slide"
               >
@@ -205,7 +174,7 @@ export default function HomePage() {
               </button>
               
               <button
-                onClick={nextVideo}
+                onClick={nextSlide}
                 className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
                 aria-label="Next slide"
               >
@@ -219,9 +188,9 @@ export default function HomePage() {
                 {[0, 1, 2, 3, 4].map((index) => (
                   <button
                     key={index}
-                    onClick={() => showVideoSlide(index)}
+                    onClick={() => showSlide(index)}
                     className={`carousel-dot w-3 h-3 rounded-full transition-all duration-200 ${
-                      index === currentVideoIndex ? 'active' : ''
+                      index === currentSlideIndex ? 'active' : ''
                     }`}
                     aria-label={`Go to slide ${index + 1}`}
                   />
