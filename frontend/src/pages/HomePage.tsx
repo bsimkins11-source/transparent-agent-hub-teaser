@@ -28,7 +28,8 @@ const carouselStyles = `
 `;
 
 export default function HomePage() {
-  // FORCE FRESH DEPLOYMENT - VERCEL CACHE BUST - UPDATED $(date)
+  // FORCE FRESH DEPLOYMENT - VERCEL CACHE BUST - UPDATED 2024-08-12 12:45
+  console.log('🚀 HomePage component rendering - Vercel deployment test');
   const [searchParams] = useSearchParams();
   const isAuthRedirect = searchParams.get('auth_required') === 'true';
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
