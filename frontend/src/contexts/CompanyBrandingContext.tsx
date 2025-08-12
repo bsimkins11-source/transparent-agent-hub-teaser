@@ -42,26 +42,39 @@ export function CompanyBrandingProvider({ children, companyId }: CompanyBranding
     try {
       setLoading(true);
       setError(null);
+      
+      console.log('🔍 CompanyBrandingContext: Loading branding for company ID:', id);
 
       // Try to load from localStorage first (saved branding)
       const savedBranding = localStorage.getItem(`company-branding-${id}`);
       if (savedBranding) {
         const company = JSON.parse(savedBranding);
+        console.log('🔍 CompanyBrandingContext: Found saved branding:', company);
         setCompanyBranding(company);
         applyCompanyBranding(company);
         setLoading(false);
         return;
       }
 
-      // Fallback to mock companies for demo - in production this would fetch from backend
+      // OVERRIDE: Force Coca-Cola branding for testing
+      console.log('🔍 CompanyBrandingContext: OVERRIDING to force Coca-Cola branding');
       const mockCompanies: { [key: string]: CompanyBranding } = {
         'transparent-partners': {
           id: 'transparent-partners',
           name: 'Transparent Partners',
           domain: 'transparent.partners',
-          logo: 'https://logo.clearbit.com/transparent.partners',
-          primaryColor: '#043C46', // Transparent.partners teal primary
-          secondaryColor: '#0f766e', // Transparent.partners teal secondary
+          logo: '/transparent-partners-logo.png',
+          primaryColor: '#043C46', // Transparent Partners teal primary
+          secondaryColor: '#0f766e', // Transparent Partners teal secondary
+          status: 'active'
+        },
+        'coca-cola': {
+          id: 'coca-cola',
+          name: 'Coca-Cola',
+          domain: 'coca-cola.com',
+          logo: '/coca-cola-logo.png',
+          primaryColor: '#E61A27', // Coca-Cola signature red
+          secondaryColor: '#D4141A', // Coca-Cola secondary red
           status: 'active'
         },
         'acme-corp': {
@@ -93,8 +106,10 @@ export function CompanyBrandingProvider({ children, companyId }: CompanyBranding
         }
       };
 
-      const company = mockCompanies[id];
+      // OVERRIDE: Force Coca-Cola company regardless of ID
+      const company = mockCompanies['coca-cola']; // Always use Coca-Cola
       if (company) {
+        console.log('🔍 CompanyBrandingContext: FORCED to use Coca-Cola company:', company);
         setCompanyBranding(company);
         applyCompanyBranding(company);
         
@@ -112,9 +127,16 @@ export function CompanyBrandingProvider({ children, companyId }: CompanyBranding
   };
 
   const applyCompanyBranding = (branding: CompanyBranding) => {
+    console.log('🔍 CompanyBrandingContext: Applying branding:', branding);
+    
     // Apply company branding to CSS custom properties
     document.documentElement.style.setProperty('--company-primary', branding.primaryColor);
     document.documentElement.style.setProperty('--company-secondary', branding.secondaryColor);
+    
+    console.log('🔍 CompanyBrandingContext: CSS variables set:', {
+      '--company-primary': branding.primaryColor,
+      '--company-secondary': branding.secondaryColor
+    });
     
     // Apply company branding to CSS custom properties with opacity variants
     document.documentElement.style.setProperty('--company-primary-50', branding.primaryColor + '0D');

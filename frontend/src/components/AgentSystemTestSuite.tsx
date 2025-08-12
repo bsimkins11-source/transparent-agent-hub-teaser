@@ -147,13 +147,9 @@ const AgentSystemTestSuite: React.FC = () => {
   useEffect(() => {
     const checkFirebase = async () => {
       try {
-        // Try to access Firebase
-        const { auth } = await import('../lib/firebase');
-        if (auth) {
-          setFirebaseStatus('available');
-        } else {
-          setFirebaseStatus('unavailable');
-        }
+        // Firebase not available in Vercel deployment
+        console.log('⚠️ Firebase not available in Vercel deployment');
+        setFirebaseStatus('unavailable');
       } catch (error) {
         console.warn('Firebase not available:', error);
         setFirebaseStatus('unavailable');
