@@ -122,42 +122,167 @@ export default function HomePage() {
               {/* Demo Slides */}
               <div className="relative overflow-hidden rounded-2xl shadow-2xl">
                 {currentSlideIndex === 0 && (
-                  <div className="video-slide bg-gradient-to-br from-teal-50 to-blue-100 p-12 text-center">
-                    <div className="text-6xl mb-6">🎯</div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">AI Agent Hub</h3>
-                    <p className="text-gray-600">Your central platform for discovering and managing intelligent AI agents.</p>
+                  <div className="video-slide bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                    <div className="grid grid-cols-3 gap-6 h-full">
+                      {/* Left 2/3 - Card Placeholder */}
+                      <div className="col-span-2 flex items-center justify-center">
+                        <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-blue-200 text-center w-full h-full flex flex-col justify-center">
+                          <div className="text-6xl mb-4">🎯</div>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Demo Card</h3>
+                          <p className="text-gray-600">Interactive demonstration content will go here</p>
+                        </div>
+                      </div>
+                      {/* Right 1/3 - Agent Info */}
+                      <div className="col-span-1 flex flex-col justify-center">
+                        <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-blue-200 h-full flex flex-col justify-center">
+                          <div className="flex items-center mb-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
+                              <span className="text-white text-xl">🤖</span>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-gray-900">AI Agent Hub</h4>
+                              <p className="text-sm text-blue-600">Core Platform</p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            Your central platform for discovering and managing intelligent AI agents. 
+                            Built for transparency, designed for results.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
                 
                 {currentSlideIndex === 1 && (
-                  <div className="video-slide bg-gradient-to-br from-blue-50 to-indigo-100 p-12 text-center">
-                    <div className="text-6xl mb-6">🚀</div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">AI Agent Marketplace</h3>
-                    <p className="text-gray-600">Browse and discover specialized AI agents for every business need.</p>
+                  <div className="video-slide bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                    <div className="grid grid-cols-3 gap-6 h-full">
+                      {/* Left 2/3 - Card Placeholder */}
+                      <div className="col-span-2 flex items-center justify-center">
+                        <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-blue-200 text-center w-full h-full flex flex-col justify-center">
+                          <div className="text-6xl mb-4">🚀</div>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-3">AI Agent Marketplace</h3>
+                          <p className="text-gray-600">Browse and discover specialized AI agents for every business need</p>
+                        </div>
+                      </div>
+                      {/* Right 1/3 - Agent Info */}
+                      <div className="col-span-1 flex flex-col justify-center">
+                        <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-blue-200 h-full flex flex-col justify-center">
+                          <div className="flex items-center mb-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
+                              <span className="text-white text-xl">🚀</span>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-gray-900">AI Agent Marketplace</h4>
+                              <p className="text-sm text-blue-600">Discovery Platform</p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            Explore our curated collection of AI agents designed for enterprise use. 
+                            Find the perfect solution for your business needs.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
                 
                 {currentSlideIndex === 2 && (
-                  <div className="video-slide bg-gradient-to-br from-green-50 to-emerald-100 p-12 text-center">
-                    <div className="text-6xl mb-6">🔒</div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">Enterprise Security</h3>
-                    <p className="text-gray-600">Built-in security and compliance features for enterprise use.</p>
+                  <div className="video-slide bg-gradient-to-br from-green-50 to-emerald-100 p-6">
+                    <div className="grid grid-cols-3 gap-6 h-full">
+                      {/* Left 2/3 - Card Placeholder */}
+                      <div className="col-span-2 flex items-center justify-center">
+                        <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-green-200 text-center w-full h-full flex flex-col justify-center">
+                          <div className="text-6xl mb-4">🔒</div>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Enterprise Security</h3>
+                          <p className="text-gray-600">Bank-level security with SOC 2 compliance and end-to-end encryption</p>
+                        </div>
+                      </div>
+                      {/* Right 1/3 - Agent Info */}
+                      <div className="col-span-1 flex flex-col justify-center">
+                        <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-green-200 h-full flex flex-col justify-center">
+                          <div className="flex items-center mb-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
+                              <span className="text-white text-xl">🔒</span>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-gray-900">Enterprise Security</h4>
+                              <p className="text-sm text-green-600">Security & Compliance</p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            Built-in security features with SOC 2 compliance, end-to-end encryption, 
+                            and enterprise-grade access controls.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
                 
                 {currentSlideIndex === 3 && (
-                  <div className="video-slide bg-gradient-to-br from-purple-50 to-violet-100 p-12 text-center">
-                    <div className="text-6xl mb-6">📊</div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">Analytics & Insights</h3>
-                    <p className="text-gray-600">Comprehensive reporting and performance metrics.</p>
+                  <div className="video-slide bg-gradient-to-br from-purple-50 to-violet-100 p-6">
+                    <div className="grid grid-cols-3 gap-6 h-full">
+                      {/* Left 2/3 - Card Placeholder */}
+                      <div className="col-span-2 flex items-center justify-center">
+                        <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-purple-200 text-center w-full h-full flex flex-col justify-center">
+                          <div className="text-6xl mb-4">📊</div>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Analytics & Insights</h3>
+                          <p className="text-gray-600">Comprehensive reporting and performance metrics</p>
+                        </div>
+                      </div>
+                      {/* Right 1/3 - Agent Info */}
+                      <div className="col-span-1 flex flex-col justify-center">
+                        <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-purple-200 h-full flex flex-col justify-center">
+                          <div className="flex items-center mb-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center mr-3">
+                              <span className="text-white text-xl">📊</span>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-gray-900">Analytics & Insights</h4>
+                              <p className="text-sm text-purple-600">Performance Monitoring</p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            Track agent performance, usage analytics, and business impact with 
+                            comprehensive reporting and real-time insights.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
                 
                 {currentSlideIndex === 4 && (
-                  <div className="video-slide bg-gradient-to-br from-orange-50 to-amber-100 p-12 text-center">
-                    <div className="text-6xl mb-6">🤝</div>
-                    <h3 className="text-2xl font-bold text-gray-900 mb-4">Team Collaboration</h3>
-                    <p className="text-gray-600">Seamless integration with your existing workflows.</p>
+                  <div className="video-slide bg-gradient-to-br from-orange-50 to-amber-100 p-6">
+                    <div className="grid grid-cols-3 gap-6 h-full">
+                      {/* Left 2/3 - Card Placeholder */}
+                      <div className="col-span-2 flex items-center justify-center">
+                        <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-orange-200 text-center w-full h-full flex flex-col justify-center">
+                          <div className="text-6xl mb-4">🤝</div>
+                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Team Collaboration</h3>
+                          <p className="text-gray-600">Seamless integration with your existing workflows</p>
+                        </div>
+                      </div>
+                      {/* Right 1/3 - Agent Info */}
+                      <div className="col-span-1 flex flex-col justify-center">
+                        <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-orange-200 h-full flex flex-col justify-center">
+                          <div className="flex items-center mb-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center mr-3">
+                              <span className="text-white text-xl">🤝</span>
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-gray-900">Team Collaboration</h4>
+                              <p className="text-sm text-orange-600">Workflow Integration</p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-700 leading-relaxed">
+                            Built-in collaboration tools that integrate seamlessly with your existing 
+                            workflows and team processes.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
