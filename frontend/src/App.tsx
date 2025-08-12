@@ -11,7 +11,7 @@ import MyAgentsPage from './pages/MyAgentsPage'
 import CompanyAdminDashboard from './pages/CompanyAdminDashboard'
 import CompanyAgentLibrary from './pages/CompanyAgentLibrary'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
-import AgentAdmin from './pages/AgentAdmin'
+// import AgentAdmin from './pages/AgentAdmin'
 import CreatorPortal from './pages/CreatorPortal'
 import AgentSubmissionPage from './pages/AgentSubmissionPage'
 import NewAgentRequestPage from './pages/NewAgentRequestPage'
@@ -72,7 +72,7 @@ function App() {
             } />
             <Route path="/agent-admin" element={
               <ProtectedRoute requiredRole="super_admin">
-                <AgentAdmin />
+                <div className="p-8 text-center">Agent Admin page coming soon...</div>
               </ProtectedRoute>
             } />
             <Route path="/super-admin" element={
