@@ -1,17 +1,105 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
+import React, { useState, useRef } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { 
-  BuildingLibraryIcon,
-  UserGroupIcon,
-  ShieldCheckIcon,
-  ChartBarIcon,
+  MagnifyingGlassIcon,
   SparklesIcon,
+  ShieldCheckIcon,
+  RocketLaunchIcon,
+  UserGroupIcon,
+  GlobeAltIcon,
+  ChartBarIcon,
   CogIcon
 } from '@heroicons/react/24/outline'
 
+// Add carousel styles
+const carouselStyles = `
+  .video-slide {
+    transition: all 0.5s ease-in-out;
+  }
+  .carousel-dot.active {
+    background-color: white;
+  }
+  .carousel-dot:not(.active) {
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+  .carousel-dot:hover {
+    background-color: rgba(255, 255, 255, 0.7);
+  }
+`;
+
 export default function HomePage() {
+  // Force fresh deployment - latest version with video carousel
+  const [searchParams] = useSearchParams();
+  const isAuthRedirect = searchParams.get('auth_required') === 'true';
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const ensureVideoSound = () => {
+    if (videoRef.current) {
+      videoRef.current.muted = false;
+      videoRef.current.volume = 1;
+      console.log('🔊 Ensuring video sound is enabled, volume:', videoRef.current.volume, 'muted:', videoRef.current.muted);
+    }
+  };
+
+  const showVideoSlide = (index: number) => {
+    // Stop video if it's currently playing
+    if (videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
+      console.log('⏸️ Video paused due to carousel navigation');
+    }
+    
+    setCurrentVideoIndex(index);
+    // Ensure sound is enabled when switching to video slide
+    if (index === 0) {
+      setTimeout(ensureVideoSound, 100); // Small delay to ensure video is rendered
+    }
+  };
+
+  const nextVideo = () => {
+    // Stop video if it's currently playing
+    if (videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
+      console.log('⏸️ Video paused due to next navigation');
+    }
+    
+    const nextIndex = (currentVideoIndex + 1) % 5;
+    setCurrentVideoIndex(nextIndex);
+  };
+
+  const previousVideo = () => {
+    // Stop video if it's currently playing
+    if (videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
+      console.log('⏸️ Video paused due to previous navigation');
+    }
+    
+    const prevIndex = (currentVideoIndex - 1 + 5) % 5;
+    setCurrentVideoIndex(prevIndex);
+  };
+
+  // Carousel only moves when user manually navigates - no auto-advance
+  
   return (
-    <div className="min-h-screen">
+    <>
+      <style>{carouselStyles}</style>
+      <div className="min-h-screen bg-gray-50">
+      {/* Authentication Required Banner */}
+      {isAuthRedirect && (
+        <div className="bg-blue-50 border-b border-blue-200 py-4">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-center text-center">
+              <div className="flex items-center gap-3 text-blue-800">
+                <span className="text-xl">🔐</span>
+                <p className="text-sm font-medium">
+                  Authentication required. Please sign in to access the requested page.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 py-20 lg:py-28">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,150 +119,13 @@ export default function HomePage() {
                 to="/login"
                 className="bg-gradient-to-r from-teal-600 to-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:from-teal-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
               >
-                Get Started
+                Sign In to Access
               </Link>
               <Link
                 to="/login"
                 className="border-2 border-teal-600 text-teal-600 px-8 py-4 rounded-lg font-semibold hover:bg-teal-600 hover:text-white transition-all duration-200"
               >
-                Sign In
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ADMIN NAVIGATION SECTION - PROMINENTLY DISPLAYED */}
-      <section className="py-16 bg-gradient-to-r from-red-50 to-orange-50 border-y-4 border-red-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-red-800 mb-4">
-              🚀 ADMINISTRATION & MANAGEMENT
-            </h2>
-            <p className="text-xl text-red-700 max-w-3xl mx-auto">
-              Complete administrative control over AI agents, users, and system operations
-            </p>
-          </div>
-
-          {/* Admin Navigation Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-            {/* Company Management */}
-            <Link
-              to="/company-admin"
-              className="group bg-white rounded-xl p-6 shadow-lg border-2 border-red-200 hover:border-red-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <div className="flex items-center mb-4">
-                <BuildingLibraryIcon className="w-8 h-8 text-red-600 mr-3" />
-                <h3 className="text-xl font-bold text-red-800">Company Management</h3>
-              </div>
-              <p className="text-red-700 mb-4">
-                Manage company agents, users, and organizational settings
-              </p>
-              <div className="flex items-center text-red-600 font-semibold group-hover:text-red-800">
-                Access Dashboard →
-              </div>
-            </Link>
-
-            {/* Network Management */}
-            <Link
-              to="/network-admin"
-              className="group bg-white rounded-xl p-6 shadow-lg border-2 border-red-200 hover:border-red-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <div className="flex items-center mb-4">
-                <UserGroupIcon className="w-8 h-8 text-red-600 mr-3" />
-                <h3 className="text-xl font-bold text-red-800">Network Management</h3>
-              </div>
-              <p className="text-red-700 mb-4">
-                Control network-level access and cross-company permissions
-              </p>
-              <div className="flex items-center text-red-600 font-semibold group-hover:text-red-800">
-                Access Dashboard →
-              </div>
-            </Link>
-
-            {/* System Administration */}
-            <Link
-              to="/super-admin"
-              className="group bg-white rounded-xl p-6 shadow-lg border-2 border-red-200 hover:border-red-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <div className="flex items-center mb-4">
-                <ShieldCheckIcon className="w-8 h-8 text-red-600 mr-3" />
-                <h3 className="text-xl font-bold text-red-800">System Administration</h3>
-              </div>
-              <p className="text-red-700 mb-4">
-                System-wide administration and global configuration
-              </p>
-              <div className="flex items-center text-red-600 font-semibold group-hover:text-red-800">
-                Access Dashboard →
-              </div>
-            </Link>
-
-            {/* User Management */}
-            <Link
-              to="/admin/users"
-              className="group bg-white rounded-xl p-6 shadow-lg border-2 border-red-200 hover:border-red-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <div className="flex items-center mb-4">
-                <UserGroupIcon className="w-8 h-8 text-red-600 mr-3" />
-                <h3 className="text-xl font-bold text-red-800">User Management</h3>
-              </div>
-              <p className="text-red-700 mb-4">
-                Manage user accounts, permissions, and access control
-              </p>
-              <div className="flex items-center text-red-600 font-semibold group-hover:text-red-800">
-                Access Dashboard →
-              </div>
-            </Link>
-
-            {/* Analytics Dashboard */}
-            <Link
-              to="/analytics"
-              className="group bg-white rounded-xl p-6 shadow-lg border-2 border-red-200 hover:border-red-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <div className="flex items-center mb-4">
-                <ChartBarIcon className="w-8 h-8 text-red-600 mr-3" />
-                <h3 className="text-xl font-bold text-red-800">Analytics Dashboard</h3>
-              </div>
-              <p className="text-red-700 mb-4">
-                View system analytics, usage metrics, and performance data
-              </p>
-              <div className="flex items-center text-red-600 font-semibold group-hover:text-red-800">
-                Access Dashboard →
-              </div>
-            </Link>
-
-            {/* Creator Portal */}
-            <Link
-              to="/creator-portal"
-              className="group bg-white rounded-xl p-6 shadow-lg border-2 border-red-200 hover:border-red-400 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-            >
-              <div className="flex items-center mb-4">
-                <SparklesIcon className="w-8 h-8 text-red-600 mr-3" />
-                <h3 className="text-xl font-bold text-red-800">Creator Portal</h3>
-              </div>
-              <p className="text-red-700 mb-4">
-                Submit and manage your AI agents for the marketplace
-              </p>
-              <div className="flex items-center text-red-600 font-semibold group-hover:text-red-800">
-                Access Portal →
-              </div>
-            </Link>
-          </div>
-
-          {/* Quick Access Buttons */}
-          <div className="text-center mt-12">
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/my-agents"
-                className="bg-red-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-red-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
-              >
-                🎯 My Agent Library
-              </Link>
-              <Link
-                to="/agents"
-                className="border-2 border-red-600 text-red-600 px-8 py-4 rounded-lg font-semibold hover:bg-red-600 hover:text-white transition-all duration-200"
-              >
-                🌐 Global Agent Library
+                Sign In to View Library
               </Link>
             </div>
           </div>
@@ -193,147 +144,526 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Demo Display */}
-          <div className="max-w-6xl mx-auto">
+          {/* Video Carousel */}
+          <div className="max-w-5xl mx-auto">
+            {/* Top Demo Selection Buttons */}
+            <div className="mb-6 flex justify-center space-x-3">
+              {[
+                { index: 0, title: "Marketing Data Query", icon: "📊" },
+                { index: 1, title: "Marketing Automation", icon: "📈" },
+                { index: 2, title: "Data Analysis", icon: "🔍" },
+                { index: 3, title: "Customer Support", icon: "💬" },
+                { index: 4, title: "Process Optimization", icon: "⚙️" }
+              ].map((demo) => (
+                <button
+                  key={demo.index}
+                  onClick={() => showVideoSlide(demo.index)}
+                  className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 ${
+                    currentVideoIndex === demo.index
+                      ? 'bg-teal-600 text-white shadow-lg scale-105'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200 hover:scale-102'
+                  }`}
+                >
+                  <span className="text-xl">{demo.icon}</span>
+                  <span className="text-xs font-medium text-center leading-tight">
+                    {demo.title}
+                  </span>
+                </button>
+              ))}
+            </div>
+            
             <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
-              <div className="grid lg:grid-cols-2 gap-0">
-                {/* Video/Thumbnail Area */}
-                <div className="relative bg-gray-900 min-h-[400px] flex items-center justify-center">
-                  {/* Placeholder for video content */}
-                  <div className="text-center text-white">
-                    <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-4xl">▶️</span>
+              {/* Carousel Container */}
+              <div className="relative overflow-hidden">
+                <div 
+                  className="flex transition-transform duration-500 ease-in-out"
+                  style={{ transform: `translateX(-${currentVideoIndex * 100}%)` }}
+                >
+                  {/* Demo 1: TMDQE Agent */}
+                  <div className="carousel-slide flex-shrink-0 w-full">
+                    <div className="grid lg:grid-cols-3 gap-0">
+                      {/* Video Area - Takes up 2/3 of the space for 16:9 aspect ratio */}
+                      <div 
+                        className="relative bg-gray-900 lg:col-span-2 min-h-[400px] overflow-hidden"
+                        onClick={ensureVideoSound}
+                      >
+                        <video
+                          ref={videoRef}
+                          className="w-full h-full object-cover"
+                          controls
+                          preload="metadata"
+                          poster=""
+                          onLoadedData={(e) => {
+                            const video = e.target as HTMLVideoElement;
+                            // Set video to show a frame from 3 seconds in for the poster
+                            video.currentTime = 3;
+                            setTimeout(() => {
+                              video.currentTime = 0; // Reset to beginning for playback
+                            }, 100);
+                          }}
+                          muted={false}
+                          autoPlay={false}
+                          playsInline
+                          onLoadedMetadata={(e) => {
+                            const video = e.target as HTMLVideoElement;
+                            video.volume = 1;
+                            video.muted = false;
+                            console.log('🎬 Video loaded, volume:', video.volume, 'muted:', video.muted);
+                          }}
+                          onPlay={(e) => {
+                            const video = e.target as HTMLVideoElement;
+                            video.muted = false;
+                            video.volume = 1;
+                            console.log('🎵 Video playing, muted:', video.muted, 'volume:', video.volume);
+                          }}
+                          onClick={(e) => {
+                            const video = e.target as HTMLVideoElement;
+                            video.muted = false;
+                            video.volume = 1;
+                            console.log('🖱️ Video clicked, unmuted, volume:', video.volume);
+                          }}
+                          onVolumeChange={(e) => {
+                            const video = e.target as HTMLVideoElement;
+                            console.log('🔊 Volume changed:', video.volume, 'muted:', video.muted);
+                          }}
+                        >
+                          <source src="/TMDQA.mp4" type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                        
+                        {/* Video Title Overlay */}
+                        <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-lg">
+                          <span className="text-sm font-medium">Marketing Data Query App</span>
+                        </div>
+                      </div>
+
+                      {/* Explanation Area - Condensed to 1/3 of the space */}
+                      <div className="p-6 flex flex-col justify-center">
+                        <h3 className="text-xl font-bold text-gray-900 mb-3">
+                          Marketing Data Query App
+                        </h3>
+                        <p className="text-gray-600 mb-4 leading-relaxed text-sm">
+                          Watch our Marketing Data Query App in action! This demonstration showcases how AI-powered 
+                          data querying can transform your marketing analytics and decision-making processes.
+                        </p>
+                        
+                        {/* Key Features - Condensed */}
+                        <div className="mb-4">
+                          <h4 className="text-xs font-semibold text-gray-700 mb-2 uppercase tracking-wide">
+                            Features
+                          </h4>
+                          <div className="grid grid-cols-1 gap-1">
+                            <div className="flex items-center text-xs text-gray-600">
+                              <div className="w-2 h-2 bg-teal-500 rounded-full mr-2"></div>
+                              HD Quality & Interactive Controls
+                            </div>
+                            <div className="flex items-center text-xs text-gray-600">
+                              <div className="w-2 h-2 bg-teal-500 rounded-full mr-2"></div>
+                              Full Screen Support
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Demo Actions - Condensed */}
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => {
+                              const video = document.querySelector('video');
+                              if (video) {
+                                video.play();
+                                if (video.requestFullscreen) {
+                                  video.requestFullscreen();
+                                } else if ((video as any).webkitRequestFullscreen) {
+                                  (video as any).webkitRequestFullscreen();
+                                }
+                              }
+                            }}
+                            className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-lg hover:bg-teal-700 transition-colors"
+                          >
+                            <span>🎬</span>
+                            Full Screen
+                          </button>
+                          <Link
+                            to="/agents"
+                            className="inline-flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <span>🚀</span>
+                            Explore Agents
+                          </Link>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-lg font-medium">Demo Video Coming Soon</p>
-                    <p className="text-sm text-gray-300 mt-2">Interactive demonstration of AI agents in action</p>
                   </div>
-                  
-                  {/* Category Badge */}
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-teal-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      Live Demo
-                    </span>
+
+                  {/* Demo 2: Marketing Automation Agent */}
+                  <div className="carousel-slide flex-shrink-0 w-full">
+                    <div className="grid lg:grid-cols-2 gap-0">
+                      {/* Video Area */}
+                      <div className="relative bg-gradient-to-br from-blue-900 to-purple-900 min-h-[400px] flex items-center justify-center">
+                        <div className="text-center text-white">
+                          <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-4xl">📊</span>
+                          </div>
+                          <p className="text-lg font-medium">Marketing Automation Agent</p>
+                          <p className="text-sm text-gray-300 mt-2">Demo video coming soon</p>
+                          <div className="mt-4">
+                            <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs">
+                              Demo Coming Soon
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Video Title Overlay */}
+                        <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-lg">
+                          <span className="text-sm font-medium">Marketing Agent</span>
+                        </div>
+                      </div>
+
+                      {/* Explanation Area */}
+                      <div className="p-8 flex flex-col justify-center">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                          Marketing Automation Agent
+                        </h3>
+                        <p className="text-gray-600 mb-6 leading-relaxed">
+                          Automates social media posting, email campaigns, and content scheduling with AI-driven optimization. 
+                          See how it analyzes performance data and adjusts strategies in real-time.
+                        </p>
+                        
+                        {/* Key Features */}
+                        <div className="mb-6">
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+                            Key Features
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                              Social Media Management
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                              Email Campaigns
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                              Content Scheduling
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                              Performance Analytics
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Demo Actions */}
+                        <div className="flex gap-3">
+                          <button
+                            disabled
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-400 text-white font-medium rounded-lg cursor-not-allowed"
+                          >
+                            <span>⏳</span>
+                            Demo Coming Soon
+                          </button>
+                          <Link
+                            to="/agents"
+                            className="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <span>🚀</span>
+                            Explore Agents
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Demo 3: Data Analysis Agent */}
+                  <div className="carousel-slide flex-shrink-0 w-full">
+                    <div className="grid lg:grid-cols-2 gap-0">
+                      {/* Video Area */}
+                      <div className="relative bg-gradient-to-br from-green-900 to-teal-900 min-h-[400px] flex items-center justify-center">
+                        <div className="text-center text-white">
+                          <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-4xl">📈</span>
+                          </div>
+                          <p className="text-lg font-medium">Data Analysis Agent</p>
+                          <p className="text-sm text-gray-300 mt-2">Demo video coming soon</p>
+                          <div className="mt-4">
+                            <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs">
+                              Demo Coming Soon
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Video Title Overlay */}
+                        <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-lg">
+                          <span className="text-sm font-medium">Data Analysis Agent</span>
+                        </div>
+                      </div>
+
+                      {/* Explanation Area */}
+                      <div className="p-8 flex flex-col justify-center">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                          Data Analysis Agent
+                        </h3>
+                        <p className="text-gray-600 mb-6 leading-relaxed">
+                          Advanced business intelligence and predictive analytics powered by AI. Processes complex datasets, 
+                          identifies trends, and provides actionable insights for strategic decision-making.
+                        </p>
+                        
+                        {/* Key Features */}
+                        <div className="mb-6">
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+                            Key Features
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                              Predictive Analytics
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                              Trend Analysis
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                              Data Visualization
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                              Real-time Insights
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Demo Actions */}
+                        <div className="flex gap-3">
+                          <button
+                            disabled
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-400 text-white font-medium rounded-lg cursor-not-allowed"
+                          >
+                            <span>⏳</span>
+                            Demo Coming Soon
+                          </button>
+                          <Link
+                            to="/agents"
+                            className="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <span>🚀</span>
+                            Explore Agents
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Demo 4: Customer Support Agent */}
+                  <div className="carousel-slide flex-shrink-0 w-full">
+                    <div className="grid lg:grid-cols-2 gap-0">
+                      {/* Video Area */}
+                      <div className="relative bg-gradient-to-br from-orange-900 to-red-900 min-h-[400px] flex items-center justify-center">
+                        <div className="text-center text-white">
+                          <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-4xl">💬</span>
+                          </div>
+                          <p className="text-lg font-medium">Customer Support Agent</p>
+                          <p className="text-sm text-gray-300 mt-2">Demo video coming soon</p>
+                          <div className="mt-4">
+                            <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs">
+                              Demo Coming Soon
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Video Title Overlay */}
+                        <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-lg">
+                          <span className="text-sm font-medium">Customer Support Agent</span>
+                        </div>
+                      </div>
+
+                      {/* Explanation Area */}
+                      <div className="p-8 flex flex-col justify-center">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                          Customer Support Agent
+                        </h3>
+                        <p className="text-gray-600 mb-6 leading-relaxed">
+                          Provides 24/7 intelligent customer assistance with natural language processing. Handles inquiries, 
+                          resolves issues, and escalates complex cases to human agents when needed.
+                        </p>
+                        
+                        {/* Key Features */}
+                        <div className="mb-6">
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+                            Key Features
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                              24/7 Availability
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                              Natural Language
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                              Issue Resolution
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-orange-500 rounded-full mr-2"></div>
+                              Human Escalation
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Demo Actions */}
+                        <div className="flex gap-3">
+                          <button
+                            disabled
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-400 text-white font-medium rounded-lg cursor-not-allowed"
+                          >
+                            <span>⏳</span>
+                            Demo Coming Soon
+                          </button>
+                          <Link
+                            to="/agents"
+                            className="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <span>🚀</span>
+                            Explore Agents
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Demo 5: Process Optimization Agent */}
+                  <div className="carousel-slide flex-shrink-0 w-full">
+                    <div className="grid lg:grid-cols-2 gap-0">
+                      {/* Video Area */}
+                      <div className="relative bg-gradient-to-br from-indigo-900 to-blue-900 min-h-[400px] flex items-center justify-center">
+                        <div className="text-center text-white">
+                          <div className="w-24 h-24 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-4xl">⚙️</span>
+                          </div>
+                          <p className="text-lg font-medium">Process Optimization Agent</p>
+                          <p className="text-sm text-gray-300 mt-2">Demo video coming soon</p>
+                          <div className="mt-4">
+                            <span className="inline-block px-3 py-1 bg-white/20 rounded-full text-xs">
+                              Demo Coming Soon
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Video Title Overlay */}
+                        <div className="absolute bottom-4 left-4 bg-black/70 text-white px-3 py-1 rounded-lg">
+                          <span className="text-sm font-medium">Process Optimization Agent</span>
+                        </div>
+                      </div>
+
+                      {/* Explanation Area */}
+                      <div className="p-8 flex flex-col justify-center">
+                        <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                          Process Optimization Agent
+                        </h3>
+                        <p className="text-gray-600 mb-6 leading-relaxed">
+                          Analyzes workflows, identifies bottlenecks, and suggests improvements for efficiency. 
+                          Monitors processes in real-time and provides optimization recommendations.
+                        </p>
+                        
+                        {/* Key Features */}
+                        <div className="mb-6">
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
+                            Key Features
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></div>
+                              Workflow Analysis
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></div>
+                              Bottleneck Detection
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></div>
+                              Efficiency Metrics
+                            </div>
+                            <div className="flex items-center text-sm text-gray-600">
+                              <div className="w-2 h-2 bg-indigo-500 rounded-full mr-2"></div>
+                              Optimization Tips
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Demo Actions */}
+                        <div className="flex gap-3">
+                          <button
+                            disabled
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-400 text-white font-medium rounded-lg cursor-not-allowed"
+                          >
+                            <span>⏳</span>
+                            Demo Coming Soon
+                          </button>
+                          <Link
+                            to="/agents"
+                            className="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <span>🚀</span>
+                            Explore Agents
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Demo Information */}
-                <div className="p-8 flex flex-col justify-center">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    Marketing Automation Agent
-                  </h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
-                    Automates social media posting, email campaigns, and content scheduling with AI-driven optimization. 
-                    See how it analyzes performance data and adjusts strategies in real-time.
-                  </p>
-                  
-                  {/* Key Features */}
-                  <div className="mb-6">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-3 uppercase tracking-wide">
-                      Key Features
-                    </h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <div className="w-2 h-2 bg-teal-500 rounded-full mr-2"></div>
-                        Social Media Management
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <div className="w-2 h-2 bg-teal-500 rounded-full mr-2"></div>
-                        Email Campaigns
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <div className="w-2 h-2 bg-teal-500 rounded-full mr-2"></div>
-                        Content Scheduling
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <div className="w-2 h-2 bg-teal-500 rounded-full mr-2"></div>
-                        Performance Analytics
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Demo Actions */}
-                  <div className="flex gap-3">
-                    <Link
-                      to="/agents"
-                      className="inline-flex items-center gap-2 px-6 py-3 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors"
-                    >
-                      <span>▶️</span>
-                      Watch Full Demo
-                    </Link>
-                    <Link
-                      to="/agents"
-                      className="inline-flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <span>👁️</span>
-                      Learn More
-                    </Link>
-                  </div>
+                {/* Carousel Navigation Dots */}
+                <div className="absolute bottom-4 right-4 flex space-x-2 z-20">
+                  {[0, 1, 2, 3, 4].map((index) => (
+                    <button
+                      key={index}
+                      onClick={() => showVideoSlide(index)}
+                      className={`w-3 h-3 rounded-full transition-colors carousel-dot ${
+                        currentVideoIndex === index ? 'bg-white' : 'bg-white/30 hover:bg-white/70'
+                      }`}
+                      aria-label={`Go to demo ${index + 1}`}
+                    />
+                  ))}
                 </div>
+
+                {/* Carousel Navigation Arrows */}
+                <button
+                  onClick={previousVideo}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-20"
+                  aria-label="Previous demo"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={nextVideo}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-20"
+                  aria-label="Next demo"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* We Can Help You Section */}
-      <section className="py-20 bg-gradient-to-br from-gray-50 to-blue-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              We Can Help You
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Choose how you want to explore and manage your AI agents
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-            {/* Global Library Card */}
-            <div className="relative">
-              <Link to="/agents" className="block group">
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 h-full hover:shadow-xl transition-all duration-200">
-                  <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center mb-6">
-                    <span className="text-2xl">🏛️</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    Global Agent Library
-                  </h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
-                    Browse our complete collection of AI agents. No sign-in required. 
-                    Explore capabilities, watch demos, and discover new solutions for your business.
-                  </p>
-                  <div className="flex items-center text-blue-600 font-medium group-hover:text-blue-700 transition-colors">
-                    Browse All Agents
-                    <span className="ml-2">→</span>
-                  </div>
-                </div>
-              </Link>
-            </div>
 
-            {/* My Library Card */}
-            <div className="relative">
-              <Link to="/login" className="block group">
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 h-full hover:shadow-xl transition-all duration-200">
-                  <div className="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center mb-6">
-                    <span className="text-2xl">🔐</span>
-                  </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    My Agent Library
-                  </h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
-                    Sign in to access your personalized AI agent collection. Save favorites, 
-                    manage integrations, and build your custom AI workforce.
-                  </p>
-                  <div className="flex items-center text-green-600 font-medium group-hover:text-green-700 transition-colors">
-                    Sign In to Access
-                    <span className="ml-2">→</span>
-                  </div>
-                </div>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+
+
+
+
+
+      
+
+
 
       {/* Library Overview Section */}
       <section className="py-20 bg-white">
@@ -531,22 +861,23 @@ export default function HomePage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              to="/agents"
+              to="/login"
               className="inline-flex items-center gap-3 px-8 py-4 bg-white text-teal-600 font-semibold rounded-lg hover:bg-gray-50 transition-colors shadow-lg"
             >
               <span>👁️</span>
-              View Library
+              Sign In to View Library
             </Link>
             <Link
-              to="/agents"
+              to="/login"
               className="inline-flex items-center gap-3 px-8 py-4 border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-teal-600 transition-colors"
             >
               <span>▶️</span>
-              Watch Demos
+              Sign In to Watch Demos
             </Link>
           </div>
         </div>
       </section>
     </div>
+    </>
   )
 }
