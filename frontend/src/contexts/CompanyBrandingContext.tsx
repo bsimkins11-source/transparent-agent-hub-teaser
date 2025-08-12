@@ -44,12 +44,17 @@ export function CompanyBrandingProvider({ children, companyId }: CompanyBranding
       setError(null);
       
       console.log('🔍 CompanyBrandingContext: Loading branding for company ID:', id);
+      console.log('🔍 CompanyBrandingContext: Current URL:', window.location.href);
+      console.log('🔍 CompanyBrandingContext: CompanyId parameter:', id);
 
       // Try to load from localStorage first (saved branding)
       const savedBranding = localStorage.getItem(`company-branding-${id}`);
+      console.log('🔍 CompanyBrandingContext: Checking localStorage for key:', `company-branding-${id}`);
+      console.log('🔍 CompanyBrandingContext: Found saved branding:', savedBranding);
+      
       if (savedBranding) {
         const company = JSON.parse(savedBranding);
-        console.log('🔍 CompanyBrandingContext: Found saved branding:', company);
+        console.log('🔍 CompanyBrandingContext: Using saved branding from localStorage:', company);
         setCompanyBranding(company);
         applyCompanyBranding(company);
         setLoading(false);
@@ -80,15 +85,19 @@ export function CompanyBrandingProvider({ children, companyId }: CompanyBranding
       };
 
       // Get the company based on the actual companyId parameter
+      console.log('🔍 CompanyBrandingContext: Available companies:', Object.keys(mockCompanies));
+      console.log('🔍 CompanyBrandingContext: Looking for company ID:', id);
       const company = mockCompanies[id];
       if (company) {
-        console.log('🔍 CompanyBrandingContext: Using company:', company);
+        console.log('🔍 CompanyBrandingContext: Found company in mockCompanies:', company);
         setCompanyBranding(company);
         applyCompanyBranding(company);
         
         // Save to localStorage for future use
         localStorage.setItem(`company-branding-${id}`, JSON.stringify(company));
+        console.log('🔍 CompanyBrandingContext: Saved company to localStorage');
       } else {
+        console.error('❌ CompanyBrandingContext: Company not found for ID:', id);
         setError('Company not found');
       }
     } catch (err) {
