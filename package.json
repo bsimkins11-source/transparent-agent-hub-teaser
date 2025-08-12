@@ -1,4 +1,13 @@
 {
+  "name": "transparent-ai-agent-hub",
+  "version": "1.0.0",
+  "description": "Transparent AI Agent Hub - AI marketplace and management platform",
+  "scripts": {
+    "vercel:init": "./vercel-init.sh",
+    "vercel:quick": "./vercel-quick-init.sh",
+    "vercel:deploy": "cd frontend && npm run build",
+    "setup": "npm run vercel:quick"
+  },
   "dependencies": {
     "axios": "^1.11.0",
     "firebase": "^12.1.0",
