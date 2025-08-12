@@ -14,7 +14,7 @@ import SuperAdminDashboard from './pages/SuperAdminDashboard'
 // import AgentAdmin from './pages/AgentAdmin'
 import CreatorPortal from './pages/CreatorPortal'
 import AgentSubmissionPage from './pages/AgentSubmissionPage'
-import NewAgentRequestPage from './pages/NewAgentRequest'
+import NewAgentRequest from './pages/NewAgentRequest'
 import UserSettingsPage from './pages/UserSettingsPage'
 
 // Wrapper component for company routes that provides company branding context
@@ -92,7 +92,7 @@ function App() {
             } />
             <Route path="/new-agent-request" element={
               <ProtectedRoute>
-                <NewAgentRequestPage />
+                <NewAgentRequest />
               </ProtectedRoute>
             } />
             <Route path="/user-settings" element={
