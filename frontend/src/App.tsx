@@ -15,7 +15,7 @@ import SuperAdminDashboard from './pages/SuperAdminDashboard'
 import CreatorPortal from './pages/CreatorPortal'
 import AgentSubmissionPage from './pages/AgentSubmission'
 import NewAgentRequest from './pages/NewAgentRequest'
-import UserSettingsPage from './pages/UserSettingsPage'
+import UserSettingsPage from './pages/UserSettings'
 
 // Wrapper component for company routes that provides company branding context
 function CompanyRouteWrapper({ children }: { children: React.ReactNode }) {
