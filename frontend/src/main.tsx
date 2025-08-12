@@ -2,10 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
-import { initializeFirebase } from './lib/firebase'
+import { setupGlobalErrorHandler } from './config/environment.ts'
 
-// Initialize Firebase before rendering the app
-initializeFirebase()
+// Setup global error handler to suppress Firebase errors
+setupGlobalErrorHandler();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

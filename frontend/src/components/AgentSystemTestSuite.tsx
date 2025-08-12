@@ -109,7 +109,7 @@ const AgentSystemTestSuite: React.FC = () => {
 
   const [overallStatus, setOverallStatus] = useState<'pending' | 'running' | 'passed' | 'failed' | 'skipped'>('pending');
   const [isRunning, setIsRunning] = useState(false);
-  const [firebaseStatus, setFirebaseStatus] = useState<'checking' | 'available' | 'unavailable'>('checking');
+  const [firebaseStatus, setFirebaseStatus] = useState<'checking' | 'available' | 'unavailable'>('unavailable');
 
   // Test data
   const testAgent = {
@@ -145,18 +145,9 @@ const AgentSystemTestSuite: React.FC = () => {
 
   // Check Firebase availability
   useEffect(() => {
-    const checkFirebase = async () => {
-      try {
-        // Firebase not available in Vercel deployment
-        console.log('⚠️ Firebase not available in Vercel deployment');
-        setFirebaseStatus('unavailable');
-      } catch (error) {
-        console.warn('Firebase not available:', error);
-        setFirebaseStatus('unavailable');
-      }
-    };
-    
-    checkFirebase();
+    // Firebase not available in Vercel deployment
+    console.log('🚫 Firebase disabled for Vercel deployment');
+    setFirebaseStatus('unavailable');
   }, []);
 
   const updateTestStatus = (suiteIndex: number, testIndex: number, status: TestResult['status'], message: string, error?: string) => {
