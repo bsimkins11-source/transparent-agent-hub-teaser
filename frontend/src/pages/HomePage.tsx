@@ -28,7 +28,7 @@ const carouselStyles = `
 `;
 
 export default function HomePage() {
-  // FORCE FRESH DEPLOYMENT - REPLACING OLD RED/YELLOW VERSION
+  // FORCE FRESH DEPLOYMENT - VERCEL CACHE BUST - UPDATED $(date)
   const [searchParams] = useSearchParams();
   const isAuthRedirect = searchParams.get('auth_required') === 'true';
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
