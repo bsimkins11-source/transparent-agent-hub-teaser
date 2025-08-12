@@ -194,7 +194,16 @@ export default function Header() {
                       onClick={closeAllDropdowns}
                     >
                       <BuildingOfficeIcon className="w-5 h-5" />
-                      <span>Company Library</span>
+                      <span>Transparent Partners</span>
+                    </Link>
+                    {/* Coca-Cola Library - Demo Access */}
+                    <Link
+                      to="/company/coca-cola"
+                      className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
+                      onClick={closeAllDropdowns}
+                    >
+                      <BuildingOfficeIcon className="w-5 h-5" />
+                      <span className="text-red-600 font-medium">Coca-Cola Library</span>
                     </Link>
                     <Link
                       to="/my-agents"
@@ -208,10 +217,8 @@ export default function Header() {
                 )}
               </div>
               
-              {/* Admin Dropdown */}
-              {(userProfile?.role === 'company_admin' || 
-                userProfile?.role === 'network_admin' || 
-                userProfile?.role === 'super_admin') && (
+              {/* Admin Dropdown - Demo Access */}
+              {currentUser && (
                 <div 
                   className="relative" 
                   ref={adminDropdownRef}
@@ -230,53 +237,55 @@ export default function Header() {
                       onMouseEnter={handleAdminMouseEnter}
                       onMouseLeave={handleAdminMouseLeave}
                     >
-                      {/* Super Admin */}
-                      {userProfile?.role === 'super_admin' && (
-                        <Link
-                          to="/super-admin"
-                          className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200"
-                          onClick={closeAllDropdowns}
-                        >
-                          <CogIcon className="w-5 h-5" />
-                          <span>Super Admin</span>
-                        </Link>
-                      )}
+                      {/* Super Admin - Demo Access */}
+                      <Link
+                        to="/super-admin"
+                        className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200"
+                        onClick={closeAllDropdowns}
+                      >
+                        <CogIcon className="w-5 h-5" />
+                        <span>Super Admin</span>
+                      </Link>
                       
-                      {/* Company Admin */}
-                      {userProfile?.permissions.canManageCompany && (
-                        <Link
-                          to="/company-admin/transparent-partners"
-                          className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200"
-                          onClick={closeAllDropdowns}
-                        >
-                          <BuildingOfficeIcon className="w-5 h-5" />
-                          <span>Company Admin</span>
-                        </Link>
-                      )}
+                      {/* Company Admin - Transparent Partners - Demo Access */}
+                      <Link
+                        to="/company-admin/transparent-partners"
+                        className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200"
+                        onClick={closeAllDropdowns}
+                      >
+                        <BuildingOfficeIcon className="w-5 h-5" />
+                        <span>Transparent Partners Admin</span>
+                      </Link>
                       
-                      {/* Agent Admin */}
-                      {userProfile?.permissions.canManageUsers && (
-                        <Link
-                          to="/agent-admin"
-                          className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200"
-                          onClick={closeAllDropdowns}
-                        >
-                          <CubeIcon className="w-5 h-5" />
-                          <span>Agent Admin</span>
-                        </Link>
-                      )}
+                      {/* Coca-Cola Admin - Demo Access */}
+                      <Link
+                        to="/company-admin/coca-cola"
+                        className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors duration-200"
+                        onClick={closeAllDropdowns}
+                      >
+                        <BuildingOfficeIcon className="w-5 h-5" />
+                        <span className="text-red-600 font-medium">Coca-Cola Admin</span>
+                      </Link>
                       
-                      {/* Analytics */}
-                      {userProfile?.permissions.canViewAnalytics && (
-                        <Link
-                          to="/analytics"
-                          className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200"
-                          onClick={closeAllDropdowns}
-                        >
-                          <ChartBarIcon className="w-5 h-5" />
-                          <span>Analytics Dashboard</span>
-                        </Link>
-                      )}
+                      {/* Agent Admin - Demo Access */}
+                      <Link
+                        to="/agent-admin"
+                        className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200"
+                        onClick={closeAllDropdowns}
+                      >
+                        <CubeIcon className="w-5 h-5" />
+                        <span>Agent Admin</span>
+                      </Link>
+                      
+                      {/* Analytics - Demo Access */}
+                      <Link
+                        to="/analytics"
+                        className="flex items-center space-x-3 px-4 py-3 text-gray-700 hover:bg-teal-50 hover:text-teal-700 transition-colors duration-200"
+                        onClick={closeAllDropdowns}
+                      >
+                        <ChartBarIcon className="w-5 h-5" />
+                        <span>Analytics Dashboard</span>
+                      </Link>
                     </div>
                   )}
                 </div>
