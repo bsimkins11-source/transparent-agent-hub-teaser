@@ -64,8 +64,8 @@ export function CompanyBrandingProvider({ children, companyId }: CompanyBranding
           name: 'Transparent Partners',
           domain: 'transparent.partners',
           logo: '/transparent-partners-logo.png',
-          primaryColor: '#043C46', // Transparent Partners teal primary
-          secondaryColor: '#0f766e', // Transparent Partners teal secondary
+          primaryColor: '#50AFB9', // Transparent Partners correct RGB color
+          secondaryColor: '#3A8A94', // Darker shade of the primary
           status: 'active'
         },
         'coca-cola': {
