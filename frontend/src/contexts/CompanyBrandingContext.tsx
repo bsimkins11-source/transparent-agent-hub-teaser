@@ -73,8 +73,15 @@ export function CompanyBrandingProvider({ children, companyId }: CompanyBranding
           secondaryColor: '#3A8A94', // Darker shade of the primary
           status: 'active'
         },
-
-
+        'coca-cola': {
+          id: 'coca-cola',
+          name: 'Coca-Cola',
+          domain: 'coca-cola.com',
+          logo: '/coca-cola-logo.png',
+          primaryColor: '#E61A27', // Coca-Cola signature red
+          secondaryColor: '#D4141A', // Coca-Cola secondary red
+          status: 'active'
+        }
       };
 
       // Get the company based on the actual companyId parameter
