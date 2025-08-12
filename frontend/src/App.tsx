@@ -11,11 +11,11 @@ import MyAgentsPage from './pages/MyAgentsPage'
 import CompanyAdminDashboard from './pages/CompanyAdminDashboard'
 import CompanyAgentLibrary from './pages/CompanyAgentLibrary'
 import SuperAdminDashboard from './pages/SuperAdminDashboard'
-// import AgentAdmin from './pages/AgentAdmin'
-// import CreatorPortal from './pages/CreatorPortal'
-// import AgentSubmissionPage from './pages/AgentSubmissionPage'
-// import NewAgentRequestPage from './pages/NewAgentRequestPage'
-// import UserSettingsPage from './pages/UserSettingsPage'
+import AgentAdmin from './pages/AgentAdmin'
+import CreatorPortal from './pages/CreatorPortal'
+import AgentSubmissionPage from './pages/AgentSubmissionPage'
+import NewAgentRequestPage from './pages/NewAgentRequestPage'
+import UserSettingsPage from './pages/UserSettingsPage'
 
 // Wrapper component for company routes that provides company branding context
 function CompanyRouteWrapper({ children }: { children: React.ReactNode }) {
@@ -70,36 +70,36 @@ function App() {
                 </CompanyRouteWrapper>
               </ProtectedRoute>
             } />
-            {/* <Route path="/agent-admin" element={
+            <Route path="/agent-admin" element={
               <ProtectedRoute requiredRole="super_admin">
                 <AgentAdmin />
               </ProtectedRoute>
-            } /> */}
+            } />
             <Route path="/super-admin" element={
               <ProtectedRoute requiredRole="super_admin">
                 <SuperAdminDashboard />
               </ProtectedRoute>
             } />
-            {/* <Route path="/creator-portal" element={
+            <Route path="/creator-portal" element={
               <ProtectedRoute requiredRole="creator">
                 <CreatorPortal />
               </ProtectedRoute>
-            } /> */}
-            {/* <Route path="/agent-submission" element={
+            } />
+            <Route path="/agent-submission" element={
               <ProtectedRoute>
                 <AgentSubmissionPage />
               </ProtectedRoute>
-            } /> */}
-            {/* <Route path="/new-agent-request" element={
+            } />
+            <Route path="/new-agent-request" element={
               <ProtectedRoute>
                 <NewAgentRequestPage />
               </ProtectedRoute>
-            } /> */}
-            {/* <Route path="/user-settings" element={
+            } />
+            <Route path="/user-settings" element={
               <ProtectedRoute>
                 <UserSettingsPage />
               </ProtectedRoute>
-            } /> */}
+            } />
             <Route path="/settings" element={
               <ProtectedRoute>
                 <div className="p-8 text-center">Settings page coming soon...</div>
