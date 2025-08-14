@@ -34,6 +34,7 @@
     "route": "/agents/wordpress-content-agent",
     "visibility": "public",
     "allowedRoles": ["admin", "client", "user"],
+    "logo": "/wordpress-logo.png",
     "metadata": {
       "category": "Content AI",
       "tags": ["content-creation", "wordpress", "seo", "blogging", "media-management", "workflow"]

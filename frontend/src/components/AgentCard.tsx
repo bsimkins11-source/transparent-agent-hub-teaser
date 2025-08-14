@@ -278,7 +278,15 @@ export default function AgentCard({
         <div className="flex-1 min-w-0">
           <div className="mb-0">
             {/* Provider Branding - Above the name */}
-            {getProviderLogo(agent.provider, agent.id) ? (
+            {agent.logo ? (
+              <div className="flex justify-center -mb-1">
+                <img 
+                  src={agent.logo} 
+                  alt={`${agent.name} logo`}
+                  className="w-24 h-24 object-contain"
+                />
+              </div>
+            ) : getProviderLogo(agent.provider, agent.id) ? (
               <div className="flex justify-center -mb-1">
                 <img 
                   src={getProviderLogo(agent.provider, agent.id)} 
