@@ -40,12 +40,13 @@
   },
   {
     "id": "fake-sales-automation",
-    "name": "Sales Pipeline Optimizer",
-    "description": "Intelligent sales automation agent that optimizes lead scoring, tracks conversion rates, and provides predictive analytics for sales forecasting.",
-    "provider": "anthropic",
+    "name": "WordPress Sales Optimizer",
+    "description": "Intelligent WordPress sales automation agent that optimizes lead scoring, tracks conversion rates, and provides predictive analytics for sales forecasting with WordPress integration.",
+    "provider": "wordpress",
     "route": "/fake/fake-sales-automation",
+    "logo": "/wordpress-logo.png",
     "metadata": {
-      "tags": ["sales", "automation", "leads", "conversion", "forecasting"],
+      "tags": ["sales", "automation", "leads", "conversion", "forecasting", "wordpress"],
       "category": "Sales",
       "tier": "premium",
       "permissionType": "direct",
