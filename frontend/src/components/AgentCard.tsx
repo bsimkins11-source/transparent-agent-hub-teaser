@@ -63,8 +63,6 @@ const getProviderLogo = (provider: string, agentId?: string) => {
       // Use specific logos for Google agents
       if (agentId === 'gemini-chat-agent') {
         return '/Google-Gemini-Logo.png';
-      } else if (agentId === 'imagen-agent') {
-        return '/Google-AI-Logo-Vector.png';
       }
       // Default Google logo for other Google agents
       return '/Google-AI-Logo-Vector.png';
