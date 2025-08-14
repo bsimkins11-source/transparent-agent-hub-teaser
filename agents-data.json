@@ -28,23 +28,23 @@
     }
   },
   "imagen-agent": {
-    "name": "Google Imagen Agent",
-    "description": "AI-powered image generation using Google's Imagen model. Create high-quality images from text descriptions, get help crafting effective prompts, and explore various artistic styles.",
-    "provider": "google", 
-    "route": "/agents/imagen-agent",
+    "name": "WordPress Content Agent",
+    "description": "AI-powered content creation and management for WordPress websites. Generate engaging blog posts, optimize SEO content, manage media libraries, and streamline your WordPress workflow.",
+    "provider": "wordpress", 
+    "route": "/agents/wordpress-content-agent",
     "visibility": "public",
     "allowedRoles": ["admin", "client", "user"],
     "metadata": {
-      "category": "Creative AI",
-      "tags": ["image-generation", "creative", "art", "design", "visual", "prompting"]
+      "category": "Content AI",
+      "tags": ["content-creation", "wordpress", "seo", "blogging", "media-management", "workflow"]
     },
     "capabilities": [
-      "Text-to-image generation",
-      "Prompt crafting assistance",
-      "Multiple artistic styles",
-      "High-resolution outputs", 
-      "Creative concept visualization",
-      "Design ideation support"
+      "Blog post generation",
+      "SEO content optimization",
+      "Media library management",
+      "Content scheduling",
+      "WordPress workflow automation",
+      "Content strategy planning"
     ],
     "pricing": {
       "tier": "premium",

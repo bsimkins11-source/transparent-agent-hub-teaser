@@ -50,6 +50,8 @@ const getProviderIcon = (provider: string) => {
       return '📘';
     case 'microsoft':
       return '🪟';
+    case 'wordpress':
+      return '📝';
     default:
       return '⚡';
   }
@@ -66,6 +68,8 @@ const getProviderLogo = (provider: string, agentId?: string) => {
       }
       // Default Google logo for other Google agents
       return '/Google-AI-Logo-Vector.png';
+    case 'wordpress':
+      return '/wordpress-logo.png';
     default:
       return null; // No logo for other providers
   }
@@ -83,6 +87,8 @@ const getProviderColor = (provider: string) => {
       return 'bg-blue-100 text-blue-800 border-blue-200';
     case 'microsoft':
       return 'bg-gray-100 text-gray-800 border-gray-200';
+    case 'wordpress':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200';
   }
