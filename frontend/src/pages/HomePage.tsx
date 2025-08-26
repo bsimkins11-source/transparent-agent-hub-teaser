@@ -99,13 +99,13 @@ export default function HomePage() {
               </div>
               
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                The Future of{' '}
+                Introducing the{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-blue-600">
-                  Transparent Marketing
+                  Transparent AI Agent Hub
                 </span>
               </h1>
               <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-8 leading-relaxed">
-                Introducing the Transparent AI Agent Hub
+                The Future of Transparent Marketing
               </p>
               <p className="text-lg text-gray-600 max-w-4xl mx-auto mb-12 leading-relaxed">
                 A new era of marketing efficiency and intelligence is coming. The Transparent AI Agent Hub is your central portal to discover, launch, and scale AI-powered agents built specifically for marketing teams.
