@@ -1,39 +1,118 @@
+@import './design-system.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   html {
-    font-family: 'Inter', system-ui, sans-serif;
+    font-family: var(--tp-font-sans);
+    line-height: var(--tp-leading-normal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   
   body {
     @apply bg-gray-50 text-gray-900;
+    font-family: var(--tp-font-sans);
   }
 }
 
 @layer components {
-  /* Custom button styles */
+  /* Custom button styles using Transparent design tokens */
   .btn-primary {
-    @apply bg-gradient-to-r from-teal-600 to-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:from-teal-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105 shadow-lg;
+    background: linear-gradient(135deg, var(--tp-primary-600), var(--tp-primary-700));
+    color: white;
+    padding: var(--tp-space-4) var(--tp-space-8);
+    border-radius: var(--tp-radius-lg);
+    font-weight: var(--tp-font-semibold);
+    transition: all var(--tp-transition-base);
+    box-shadow: var(--tp-shadow-lg);
+  }
+  
+  .btn-primary:hover {
+    background: linear-gradient(135deg, var(--tp-primary-700), var(--tp-primary-800));
+    transform: translateY(-2px);
+    box-shadow: var(--tp-shadow-xl);
   }
   
   .btn-secondary {
-    @apply border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg font-semibold hover:border-gray-400 hover:bg-gray-50 transition-all duration-200;
+    border: 2px solid var(--tp-secondary-300);
+    color: var(--tp-secondary-700);
+    padding: var(--tp-space-4) var(--tp-space-8);
+    border-radius: var(--tp-radius-lg);
+    font-weight: var(--tp-font-semibold);
+    transition: all var(--tp-transition-base);
+  }
+  
+  .btn-secondary:hover {
+    border-color: var(--tp-secondary-400);
+    background-color: var(--tp-secondary-50);
   }
   
   /* Card styles */
   .card {
-    @apply bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow duration-300;
+    background: white;
+    border-radius: var(--tp-radius-xl);
+    box-shadow: var(--tp-shadow-lg);
+    padding: var(--tp-space-6);
+    transition: box-shadow var(--tp-transition-base);
+  }
+  
+  .card:hover {
+    box-shadow: var(--tp-shadow-xl);
   }
   
   /* Section styles */
   .section-padding {
-    @apply py-16 lg:py-24;
+    padding: var(--tp-space-16) 0;
   }
   
   /* Container styles */
   .container-max {
-    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 var(--tp-space-4);
+  }
+  
+  /* Header styles */
+  .header-nav {
+    background: linear-gradient(90deg, var(--tp-secondary-900), var(--tp-secondary-800));
+    color: white;
+    padding: var(--tp-space-4) 0;
+    position: sticky;
+    top: 0;
+    z-index: var(--tp-z-sticky);
+    box-shadow: var(--tp-shadow-md);
+  }
+  
+  .header-container {
+    max-width: 80rem;
+    margin: 0 auto;
+    padding: 0 var(--tp-space-4);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .logo {
+    height: var(--tp-space-10);
+    width: auto;
+  }
+  
+  .nav-links {
+    display: flex;
+    gap: var(--tp-space-6);
+    align-items: center;
+  }
+  
+  .nav-link {
+    color: var(--tp-secondary-100);
+    text-decoration: none;
+    font-weight: var(--tp-font-medium);
+    transition: color var(--tp-transition-base);
+  }
+  
+  .nav-link:hover {
+    color: white;
   }
 }
