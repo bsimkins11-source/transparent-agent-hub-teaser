@@ -89,12 +89,12 @@ export default function HomePage() {
         <section className="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 py-20 lg:py-28">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              {/* Large Transparent Partners Logo */}
-              <div className="mb-12 flex justify-center">
+              {/* Large Transparent Partners Logo - Strong Branding */}
+              <div className="mb-16 flex justify-center">
                 <img 
                   src="/transparent-logo-large.png" 
                   alt="Transparent Partners" 
-                  className="h-32 md:h-40 lg:h-48 w-auto"
+                  className="w-1/2 md:w-2/5 lg:w-1/3 h-auto max-w-2xl"
                 />
               </div>
               
