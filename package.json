@@ -1,16 +1,22 @@
 {
-  "name": "transparent-ai-agent-hub",
+  "name": "transparent-agent-hub-teaser",
   "version": "1.0.0",
-  "description": "Transparent AI Agent Hub - AI marketplace and management platform",
+  "description": "Transparent AI Agent Hub - Teaser Landing Page",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "vercel:init": "./vercel-init.sh",
-    "vercel:quick": "./vercel-quick-init.sh",
-    "vercel:deploy": "cd frontend && npm run build",
-    "setup": "npm run vercel:quick"
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "preview": "cd frontend && npm run preview",
+    "start": "cd frontend && npm run preview"
   },
-  "dependencies": {
-    "axios": "^1.11.0",
-    "firebase": "^12.1.0",
-    "firebase-admin": "^13.4.0"
-  }
+  "keywords": [
+    "ai",
+    "agents",
+    "transparent",
+    "marketing",
+    "landing-page"
+  ],
+  "author": "Transparent Partners",
+  "license": "MIT"
 }
