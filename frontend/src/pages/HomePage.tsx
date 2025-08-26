@@ -1,12 +1,8 @@
-import React, { useState, useRef } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import React, { useState } from 'react'
 import { 
-  MagnifyingGlassIcon,
-  SparklesIcon,
   ShieldCheckIcon,
   RocketLaunchIcon,
   UserGroupIcon,
-  GlobeAltIcon,
   ChartBarIcon,
   CogIcon,
   LightBulbIcon,
@@ -14,8 +10,7 @@ import {
   DocumentTextIcon,
   PresentationChartLineIcon,
   ChatBubbleLeftRightIcon,
-  EyeIcon,
-  HandRaisedIcon
+  EyeIcon
 } from '@heroicons/react/24/outline'
 
 // Add carousel styles
@@ -35,10 +30,6 @@ const carouselStyles = `
 `;
 
 export default function HomePage() {
-  // FORCE FRESH DEPLOYMENT - VERCEL CACHE BUST - UPDATED 2024-08-12 12:45
-  console.log('🚀 HomePage component rendering - Vercel deployment test');
-  const [searchParams] = useSearchParams();
-  const isAuthRedirect = searchParams.get('auth_required') === 'true';
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -80,22 +71,6 @@ export default function HomePage() {
     <>
       <style>{carouselStyles}</style>
       <div className="min-h-screen bg-gray-50">
-        {/* Authentication Required Banner */}
-        {isAuthRedirect && (
-          <div className="bg-blue-50 border-b border-blue-200 py-4">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex items-center justify-center text-center">
-                <div className="flex items-center gap-3 text-blue-800">
-                  <span className="text-xl">🔐</span>
-                  <p className="text-sm font-medium">
-                    Authentication required. Please sign in to access the requested page.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-        
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 py-20 lg:py-28">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -111,18 +86,18 @@ export default function HomePage() {
                 Built for transparency, designed for results, optimized for your business success.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  to="/login"
+                <a
+                  href="#how-it-works"
                   className="bg-gradient-to-r from-teal-600 to-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:from-teal-700 hover:to-blue-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
                 >
-                  Sign In to Access
-                </Link>
-                <Link
-                  href="#how-it-works"
+                  Learn More
+                </a>
+                <a
+                  href="#early-access"
                   className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-lg font-semibold hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
                 >
-                  Learn More
-                </Link>
+                  Get Early Access
+                </a>
               </div>
             </div>
           </div>
@@ -484,7 +459,7 @@ export default function HomePage() {
                               <span className="text-white text-xl">✍️</span>
                             </div>
                             <div>
-                              <h4 className="font-bold text-gray-900">Content Creation Agent</h4>
+                              <h4 className="text-gray-900">Content Creation Agent</h4>
                               <p className="text-sm text-orange-600">Creative & Writing</p>
                             </div>
                           </div>
@@ -666,7 +641,7 @@ export default function HomePage() {
         </section>
 
         {/* Email Capture Form Section */}
-        <section className="py-20 bg-gradient-to-r from-teal-600 to-blue-600">
+        <section id="early-access" className="py-20 bg-gradient-to-r from-teal-600 to-blue-600">
           <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
               Get Early Access
@@ -775,18 +750,18 @@ export default function HomePage() {
               Join thousands of organizations already using our platform to drive innovation and growth.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                to="/login"
+              <a
+                href="#early-access"
                 className="bg-white text-teal-600 px-8 py-4 rounded-lg font-semibold hover:bg-gray-100 transition-all duration-200 transform hover:scale-105 shadow-lg inline-block"
               >
-                Get Started Today
-              </Link>
-              <Link
+                Get Early Access
+              </a>
+              <a
                 href="#how-it-works"
                 className="border-2 border-white text-white px-8 py-4 rounded-lg font-semibold hover:bg-white hover:text-teal-600 transition-all duration-200"
               >
                 Learn More
-              </Link>
+              </a>
             </div>
           </div>
         </section>
