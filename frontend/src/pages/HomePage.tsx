@@ -10,7 +10,8 @@ import {
   DocumentTextIcon,
   PresentationChartLineIcon,
   ChatBubbleLeftRightIcon,
-  EyeIcon
+  EyeIcon,
+  PlayIcon
 } from '@heroicons/react/24/outline'
 
 // Add carousel styles
@@ -70,6 +71,19 @@ export default function HomePage() {
   return (
     <>
       <style>{carouselStyles}</style>
+      
+      {/* Header with Transparent Logo */}
+      <header className="header-nav">
+        <div className="header-container">
+          <img src="/transparent-logo.png" alt="Transparent Partners" className="logo" />
+          <nav className="nav-links">
+            <a href="#what-is" className="nav-link">What Is</a>
+            <a href="#how-it-works" className="nav-link">How It Works</a>
+            <a href="#early-access" className="nav-link">Early Access</a>
+          </nav>
+        </div>
+      </header>
+      
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
         <section className="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 py-20 lg:py-28">
@@ -81,9 +95,14 @@ export default function HomePage() {
                   Transparent Marketing
                 </span>
               </h1>
-              <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-12 leading-relaxed">
-                Discover the Transparent AI Agent Hub - where intelligent AI agents drive meaningful productivity gains. 
-                Built for transparency, designed for results, optimized for your business success.
+              <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-8 leading-relaxed">
+                Introducing the Transparent AI Agent Hub
+              </p>
+              <p className="text-lg text-gray-600 max-w-4xl mx-auto mb-12 leading-relaxed">
+                A new era of marketing efficiency and intelligence is coming. The Transparent AI Agent Hub is your central portal to discover, launch, and scale AI-powered agents built specifically for marketing teams.
+              </p>
+              <p className="text-lg text-gray-600 max-w-4xl mx-auto mb-12 leading-relaxed">
+                Today, get a sneak peek at the future. Watch demos, explore use cases, and see how agents will transform the way your brand works.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
@@ -104,7 +123,7 @@ export default function HomePage() {
         </section>
 
         {/* What Is the Transparent AI Agent Hub Section */}
-        <section className="py-20 bg-white">
+        <section id="what-is" className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
