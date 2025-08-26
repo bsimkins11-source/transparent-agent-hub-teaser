@@ -86,7 +86,7 @@ export default function HomePage() {
       
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 py-20 lg:py-28">
+        <section className="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 py-10 lg:py-14">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               {/* Large Transparent Partners Logo - Strong Branding */}
