@@ -36,7 +36,7 @@ This is the Phase 1 MVP landing page for the Transparent AI Agent Hub, designed 
 - **Frontend**: React 18 + TypeScript + Vite
 - **Styling**: Tailwind CSS + Heroicons
 - **Deployment**: Vercel (Frontend) + GitHub (Source)
-- **Future**: Firebase Firestore for form submissions
+- **Future**: Backend service for form submissions
 
 ## 📁 Project Structure
 

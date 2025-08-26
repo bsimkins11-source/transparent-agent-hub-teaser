@@ -17,11 +17,7 @@ build/
 .next/
 out/
 
-# Firebase
-.firebase/
-firebase-debug.log
-firestore-debug.log
-ui-debug.log
+# Firebase (removed - not needed for teaser page)
 
 # Logs
 logs
