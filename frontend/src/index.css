@@ -76,7 +76,7 @@
   
   /* Header styles */
   .header-nav {
-    background: linear-gradient(90deg, var(--tp-secondary-900), var(--tp-secondary-800));
+    background: rgba(5,83,98,255);
     color: white;
     padding: var(--tp-space-4) 0;
     position: sticky;
@@ -106,7 +106,7 @@
   }
   
   .nav-link {
-    color: var(--tp-secondary-100);
+    color: rgba(255, 255, 255, 0.9);
     text-decoration: none;
     font-weight: var(--tp-font-medium);
     transition: color var(--tp-transition-base);
