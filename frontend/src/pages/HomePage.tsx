@@ -55,7 +55,7 @@ export default function HomePage() {
     
     setIsSubmitting(true);
     try {
-      // TODO: Connect to Firebase Firestore
+      // TODO: Connect to backend service when implemented
       // For now, simulate success
       await new Promise(resolve => setTimeout(resolve, 1000));
       setSubmitSuccess(true);

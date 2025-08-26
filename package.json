@@ -1,7 +1,7 @@
 {
   "name": "transparent-agent-hub-teaser",
   "version": "1.0.0",
-  "description": "Transparent AI Agent Hub - Teaser Landing Page",
+  "description": "Transparent AI Agent Hub - Teaser Landing Page (Phase 1 MVP)",
   "private": true,
   "type": "module",
   "scripts": {
@@ -15,7 +15,8 @@
     "agents",
     "transparent",
     "marketing",
-    "landing-page"
+    "landing-page",
+    "teaser"
   ],
   "author": "Transparent Partners",
   "license": "MIT"
