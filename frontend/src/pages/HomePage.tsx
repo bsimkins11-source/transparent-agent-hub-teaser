@@ -283,13 +283,13 @@ export default function HomePage() {
                 </p>
               </div>
 
-              {/* Marketing Ops */}
+              {/* Campaign Governance */}
               <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-8 border border-emerald-100">
                 <div className="flex items-center mb-4">
                   <div className="bg-emerald-600 rounded-lg p-2 mr-4">
                     <UserGroupIcon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900">3. Marketing Ops</h3>
+                  <h3 className="text-xl font-semibold text-gray-900">3. Campaign Governance</h3>
                 </div>
                 <p className="text-gray-700 mb-4 font-medium">
                   Agents that enforce transparency and accountability across brand–agency partnerships.
