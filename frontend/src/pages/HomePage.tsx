@@ -101,7 +101,11 @@ export default function HomePage() {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 Introducing the{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-blue-600">
-                  Transparent AI Agent Hub
+                  Transparent
+                </span>
+                <br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-blue-600">
+                  AI Agent Hub
                 </span>
               </h1>
               <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-8 leading-relaxed">
