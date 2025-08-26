@@ -89,6 +89,15 @@ export default function HomePage() {
         <section className="relative bg-gradient-to-br from-slate-50 via-white to-blue-50 py-20 lg:py-28">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
+              {/* Large Transparent Partners Logo */}
+              <div className="mb-12 flex justify-center">
+                <img 
+                  src="/transparent-logo-large.png" 
+                  alt="Transparent Partners" 
+                  className="h-32 md:h-40 lg:h-48 w-auto"
+                />
+              </div>
+              
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                 The Future of{' '}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-blue-600">
@@ -239,108 +248,101 @@ export default function HomePage() {
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 Agent Categories
               </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Explore our comprehensive collection of AI agents organized by business function
-              </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Marketing & Sales */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl p-8 border border-blue-200 hover:shadow-xl transition-all duration-300">
-                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <PresentationChartLineIcon className="w-8 h-8 text-white" />
+            <div className="grid lg:grid-cols-2 gap-8">
+              {/* Media Ops */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100">
+                <div className="flex items-center mb-4">
+                  <div className="bg-blue-600 rounded-lg p-2 mr-4">
+                    <CogIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">1. Media Ops</h3>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3 text-center">Marketing & Sales</h3>
-                <p className="text-gray-600 text-center mb-4">
-                  AI agents for lead generation, content creation, campaign optimization, and sales automation.
+                <p className="text-gray-700 mb-4 font-medium">
+                  Intelligent workflows that optimize campaign builds, QA, activation, and spend allocation.
                 </p>
-                <div className="text-sm text-blue-600 font-medium text-center">
-                  Coming Q1 2025
-                </div>
+                <p className="text-gray-600 text-sm">
+                  Media Ops agents remove friction from campaign execution. They streamline builds, catch QA issues before they go live, automate activation steps, and continuously optimize spend allocation — ensuring media investments deliver with precision.
+                </p>
               </div>
 
-              {/* Customer Service */}
-              <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl p-8 border border-green-200 hover:shadow-xl transition-all duration-300">
-                <div className="bg-gradient-to-br from-green-500 to-emerald-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <ChatBubbleLeftRightIcon className="w-8 h-8 text-white" />
+              {/* Creative & Content Ops */}
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-8 border border-purple-100">
+                <div className="flex items-center mb-4">
+                  <div className="bg-purple-600 rounded-lg p-2 mr-4">
+                    <DocumentTextIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">2. Creative & Content Ops</h3>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3 text-center">Customer Service</h3>
-                <p className="text-gray-600 text-center mb-4">
-                  Intelligent support agents for 24/7 customer assistance, ticket routing, and issue resolution.
+                <p className="text-gray-700 mb-4 font-medium">
+                  Solutions for personalization, content QA, and versioning at scale.
                 </p>
-                <div className="text-sm text-green-600 font-medium text-center">
-                  Coming Q1 2025
-                </div>
+                <p className="text-gray-600 text-sm">
+                  Scale creativity without sacrificing quality. Creative & Content Ops agents support copy and visual QA, adapt creative versions across markets, and drive personalization at scale — keeping every campaign fresh, consistent, and on brand.
+                </p>
               </div>
 
-              {/* Data Analytics */}
-              <div className="bg-gradient-to-br from-purple-50 to-violet-100 rounded-2xl p-8 border border-purple-200 hover:shadow-xl transition-all duration-300">
-                <div className="bg-gradient-to-br from-purple-500 to-violet-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <ChartBarIcon className="w-8 h-8 text-white" />
+              {/* Marketing Ops */}
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-8 border border-emerald-100">
+                <div className="flex items-center mb-4">
+                  <div className="bg-emerald-600 rounded-lg p-2 mr-4">
+                    <UserGroupIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">3. Marketing Ops</h3>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3 text-center">Data Analytics</h3>
-                <p className="text-gray-600 text-center mb-4">
-                  AI-powered insights, predictive analytics, and automated reporting for data-driven decisions.
+                <p className="text-gray-700 mb-4 font-medium">
+                  Agents that enforce transparency and accountability across brand–agency partnerships.
                 </p>
-                <div className="text-sm text-purple-600 font-medium text-center">
-                  Coming Q2 2025
-                </div>
+                <p className="text-gray-600 text-sm">
+                  Agency Ops agents act as trusted middle layers. They standardize reporting, flag discrepancies in delivery or spend, and enforce agreed-upon taxonomies — ensuring both brands and agencies operate with clarity and accountability.
+                </p>
               </div>
 
-              {/* Content Creation */}
-              <div className="bg-gradient-to-br from-orange-50 to-amber-100 rounded-2xl p-8 border border-orange-200 hover:shadow-xl transition-all duration-300">
-                <div className="bg-gradient-to-br from-orange-500 to-amber-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <DocumentTextIcon className="w-8 h-8 text-white" />
+              {/* Analytics & Measurement */}
+              <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-8 border border-orange-100">
+                <div className="flex items-center mb-4">
+                  <div className="bg-orange-600 rounded-lg p-2 mr-4">
+                    <ChartBarIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">4. Analytics & Measurement</h3>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3 text-center">Content Creation</h3>
-                <p className="text-gray-600 text-center mb-4">
-                  AI agents for writing, design, video production, and creative content generation.
+                <p className="text-gray-700 mb-4 font-medium">
+                  Automated testing, dashboards, and ROI agents that tie spend to outcomes.
                 </p>
-                <div className="text-sm text-orange-600 font-medium text-center">
-                  Coming Q2 2025
-                </div>
+                <p className="text-gray-600 text-sm">
+                  Analytics & Measurement agents transform raw data into actionable clarity. They automate A/B testing, deliver real-time dashboards, and connect investment decisions directly to ROI — closing the loop between spend and impact.
+                </p>
               </div>
 
-              {/* Operations & Automation */}
-              <div className="bg-gradient-to-br from-red-50 to-pink-100 rounded-2xl p-8 border border-red-200 hover:shadow-xl transition-all duration-300">
-                <div className="bg-gradient-to-br from-red-500 to-pink-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <CogIcon className="w-8 h-8 text-white" />
+              {/* Data Governance */}
+              <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-xl p-8 border border-slate-100 lg:col-span-2">
+                <div className="flex items-center mb-4">
+                  <div className="bg-slate-600 rounded-lg p-2 mr-4">
+                    <ShieldCheckIcon className="w-6 h-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">5. Data Governance</h3>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3 text-center">Operations & Automation</h3>
-                <p className="text-gray-600 text-center mb-4">
-                  Workflow automation, process optimization, and operational efficiency agents.
+                <p className="text-gray-700 mb-4 font-medium">
+                  Agents that ensure compliance, privacy-by-design, and metadata integrity.
                 </p>
-                <div className="text-sm text-red-600 font-medium text-center">
-                  Coming Q3 2025
-                </div>
-              </div>
-
-              {/* Research & Development */}
-              <div className="bg-gradient-to-br from-indigo-50 to-blue-100 rounded-2xl p-8 border border-indigo-200 hover:shadow-xl transition-all duration-300">
-                <div className="bg-gradient-to-br from-indigo-500 to-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <LightBulbIcon className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-3 text-center">Research & Development</h3>
-                <p className="text-gray-600 text-center mb-4">
-                  AI agents for market research, competitive analysis, and innovation discovery.
+                <p className="text-gray-600 text-sm">
+                  Data Governance agents keep your marketing house in order. They enforce taxonomy standards, safeguard privacy, and ensure metadata integrity — providing a reliable foundation for compliant, scalable, data-driven growth.
                 </p>
-                <div className="text-sm text-indigo-600 font-medium text-center">
-                  Coming Q3 2025
-                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Agent Demo Card Section */}
+        {/* Demo Agents Section */}
         <section className="py-16 bg-gray-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Experience Our AI Agents
+                Watch the First Demo Agents in Action
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Try out our AI agents and see how they can transform your workflow.
+                (3–5 short demo videos embedded here)
               </p>
             </div>
             
@@ -348,113 +350,113 @@ export default function HomePage() {
             <div className="relative max-w-4xl mx-auto">
               {/* Demo Slides */}
               <div className="relative overflow-hidden rounded-2xl shadow-2xl">
-                {currentSlideIndex === 0 && (
-                  <div className="video-slide bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-                    <div className="grid grid-cols-3 gap-6 h-full">
-                      {/* Left 2/3 - Video Placeholder */}
-                      <div className="col-span-2 flex items-center justify-center">
-                        <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-blue-200 text-center w-full h-full flex flex-col justify-center">
-                          <div className="text-6xl mb-4">🎥</div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Marketing Agent Demo</h3>
-                          <p className="text-gray-600">Video demonstration of AI-powered marketing automation</p>
-                          <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                            Watch Demo
-                          </button>
-                        </div>
-                      </div>
-                      {/* Right 1/3 - Agent Info */}
-                      <div className="col-span-1 flex flex-col justify-center">
-                        <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-blue-200 h-full flex flex-col justify-center">
-                          <div className="flex items-center mb-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
-                              <span className="text-white text-xl">📈</span>
-                            </div>
-                            <div>
-                              <h4 className="font-bold text-gray-900">Marketing Agent</h4>
-                              <p className="text-sm text-blue-600">Lead Generation</p>
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-700 leading-relaxed">
-                            AI-powered marketing agent that identifies leads, creates personalized content, 
-                            and optimizes campaigns for maximum ROI.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                                 {currentSlideIndex === 0 && (
+                   <div className="video-slide bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                     <div className="grid grid-cols-3 gap-6 h-full">
+                       {/* Left 2/3 - Video Placeholder */}
+                       <div className="col-span-2 flex items-center justify-center">
+                         <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-blue-200 text-center w-full h-full flex flex-col justify-center">
+                           <div className="text-6xl mb-4">🎥</div>
+                           <h3 className="text-2xl font-bold text-gray-900 mb-3">Campaign Briefing Agent</h3>
+                           <p className="text-gray-600">Strategy & Planning</p>
+                           <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                             Watch Demo
+                           </button>
+                         </div>
+                       </div>
+                       {/* Right 1/3 - Agent Info */}
+                       <div className="col-span-1 flex flex-col justify-center">
+                         <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-blue-200 h-full flex flex-col justify-center">
+                           <div className="flex items-center mb-4">
+                             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
+                               <span className="text-white text-xl">📋</span>
+                             </div>
+                             <div>
+                               <h4 className="font-bold text-gray-900">Campaign Briefing Agent</h4>
+                               <p className="text-sm text-blue-600">Strategy & Planning</p>
+                             </div>
+                           </div>
+                           <p className="text-sm text-gray-700 leading-relaxed">
+                             Watch how this agent transforms campaign briefs into actionable strategies, 
+                             automatically identifying opportunities and optimizing for maximum impact.
+                           </p>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 )}
                 
-                {currentSlideIndex === 1 && (
-                  <div className="video-slide bg-gradient-to-br from-green-50 to-emerald-100 p-6">
-                    <div className="grid grid-cols-3 gap-6 h-full">
-                      {/* Left 2/3 - Video Placeholder */}
-                      <div className="col-span-2 flex items-center justify-center">
-                        <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-green-200 text-center w-full h-full flex flex-col justify-center">
-                          <div className="text-6xl mb-4">🎥</div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Customer Service Agent</h3>
-                          <p className="text-gray-600">AI-powered customer support and ticket resolution</p>
-                          <button className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                            Watch Demo
-                          </button>
-                        </div>
-                      </div>
-                      {/* Right 1/3 - Agent Info */}
-                      <div className="col-span-1 flex flex-col justify-center">
-                        <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-green-200 h-full flex flex-col justify-center">
-                          <div className="flex items-center mb-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
-                              <span className="text-white text-xl">💬</span>
-                            </div>
-                            <div>
-                              <h4 className="font-bold text-gray-900">Customer Service Agent</h4>
-                              <p className="text-sm text-green-600">Support & Resolution</p>
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-700 leading-relaxed">
-                            24/7 AI customer service agent that handles inquiries, resolves issues, 
-                            and escalates complex cases to human agents.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                                 {currentSlideIndex === 1 && (
+                   <div className="video-slide bg-gradient-to-br from-teal-50 to-emerald-100 p-6">
+                     <div className="grid grid-cols-3 gap-6 h-full">
+                       {/* Left 2/3 - Video Placeholder */}
+                       <div className="col-span-2 flex items-center justify-center">
+                         <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-teal-200 text-center w-full h-full flex flex-col justify-center">
+                           <div className="text-6xl mb-4">🎥</div>
+                           <h3 className="text-2xl font-bold text-gray-900 mb-3">Marketing Analytics Agent</h3>
+                           <p className="text-gray-600">Analytics & Insights</p>
+                           <button className="mt-4 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors">
+                             Watch Demo
+                           </button>
+                         </div>
+                       </div>
+                       {/* Right 1/3 - Agent Info */}
+                       <div className="col-span-1 flex flex-col justify-center">
+                         <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-teal-200 h-full flex flex-col justify-center">
+                           <div className="flex items-center mb-4">
+                             <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
+                               <span className="text-white text-xl">📊</span>
+                             </div>
+                             <div>
+                               <h4 className="font-bold text-gray-900">Marketing Analytics Agent</h4>
+                               <p className="text-sm text-teal-600">Analytics & Insights</p>
+                             </div>
+                           </div>
+                           <p className="text-sm text-gray-700 leading-relaxed">
+                             See real-time performance insights and automated optimization recommendations 
+                             that drive measurable ROI improvements.
+                           </p>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 )}
                 
-                {currentSlideIndex === 2 && (
-                  <div className="video-slide bg-gradient-to-br from-purple-50 to-violet-100 p-6">
-                    <div className="grid grid-cols-3 gap-6 h-full">
-                      {/* Left 2/3 - Video Placeholder */}
-                      <div className="col-span-2 flex items-center justify-center">
-                        <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-purple-200 text-center w-full h-full flex flex-col justify-center">
-                          <div className="text-6xl mb-4">🎥</div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Analytics Agent</h3>
-                          <p className="text-gray-600">Data insights and predictive analytics demonstration</p>
-                          <button className="mt-4 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                            Watch Demo
-                          </button>
-                        </div>
-                      </div>
-                      {/* Right 1/3 - Agent Info */}
-                      <div className="col-span-1 flex flex-col justify-center">
-                        <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-purple-200 h-full flex flex-col justify-center">
-                          <div className="flex items-center mb-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center mr-3">
-                              <span className="text-white text-xl">📊</span>
-                            </div>
-                            <div>
-                              <h4 className="font-bold text-gray-900">Analytics Agent</h4>
-                              <p className="text-sm text-purple-600">Insights & Predictions</p>
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-700 leading-relaxed">
-                            Advanced analytics agent that processes data, identifies trends, 
-                            and provides actionable business insights and predictions.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+                                 {currentSlideIndex === 2 && (
+                   <div className="video-slide bg-gradient-to-br from-purple-50 to-violet-100 p-6">
+                     <div className="grid grid-cols-3 gap-6 h-full">
+                       {/* Left 2/3 - Video Placeholder */}
+                       <div className="col-span-2 flex items-center justify-center">
+                         <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-purple-200 text-center w-full h-full flex flex-col justify-center">
+                           <div className="text-6xl mb-4">🎥</div>
+                           <h3 className="text-2xl font-bold text-gray-900 mb-3">Interview & Research Agent</h3>
+                           <p className="text-gray-600">Knowledge & Collaboration</p>
+                           <button className="mt-4 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                             Watch Demo
+                           </button>
+                         </div>
+                       </div>
+                       {/* Right 1/3 - Agent Info */}
+                       <div className="col-span-1 flex flex-col justify-center">
+                         <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-purple-200 h-full flex flex-col justify-center">
+                           <div className="flex items-center mb-4">
+                             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center mr-3">
+                               <span className="text-white text-xl">🔍</span>
+                             </div>
+                             <div>
+                               <h4 className="font-bold text-gray-900">Interview & Research Agent</h4>
+                               <p className="text-sm text-purple-600">Knowledge & Collaboration</p>
+                             </div>
+                           </div>
+                           <p className="text-sm text-gray-700 leading-relaxed">
+                             Discover how this agent conducts intelligent research, synthesizes insights, 
+                             and collaborates seamlessly with your team.
+                           </p>
+                         </div>
+                       </div>
+                     </div>
+                   </div>
+                 )}
                 
                 {currentSlideIndex === 3 && (
                   <div className="video-slide bg-gradient-to-br from-orange-50 to-amber-100 p-6">
