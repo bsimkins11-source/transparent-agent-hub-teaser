@@ -28,7 +28,7 @@ export const demoVideos: DemoVideo[] = [
   },
   {
     id: 'tmdqa',
-    title: 'TMDQA Demo',
+    title: 'Transparent Marketing Data Query Agent',
     description: 'See real-time performance insights and automated optimization recommendations that drive measurable ROI improvements.',
     category: 'Analytics & Insights',
     videoSrc: '/videos/tmdqa-demo.mp4',
