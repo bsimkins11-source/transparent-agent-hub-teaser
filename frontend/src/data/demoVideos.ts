@@ -15,7 +15,7 @@ export interface DemoVideo {
 export const demoVideos: DemoVideo[] = [
   {
     id: 'audience-engine',
-    title: 'Audience Engine Demo',
+    title: 'Transparent Brief and Audience Engine Agent',
     description: 'Watch how this agent transforms campaign briefs into actionable strategies, automatically identifying opportunities and optimizing for maximum impact.',
     category: 'Strategy & Planning',
     videoSrc: '/videos/audience-engine-demo.mp4',
