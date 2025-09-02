@@ -219,52 +219,49 @@ export default function HomePage() {
 
         {/* Demo Agents Section */}
         <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
                 Watch the First Demo Agents in Action
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                (3–5 short demo videos embedded here)
+                See how AI agents are transforming marketing workflows
               </p>
             </div>
             
-            {/* Carousel Container */}
-            <div className="relative max-w-4xl mx-auto">
+            {/* Compact Carousel Container */}
+            <div className="relative max-w-3xl mx-auto">
               {/* Demo Slides */}
-              <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+              <div className="relative overflow-hidden rounded-2xl shadow-2xl bg-white">
                 {demoVideos.map((video, index) => (
                   currentSlideIndex === index && (
-                    <div key={video.id} className={`video-slide bg-gradient-to-br ${video.gradientFrom} ${video.gradientTo} p-6`}>
-                      <div className="grid grid-cols-3 gap-6 h-full">
-                        {/* Left 2/3 - Video Player */}
-                        <div className="col-span-2 flex items-center justify-center">
-                          <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-gray-200 text-center w-full h-full flex flex-col justify-center">
-                            <VideoPlayer
-                              src={video.videoSrc}
-                              poster={video.posterSrc}
-                              title={video.title}
-                              onWatchDemo={() => openShadowbox(video)}
-                              className="w-full h-64 rounded-lg"
-                            />
-                          </div>
-                        </div>
-                        {/* Right 1/3 - Agent Info */}
-                        <div className="col-span-1 flex flex-col justify-center">
-                          <div className={`bg-white/90 rounded-xl p-5 shadow-lg border ${video.borderColor} h-full flex flex-col justify-center`}>
-                            <div className="flex items-center mb-4">
-                              <div className={`w-12 h-12 bg-gradient-to-br from-${video.color}-500 to-${video.color}-600 rounded-lg flex items-center justify-center mr-3`}>
-                                <span className="text-white text-xl">{video.icon}</span>
-                              </div>
-                              <div>
-                                <h4 className="font-bold text-gray-900">{video.title}</h4>
-                                <p className={`text-sm text-${video.color}-600`}>{video.category}</p>
-                              </div>
+                    <div key={video.id} className={`video-slide bg-gradient-to-br ${video.gradientFrom} ${video.gradientTo} p-8`}>
+                      <div className="text-center">
+                        {/* Agent Info Header */}
+                        <div className="mb-6">
+                          <div className="flex items-center justify-center mb-4">
+                            <div className={`w-16 h-16 bg-gradient-to-br from-${video.color}-500 to-${video.color}-600 rounded-xl flex items-center justify-center mr-4`}>
+                              <span className="text-white text-2xl">{video.icon}</span>
                             </div>
-                            <p className="text-sm text-gray-700 leading-relaxed">
-                              {video.description}
-                            </p>
+                            <div className="text-left">
+                              <h3 className="text-2xl font-bold text-gray-900">{video.title}</h3>
+                              <p className={`text-lg text-${video.color}-600`}>{video.category}</p>
+                            </div>
                           </div>
+                          <p className="text-gray-700 text-lg max-w-2xl mx-auto">
+                            {video.description}
+                          </p>
+                        </div>
+                        
+                        {/* Video Player */}
+                        <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-gray-200">
+                          <VideoPlayer
+                            src={video.videoSrc}
+                            poster={video.posterSrc}
+                            title={video.title}
+                            onWatchDemo={() => openShadowbox(video)}
+                            className="w-full h-48 rounded-lg mx-auto"
+                          />
                         </div>
                       </div>
                     </div>
@@ -275,7 +272,7 @@ export default function HomePage() {
               {/* Navigation Arrows */}
               <button
                 onClick={previousSlide}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
                 aria-label="Previous slide"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -285,7 +282,7 @@ export default function HomePage() {
               
               <button
                 onClick={nextSlide}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
                 aria-label="Next slide"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
