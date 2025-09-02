@@ -25,10 +25,23 @@ export default function VideoShadowbox({
 
   useEffect(() => {
     if (isOpen && videoRef.current) {
+      // Set video properties for auto-play
+      const video = videoRef.current;
+      video.muted = true; // Muted auto-play is more likely to work
+      video.preload = 'auto';
+      
       // Auto-play when shadowbox opens
-      videoRef.current.play().then(() => {
-        setIsPlaying(true);
-      }).catch(console.error);
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise.then(() => {
+          setIsPlaying(true);
+          console.log('Video started playing automatically');
+        }).catch((error) => {
+          console.log('Auto-play failed:', error);
+          // If auto-play fails, just show the video ready to play
+          setIsPlaying(false);
+        });
+      }
     }
   }, [isOpen]);
 
@@ -78,7 +91,22 @@ export default function VideoShadowbox({
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
+      console.log('Video metadata loaded, duration:', videoRef.current.duration);
     }
+  };
+
+  const handleCanPlay = () => {
+    console.log('Video can start playing');
+  };
+
+  const handleError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    console.error('Video error:', e);
+    const video = e.currentTarget;
+    console.error('Video error details:', {
+      error: video.error,
+      networkState: video.networkState,
+      readyState: video.readyState
+    });
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -126,10 +154,16 @@ export default function VideoShadowbox({
           className="w-full h-full object-contain"
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
+          onCanPlay={handleCanPlay}
+          onError={handleError}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           onEnded={() => setIsPlaying(false)}
           onClick={togglePlay}
+          preload="auto"
+          muted={isMuted}
+          playsInline
+          controls={false}
         />
 
         {/* Controls Overlay */}

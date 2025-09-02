@@ -109,3 +109,4 @@ Thumbs.db
 
 # GCP
 .gcloudignore
+.vercel
