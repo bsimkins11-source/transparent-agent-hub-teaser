@@ -13,6 +13,9 @@ import {
   EyeIcon,
   PlayIcon
 } from '@heroicons/react/24/outline'
+import VideoPlayer from '../components/VideoPlayer'
+import VideoShadowbox from '../components/VideoShadowbox'
+import { demoVideos, DemoVideo } from '../data/demoVideos'
 
 // Add carousel styles
 const carouselStyles = `
@@ -35,6 +38,7 @@ export default function HomePage() {
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [shadowboxVideo, setShadowboxVideo] = useState<DemoVideo | null>(null);
 
   const showSlide = (index: number) => {
     setCurrentSlideIndex(index);
@@ -66,6 +70,14 @@ export default function HomePage() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const openShadowbox = (video: DemoVideo) => {
+    setShadowboxVideo(video);
+  };
+
+  const closeShadowbox = () => {
+    setShadowboxVideo(null);
   };
   
   return (
@@ -205,8 +217,101 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* Demo Agents Section */}
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                Watch the First Demo Agents in Action
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                (3–5 short demo videos embedded here)
+              </p>
+            </div>
+            
+            {/* Carousel Container */}
+            <div className="relative max-w-4xl mx-auto">
+              {/* Demo Slides */}
+              <div className="relative overflow-hidden rounded-2xl shadow-2xl">
+                {demoVideos.map((video, index) => (
+                  currentSlideIndex === index && (
+                    <div key={video.id} className={`video-slide bg-gradient-to-br ${video.gradientFrom} ${video.gradientTo} p-6`}>
+                      <div className="grid grid-cols-3 gap-6 h-full">
+                        {/* Left 2/3 - Video Player */}
+                        <div className="col-span-2 flex items-center justify-center">
+                          <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-gray-200 text-center w-full h-full flex flex-col justify-center">
+                            <VideoPlayer
+                              src={video.videoSrc}
+                              poster={video.posterSrc}
+                              title={video.title}
+                              onWatchDemo={() => openShadowbox(video)}
+                              className="w-full h-64 rounded-lg"
+                            />
+                          </div>
+                        </div>
+                        {/* Right 1/3 - Agent Info */}
+                        <div className="col-span-1 flex flex-col justify-center">
+                          <div className={`bg-white/90 rounded-xl p-5 shadow-lg border ${video.borderColor} h-full flex flex-col justify-center`}>
+                            <div className="flex items-center mb-4">
+                              <div className={`w-12 h-12 bg-gradient-to-br from-${video.color}-500 to-${video.color}-600 rounded-lg flex items-center justify-center mr-3`}>
+                                <span className="text-white text-xl">{video.icon}</span>
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-900">{video.title}</h4>
+                                <p className={`text-sm text-${video.color}-600`}>{video.category}</p>
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-700 leading-relaxed">
+                              {video.description}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                ))}
+              </div>
+              
+              {/* Navigation Arrows */}
+              <button
+                onClick={previousSlide}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                aria-label="Previous slide"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              
+              <button
+                onClick={nextSlide}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
+                aria-label="Next slide"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              
+              {/* Carousel Dots */}
+              <div className="flex justify-center mt-6 space-x-2">
+                {[0, 1, 2, 3, 4].map((index) => (
+                  <button
+                    key={index}
+                    onClick={() => showSlide(index)}
+                    className={`carousel-dot w-3 h-3 rounded-full transition-all duration-200 ${
+                      index === currentSlideIndex ? 'active' : ''
+                    }`}
+                    aria-label={`Go to slide ${index + 1}`}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* How It Works Section */}
-        <section id="how-it-works" className="py-20 bg-gray-50">
+        <section id="how-it-works" className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -338,243 +443,6 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Demo Agents Section */}
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                Watch the First Demo Agents in Action
-              </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                (3–5 short demo videos embedded here)
-              </p>
-            </div>
-            
-            {/* Carousel Container */}
-            <div className="relative max-w-4xl mx-auto">
-              {/* Demo Slides */}
-              <div className="relative overflow-hidden rounded-2xl shadow-2xl">
-                                 {currentSlideIndex === 0 && (
-                   <div className="video-slide bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-                     <div className="grid grid-cols-3 gap-6 h-full">
-                       {/* Left 2/3 - Video Placeholder */}
-                       <div className="col-span-2 flex items-center justify-center">
-                         <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-blue-200 text-center w-full h-full flex flex-col justify-center">
-                           <div className="text-6xl mb-4">🎥</div>
-                           <h3 className="text-2xl font-bold text-gray-900 mb-3">Campaign Briefing Agent</h3>
-                           <p className="text-gray-600">Strategy & Planning</p>
-                           <button className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-                             Watch Demo
-                           </button>
-                         </div>
-                       </div>
-                       {/* Right 1/3 - Agent Info */}
-                       <div className="col-span-1 flex flex-col justify-center">
-                         <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-blue-200 h-full flex flex-col justify-center">
-                           <div className="flex items-center mb-4">
-                             <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
-                               <span className="text-white text-xl">📋</span>
-                             </div>
-                             <div>
-                               <h4 className="font-bold text-gray-900">Campaign Briefing Agent</h4>
-                               <p className="text-sm text-blue-600">Strategy & Planning</p>
-                             </div>
-                           </div>
-                           <p className="text-sm text-gray-700 leading-relaxed">
-                             Watch how this agent transforms campaign briefs into actionable strategies, 
-                             automatically identifying opportunities and optimizing for maximum impact.
-                           </p>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 )}
-                
-                                 {currentSlideIndex === 1 && (
-                   <div className="video-slide bg-gradient-to-br from-teal-50 to-emerald-100 p-6">
-                     <div className="grid grid-cols-3 gap-6 h-full">
-                       {/* Left 2/3 - Video Placeholder */}
-                       <div className="col-span-2 flex items-center justify-center">
-                         <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-teal-200 text-center w-full h-full flex flex-col justify-center">
-                           <div className="text-6xl mb-4">🎥</div>
-                           <h3 className="text-2xl font-bold text-gray-900 mb-3">Marketing Analytics Agent</h3>
-                           <p className="text-gray-600">Analytics & Insights</p>
-                           <button className="mt-4 bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition-colors">
-                             Watch Demo
-                           </button>
-                         </div>
-                       </div>
-                       {/* Right 1/3 - Agent Info */}
-                       <div className="col-span-1 flex flex-col justify-center">
-                         <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-teal-200 h-full flex flex-col justify-center">
-                           <div className="flex items-center mb-4">
-                             <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
-                               <span className="text-white text-xl">📊</span>
-                             </div>
-                             <div>
-                               <h4 className="font-bold text-gray-900">Marketing Analytics Agent</h4>
-                               <p className="text-sm text-teal-600">Analytics & Insights</p>
-                             </div>
-                           </div>
-                           <p className="text-sm text-gray-700 leading-relaxed">
-                             See real-time performance insights and automated optimization recommendations 
-                             that drive measurable ROI improvements.
-                           </p>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 )}
-                
-                                 {currentSlideIndex === 2 && (
-                   <div className="video-slide bg-gradient-to-br from-purple-50 to-violet-100 p-6">
-                     <div className="grid grid-cols-3 gap-6 h-full">
-                       {/* Left 2/3 - Video Placeholder */}
-                       <div className="col-span-2 flex items-center justify-center">
-                         <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-purple-200 text-center w-full h-full flex flex-col justify-center">
-                           <div className="text-6xl mb-4">🎥</div>
-                           <h3 className="text-2xl font-bold text-gray-900 mb-3">Interview & Research Agent</h3>
-                           <p className="text-gray-600">Knowledge & Collaboration</p>
-                           <button className="mt-4 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                             Watch Demo
-                           </button>
-                         </div>
-                       </div>
-                       {/* Right 1/3 - Agent Info */}
-                       <div className="col-span-1 flex flex-col justify-center">
-                         <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-purple-200 h-full flex flex-col justify-center">
-                           <div className="flex items-center mb-4">
-                             <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center mr-3">
-                               <span className="text-white text-xl">🔍</span>
-                             </div>
-                             <div>
-                               <h4 className="font-bold text-gray-900">Interview & Research Agent</h4>
-                               <p className="text-sm text-purple-600">Knowledge & Collaboration</p>
-                             </div>
-                           </div>
-                           <p className="text-sm text-gray-700 leading-relaxed">
-                             Discover how this agent conducts intelligent research, synthesizes insights, 
-                             and collaborates seamlessly with your team.
-                           </p>
-                         </div>
-                       </div>
-                     </div>
-                   </div>
-                 )}
-                
-                {currentSlideIndex === 3 && (
-                  <div className="video-slide bg-gradient-to-br from-orange-50 to-amber-100 p-6">
-                    <div className="grid grid-cols-3 gap-6 h-full">
-                      {/* Left 2/3 - Video Placeholder */}
-                      <div className="col-span-2 flex items-center justify-center">
-                        <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-orange-200 text-center w-full h-full flex flex-col justify-center">
-                          <div className="text-6xl mb-4">🎥</div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Content Creation Agent</h3>
-                          <p className="text-gray-600">AI-powered content generation and optimization</p>
-                          <button className="mt-4 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors">
-                            Watch Demo
-                          </button>
-                        </div>
-                      </div>
-                      {/* Right 1/3 - Agent Info */}
-                      <div className="col-span-1 flex flex-col justify-center">
-                        <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-orange-200 h-full flex flex-col justify-center">
-                          <div className="flex items-center mb-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center mr-3">
-                              <span className="text-white text-xl">✍️</span>
-                            </div>
-                            <div>
-                              <h4 className="text-gray-900">Content Creation Agent</h4>
-                              <p className="text-sm text-orange-600">Creative & Writing</p>
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-700 leading-relaxed">
-                            Creative AI agent that generates engaging content, optimizes copy, 
-                            and maintains brand voice across all channels.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                {currentSlideIndex === 4 && (
-                  <div className="video-slide bg-gradient-to-br from-red-50 to-pink-100 p-6">
-                    <div className="grid grid-cols-3 gap-6 h-full">
-                      {/* Left 2/3 - Video Placeholder */}
-                      <div className="col-span-2 flex items-center justify-center">
-                        <div className="bg-white/90 rounded-2xl p-6 shadow-xl border border-red-200 text-center w-full h-full flex flex-col justify-center">
-                          <div className="text-6xl mb-4">🎥</div>
-                          <h3 className="text-2xl font-bold text-gray-900 mb-3">Operations Agent</h3>
-                          <p className="text-gray-600">Workflow automation and process optimization</p>
-                          <button className="mt-4 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
-                            Watch Demo
-                          </button>
-                        </div>
-                      </div>
-                      {/* Right 1/3 - Agent Info */}
-                      <div className="col-span-1 flex flex-col justify-center">
-                        <div className="bg-white/90 rounded-xl p-5 shadow-lg border border-red-200 h-full flex flex-col justify-center">
-                          <div className="flex items-center mb-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center mr-3">
-                              <span className="text-white text-xl">⚙️</span>
-                            </div>
-                            <div>
-                              <h4 className="font-bold text-gray-900">Operations Agent</h4>
-                              <p className="text-sm text-red-600">Automation & Efficiency</p>
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-700 leading-relaxed">
-                            Operations AI agent that automates workflows, optimizes processes, 
-                            and identifies efficiency improvements across your organization.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Navigation Arrows */}
-              <button
-                onClick={previousSlide}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-                aria-label="Previous slide"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              
-              <button
-                onClick={nextSlide}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-3 rounded-full shadow-lg transition-all duration-200 hover:scale-110"
-                aria-label="Next slide"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-              
-              {/* Carousel Dots */}
-              <div className="flex justify-center mt-6 space-x-2">
-                {[0, 1, 2, 3, 4].map((index) => (
-                  <button
-                    key={index}
-                    onClick={() => showSlide(index)}
-                    className={`carousel-dot w-3 h-3 rounded-full transition-all duration-200 ${
-                      index === currentSlideIndex ? 'active' : ''
-                    }`}
-                    aria-label={`Go to slide ${index + 1}`}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-
-
         {/* Email Capture Form Section */}
         <section id="early-access" className="py-20 bg-gradient-to-r from-teal-600 to-blue-600">
           <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
@@ -701,6 +569,17 @@ export default function HomePage() {
           </div>
         </section>
       </div>
+
+      {/* Video Shadowbox Modal */}
+      {shadowboxVideo && (
+        <VideoShadowbox
+          isOpen={!!shadowboxVideo}
+          onClose={closeShadowbox}
+          src={shadowboxVideo.videoSrc}
+          title={shadowboxVideo.title}
+          description={shadowboxVideo.description}
+        />
+      )}
     </>
   )
 }
