@@ -19,7 +19,7 @@ export const demoVideos: DemoVideo[] = [
     description: 'Watch how this agent transforms campaign briefs into actionable strategies, automatically identifying opportunities and optimizing for maximum impact.',
     category: 'Strategy & Planning',
     videoSrc: '/videos/audience-engine-demo.mp4',
-    posterSrc: undefined, // Will show fallback placeholder
+    posterSrc: '/videos/audience-engine-poster.jpg',
     icon: '📋',
     color: 'blue',
     gradientFrom: 'from-blue-50',
@@ -32,7 +32,7 @@ export const demoVideos: DemoVideo[] = [
     description: 'See real-time performance insights and automated optimization recommendations that drive measurable ROI improvements.',
     category: 'Analytics & Insights',
     videoSrc: '/videos/tmdqa-demo.mp4',
-    posterSrc: undefined, // Will show fallback placeholder
+    posterSrc: '/videos/tmdqa-poster.jpg',
     icon: '📊',
     color: 'teal',
     gradientFrom: 'from-teal-50',
