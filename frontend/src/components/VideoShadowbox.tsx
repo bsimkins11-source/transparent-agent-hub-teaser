@@ -18,28 +18,39 @@ export default function VideoShadowbox({
 }: VideoShadowboxProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = React.useState(false);
-  const [isMuted, setIsMuted] = React.useState(false);
+  const [isMuted, setIsMuted] = React.useState(false); // Start unmuted since user clicked to watch
   const [currentTime, setCurrentTime] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
   const [showControls, setShowControls] = React.useState(true);
+  const [autoMuted, setAutoMuted] = React.useState(false); // Track if auto-muted due to browser restrictions
 
   useEffect(() => {
     if (isOpen && videoRef.current) {
       // Set video properties for auto-play
       const video = videoRef.current;
-      video.muted = true; // Muted auto-play is more likely to work
+      video.muted = false; // Start unmuted since user clicked to watch
       video.preload = 'auto';
+      setIsMuted(false); // Update state to reflect unmuted
       
       // Auto-play when shadowbox opens
       const playPromise = video.play();
       if (playPromise !== undefined) {
         playPromise.then(() => {
           setIsPlaying(true);
-          console.log('Video started playing automatically');
+          console.log('Video started playing automatically with sound');
         }).catch((error) => {
           console.log('Auto-play failed:', error);
-          // If auto-play fails, just show the video ready to play
-          setIsPlaying(false);
+          // If auto-play fails, try muted
+          video.muted = true;
+          setIsMuted(true);
+          setAutoMuted(true); // Mark as auto-muted due to browser restrictions
+          video.play().then(() => {
+            setIsPlaying(true);
+            console.log('Video started playing muted after unmuted failed');
+          }).catch((mutedError) => {
+            console.log('Muted auto-play also failed:', mutedError);
+            setIsPlaying(false);
+          });
         });
       }
     }
@@ -80,6 +91,11 @@ export default function VideoShadowbox({
     
     videoRef.current.muted = !isMuted;
     setIsMuted(!isMuted);
+    
+    // Clear auto-muted state when user manually toggles mute
+    if (!isMuted) {
+      setAutoMuted(false);
+    }
   };
 
   const handleTimeUpdate = () => {
@@ -173,6 +189,13 @@ export default function VideoShadowbox({
             <h3 className="text-white text-xl font-semibold mb-1">{title}</h3>
             {description && (
               <p className="text-gray-300 text-sm">{description}</p>
+            )}
+            {autoMuted && (
+              <div className="mt-2 p-2 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+                <p className="text-yellow-200 text-xs">
+                  🔊 Video started muted due to browser settings. Click the sound button to unmute.
+                </p>
+              </div>
             )}
           </div>
 
