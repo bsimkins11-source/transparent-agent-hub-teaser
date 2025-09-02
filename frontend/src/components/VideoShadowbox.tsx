@@ -21,7 +21,7 @@ export default function VideoShadowbox({
   const [isMuted, setIsMuted] = React.useState(false); // Start unmuted since user clicked to watch
   const [currentTime, setCurrentTime] = React.useState(0);
   const [duration, setDuration] = React.useState(0);
-  const [showControls, setShowControls] = React.useState(true);
+  const [showControls, setShowControls] = React.useState(true); // Always show controls initially
   const [autoMuted, setAutoMuted] = React.useState(false); // Track if auto-muted due to browser restrictions
 
   useEffect(() => {
@@ -66,6 +66,17 @@ export default function VideoShadowbox({
     if (isOpen) {
       document.addEventListener('keydown', handleEscape);
       document.body.style.overflow = 'hidden';
+      
+      // Hide controls after 3 seconds of inactivity
+      const hideControlsTimer = setTimeout(() => {
+        setShowControls(false);
+      }, 3000);
+      
+      return () => {
+        document.removeEventListener('keydown', handleEscape);
+        document.body.style.overflow = 'unset';
+        clearTimeout(hideControlsTimer);
+      };
     }
 
     return () => {
@@ -158,7 +169,8 @@ export default function VideoShadowbox({
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-black/50 backdrop-blur-sm text-white p-2 rounded-full hover:bg-black/70 transition-colors"
+          className="absolute top-4 right-4 z-20 bg-red-600/90 backdrop-blur-sm text-white p-3 rounded-full hover:bg-red-700 transition-colors shadow-lg border-2 border-white/20"
+          title="Close video (ESC)"
         >
           <XMarkIcon className="w-6 h-6" />
         </button>
@@ -240,6 +252,15 @@ export default function VideoShadowbox({
                 {formatTime(currentTime)} / {formatTime(duration)}
               </span>
             </div>
+            
+            {/* Close Button in Controls */}
+            <button
+              onClick={onClose}
+              className="bg-red-600/80 backdrop-blur-sm text-white p-2 rounded-full hover:bg-red-700 transition-colors"
+              title="Close video"
+            >
+              <XMarkIcon className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </div>
