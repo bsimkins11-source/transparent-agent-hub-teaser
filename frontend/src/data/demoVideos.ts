@@ -14,12 +14,12 @@ export interface DemoVideo {
 
 export const demoVideos: DemoVideo[] = [
   {
-    id: 'audience-engine',
-    title: 'Transparent Brief and Audience Engine Agent',
+    id: 'audience-engine-new',
+    title: 'Transparent Audience Engine Agent',
     description: 'Watch how this agent transforms campaign briefs into actionable strategies, automatically identifying opportunities and optimizing for maximum impact.',
     category: 'Strategy & Planning',
-    videoSrc: '/videos/audience-engine-demo.mp4',
-    posterSrc: '/videos/audience-engine-poster.jpg',
+    videoSrc: '/videos/audience-engine-demo-new.mp4',
+    posterSrc: '/videos/audience-engine-demo-new-poster.jpg',
     icon: '📋',
     color: 'blue',
     gradientFrom: 'from-blue-50',
