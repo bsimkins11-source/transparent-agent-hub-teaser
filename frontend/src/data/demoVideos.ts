@@ -14,30 +14,30 @@ export interface DemoVideo {
 
 export const demoVideos: DemoVideo[] = [
   {
-    id: 'audience-engine-new',
-    title: 'Transparent Audience Engine Agent',
+    id: 'tp-audience-agent',
+    title: 'Transparent Audience Agent',
     description: 'Watch how this agent transforms campaign briefs into actionable strategies, automatically identifying opportunities and optimizing for maximum impact.',
     category: 'Strategy & Planning',
-    videoSrc: '/videos/audience-engine-demo-new.mp4',
-    posterSrc: '/videos/audience-engine-demo-new-poster.jpg',
-    icon: '📋',
+    videoSrc: '/videos/tp-audience-agent.mp4',
+    posterSrc: '/videos/tp-audience-agent-poster.jpg',
+    icon: '🎯',
     color: 'blue',
     gradientFrom: 'from-blue-50',
     gradientTo: 'to-indigo-100',
     borderColor: 'border-blue-200'
   },
   {
-    id: 'tmdqa',
-    title: 'Transparent Marketing Data Query Agent',
-    description: 'See real-time performance insights and automated optimization recommendations that drive measurable ROI improvements.',
-    category: 'Analytics & Insights',
-    videoSrc: '/videos/tmdqa-demo.mp4',
-    posterSrc: '/videos/tmdqa-poster.jpg',
-    icon: '📊',
-    color: 'teal',
-    gradientFrom: 'from-teal-50',
-    gradientTo: 'to-emerald-100',
-    borderColor: 'border-teal-200'
+    id: 'tp-intelligence-agent',
+    title: 'Transparent Intelligence Agent',
+    description: 'Experience advanced AI intelligence that analyzes data patterns, generates insights, and provides strategic recommendations for optimal decision-making.',
+    category: 'AI & Intelligence',
+    videoSrc: '/videos/tp-intelligence-agent.mp4',
+    posterSrc: '/videos/tp-intelligence-agent-poster.jpg',
+    icon: '🧠',
+    color: 'purple',
+    gradientFrom: 'from-purple-50',
+    gradientTo: 'to-violet-100',
+    borderColor: 'border-purple-200'
   },
   {
     id: 'interview-research',
