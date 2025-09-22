@@ -40,17 +40,17 @@ export const demoVideos: DemoVideo[] = [
     borderColor: 'border-purple-200'
   },
   {
-    id: 'interview-research',
-    title: 'Interview & Research Agent',
-    description: 'Discover how this agent conducts intelligent research, synthesizes insights, and collaborates seamlessly with your team.',
+    id: 'knowledge-agent',
+    title: 'Knowledge Agent',
+    description: 'Experience how this intelligent knowledge agent processes information, answers questions, and provides contextual insights across your organization.',
     category: 'Knowledge & Collaboration',
-    videoSrc: '/videos/interview-research-demo.mp4',
+    videoSrc: '/videos/Transparent_Agent_Portal_Knowledge_Demo_925.mp4',
     posterSrc: undefined, // Will show fallback placeholder
-    icon: '🔍',
-    color: 'purple',
-    gradientFrom: 'from-purple-50',
-    gradientTo: 'to-violet-100',
-    borderColor: 'border-purple-200'
+    icon: '📚',
+    color: 'green',
+    gradientFrom: 'from-green-50',
+    gradientTo: 'to-emerald-100',
+    borderColor: 'border-green-200'
   },
   {
     id: 'content-creation',
