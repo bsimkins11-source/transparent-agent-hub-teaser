@@ -18,7 +18,7 @@ export const demoVideos: DemoVideo[] = [
     title: 'Transparent Audience Agent',
     description: 'Watch how this agent transforms campaign briefs into actionable strategies, automatically identifying opportunities and optimizing for maximum impact.',
     category: 'Strategy & Planning',
-    videoSrc: '/videos/tp-audience-agent.mp4',
+    videoSrc: '/videos/Audience_Agent_Demo_925.mp4',
     posterSrc: '/videos/tp-audience-agent-poster.jpg',
     icon: '',
     color: 'blue',
