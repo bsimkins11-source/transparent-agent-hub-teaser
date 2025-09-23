@@ -45,12 +45,12 @@ export default function HomePage() {
   };
 
   const nextSlide = () => {
-    const nextIndex = (currentSlideIndex + 1) % 5;
+    const nextIndex = (currentSlideIndex + 1) % demoVideos.length;
     setCurrentSlideIndex(nextIndex);
   };
 
   const previousSlide = () => {
-    const prevIndex = (currentSlideIndex - 1 + 5) % 5;
+    const prevIndex = (currentSlideIndex - 1 + demoVideos.length) % demoVideos.length;
     setCurrentSlideIndex(prevIndex);
   };
 
