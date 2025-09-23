@@ -44,7 +44,7 @@ export const demoVideos: DemoVideo[] = [
     title: 'Knowledge Agent',
     description: 'Experience how this intelligent knowledge agent processes information, answers questions, and provides contextual insights across your organization.',
     category: 'Knowledge & Collaboration',
-    videoSrc: '/videos/Transparent_Agent_Portal_Knowledge_Demo_925.mp4',
+    videoSrc: '/videos/transparent_knowledge_agent_demo_925.mp4',
     posterSrc: undefined, // Will show fallback placeholder
     icon: '',
     color: 'green',
