@@ -31,7 +31,7 @@ export const demoVideos: DemoVideo[] = [
     title: 'Transparent Intelligence Agent',
     description: 'Experience advanced AI intelligence that analyzes data patterns, generates insights, and provides strategic recommendations for optimal decision-making.',
     category: 'AI & Intelligence',
-    videoSrc: '/videos/tp-intelligence-agent.mp4',
+    videoSrc: '/videos/Marketing_Data_Agent_Demo_925.mp4',
     posterSrc: '/videos/tp-intelligence-agent-poster.jpg',
     icon: '',
     color: 'purple',
